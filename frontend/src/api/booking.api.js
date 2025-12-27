@@ -1,4 +1,4 @@
 import api from "./axios";
 
-export const bookTrialApi = (data) =>
-  api.post("/bookings", data);
+export const getTutors = () => api.get("/tutors");
+export const getTutorById = (id) => api.get(`/tutors/${id}`);

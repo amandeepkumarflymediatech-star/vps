@@ -1,57 +1,40 @@
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 import User from "../models/User.js";
-import Otp from "../models/Otp.js";
 
-/* ================= REGISTER (STEP 1) ================= */
 export const register = async (req, res) => {
-  try {
-    const { email } = req.body;
+  const { name, email, phone, password } = req.body;
 
-    const existingUser = await User.findOne({ email });
+  const userExist = await User.findOne({ email });
+  if (userExist) return res.status(400).json({ message: "User already exists" });
 
-    if (existingUser) {
-      return res.status(400).json({ message: "User already exists" });
-    }
+  const hashedPassword = await bcrypt.hash(password, 10);
 
-    // OTP already sent from frontend
-    res.status(200).json({
-      message: "OTP sent to email. Please verify OTP",
-    });
+  await User.create({
+    name,
+    email,
+    phone,
+    password: hashedPassword,
+  });
 
-  } catch (error) {
-    res.status(500).json({ message: "Register failed" });
-  }
+  res.json({ message: "Registered successfully" });
 };
 
-/* ================= VERIFY OTP & CREATE USER ================= */
-export const verifyRegisterOtp = async (req, res) => {
-  try {
-    const { name, email, phone, password, otp } = req.body;
+export const login = async (req, res) => {
+  const { email, password } = req.body;
 
-    const otpRecord = await Otp.findOne({ email, otp });
+  const user = await User.findOne({ email });
+  if (!user) return res.status(400).json({ message: "Invalid credentials" });
 
-    if (!otpRecord) {
-      return res.status(400).json({ message: "Invalid OTP" });
-    }
+  if (!user.isVerified)
+    return res.status(400).json({ message: "Verify email first" });
 
-    if (otpRecord.expiresAt < new Date()) {
-      await Otp.deleteOne({ _id: otpRecord._id });
-      return res.status(400).json({ message: "OTP expired" });
-    }
+  const isMatch = await bcrypt.compare(password, user.password);
+  if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
 
-    await User.create({
-      name,
-      email,
-      phone,
-      password,
-    });
+  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+    expiresIn: "7d",
+  });
 
-    await Otp.deleteOne({ _id: otpRecord._id });
-
-    res.status(201).json({
-      message: "Registration successful",
-    });
-
-  } catch (error) {
-    res.status(500).json({ message: "OTP verification failed" });
-  }
+  res.json({ token });
 };

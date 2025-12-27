@@ -11,6 +11,7 @@ export const verifyOtp = (data) => {
 };
 
 /* ================= RESEND OTP ================= */
+// 🔁 resend = send again
 export const resendOtp = (data) => {
-  return api.post("/otp/resend", data);
+  return api.post("/otp/send", data);
 };

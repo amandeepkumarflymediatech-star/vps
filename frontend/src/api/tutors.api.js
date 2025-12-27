@@ -1,3 +1,4 @@
 import api from "./axios";
 
-export const getTutorsApi = () => api.get("/tutors");
+export const getTutors = () => api.get("/tutors");
+export const getTutorById = (id) => api.get(`/tutors/${id}`);

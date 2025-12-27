@@ -1,156 +1,3 @@
-// import { Link } from "react-router-dom";
-// import { GoogleLogin } from "@react-oauth/google";
-// import { jwtDecode } from "jwt-decode";
-// import { useState } from "react";
-// import { FiEye, FiEyeOff } from "react-icons/fi";
-// import { registerUser, googleLogin } from "../api/auth.api";
-
-// const Register = () => {
-//   const [showPassword, setShowPassword] = useState(false);
-//   const [form, setForm] = useState({
-//     name: "",
-//     email: "",
-//     phone: "",
-//     password: "",
-//   });
-
-//   const handleChange = (e) => {
-//     setForm({ ...form, [e.target.name]: e.target.value });
-//   };
-
-//   const handleSubmit = async (e) => {
-//     e.preventDefault();
-//     try {
-//       await registerUser(form);
-//       alert("Registration successful ✅");
-//     } catch (err) {
-//       alert(err.response?.data?.message || "Registration failed");
-//     }
-//   };
-
-//   const handleGoogleRegister = async (credentialResponse) => {
-//     const user = jwtDecode(credentialResponse.credential);
-
-//     await googleLogin({
-//       name: user.name,
-//       email: user.email,
-//       picture: user.picture,
-//       googleId: user.sub,
-//     });
-//   };
-
-//   return (
-//     <div className="min-h-screen flex items-center justify-center bg-[#F8F3F3] px-4">
-//       <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-8">
-
-//         <h2 className="text-3xl font-bold text-center mb-2">
-//           Create Account
-//         </h2>
-//         <p className="text-center text-md text-gray-600 mb-6">
-//           Start your journey to fluent English
-//         </p>
-
-//         <form onSubmit={handleSubmit} className="space-y-4">
-
-//           <div>
-//             <label className="text-sm font-medium">Full Name</label>
-//             <input
-//               name="name"
-//               required
-//               value={form.name}
-//               onChange={handleChange}
-//               type="text"
-//               placeholder="Enter your name"
-//               className="w-full mt-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#0852A1]"
-//             />
-//           </div>
-
-//           <div>
-//             <label className="text-sm font-medium">Email</label>
-//             <input
-//               name="email"
-//               required
-//               value={form.email}
-//               onChange={handleChange}
-//               type="email"
-//               placeholder="Enter your email"
-//               className="w-full mt-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#0852A1]"
-//             />
-//           </div>
-
-//           <div>
-//             <label className="text-sm font-medium">Phone Number</label>
-//             <input
-//               name="phone"
-//               required
-//               inputMode="numeric"
-//               pattern="^[0-9]{10,15}$"
-//               maxLength={15}
-//               value={form.phone}
-//               onChange={handleChange}
-//               type="tel"
-//               placeholder="Enter your phone number"
-//               className="w-full mt-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#0852A1]"
-//             />
-//           </div>
-
-//           <div>
-//             <label className="text-sm font-medium">Password</label>
-//             <div className="relative">
-//               <input
-//                 name="password"
-//                 required
-//                 value={form.password}
-//                 onChange={handleChange}
-//                 type={showPassword ? "text" : "password"}
-//                 placeholder="Create a password"
-//                 className="w-full mt-1 px-4 py-2 border rounded-lg pr-10 focus:ring-2 focus:ring-[#0852A1]"
-//               />
-//               <button
-//                 type="button"
-//                 onClick={() => setShowPassword(!showPassword)}
-//                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
-//               >
-//                 {showPassword ? <FiEyeOff /> : <FiEye />}
-//               </button>
-//             </div>
-//           </div>
-
-//           <button
-//             type="submit"
-//             className="w-full bg-[#0852A1] text-white py-2 rounded-lg font-semibold hover:bg-[#063F7C]"
-//           >
-//             Register
-//           </button>
-//         </form>
-
-//         <div className="flex items-center gap-3 my-6">
-//           <div className="flex-1 h-px bg-gray-200" />
-//           <span className="text-sm text-gray-400">OR</span>
-//           <div className="flex-1 h-px bg-gray-200" />
-//         </div>
-
-//         <GoogleLogin
-//           onSuccess={handleGoogleRegister}
-//           onError={() => console.log("Google Register Failed")}
-//           width="100%"
-//         />
-
-//         <p className="text-center text-sm mt-6">
-//           Already have an account?{" "}
-//           <Link to="/login" className="text-[#0852A1] font-medium hover:underline">
-//             Login
-//           </Link>
-//         </p>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default Register;
-
-
-
 import { Link, useNavigate } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
@@ -187,9 +34,9 @@ const Register = () => {
       await sendOtp({ email: form.email });
 
       // 3️⃣ Redirect to OTP page with email
-      navigate("/verify-otp", {
-        state: { email: form.email },
-      });
+     navigate("/register-otp", {
+  state: { email: form.email },
+});
 
     } catch (err) {
       alert(err.response?.data?.message || "Registration failed");
@@ -309,3 +156,5 @@ const Register = () => {
 };
 
 export default Register;
+
+
