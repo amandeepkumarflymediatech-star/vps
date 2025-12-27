@@ -29,10 +29,11 @@ const VerifyOtp = () => {
     try {
       setLoading(true);
 
-      await verifyOtp({ email, otp }); // ✅ FIXED
+      await verifyOtp({ email, otp });
 
+      // Pass both email and otp to reset password page
       navigate("/reset-password", {
-        state: { email },
+        state: { email, otp },
       });
     } catch (err) {
       setError(err?.response?.data?.message || "Invalid OTP");

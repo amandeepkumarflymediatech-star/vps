@@ -1,4 +1,9 @@
+import { Link } from "react-router-dom";
+
+
+
 const courses = [
+  
   {
     title: "Business English",
     price: "39.99",
@@ -93,9 +98,16 @@ const CoursesPricing = () => {
               </ul>
 
               {/* BUTTON */}
-              <button className="w-full border border-[#0852A1] text-[#0852A1] py-2 rounded-full font-semibold hover:bg-[#0852A1] hover:text-white transition">
+              {/* <button className="w-full border border-[#0852A1] text-[#0852A1] py-2 rounded-full font-semibold hover:bg-[#0852A1] hover:text-white transition">
                 Buy Now
-              </button>
+              </button> */}
+
+   <Link to="/login">
+  <button className="w-full border border-[#0852A1] text-[#0852A1] py-2 rounded-full font-semibold hover:bg-[#0852A1] hover:text-white transition">
+    Buy Now
+  </button>
+</Link>
+
             </div>
           ))}
         </div>

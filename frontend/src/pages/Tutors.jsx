@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { Search } from "lucide-react";
 import tutorImg from "../assets/tutor.png";
+import { Link } from "react-router-dom";
+import tutorheroImg from "../assets/tutorimg.jpg";
+
 
 /* ================= TUTORS DATA ================= */
 const tutorsData = [
@@ -96,17 +99,21 @@ const Tutors = () => {
               <li>✔ Risk-Free Trial</li>
             </ul>
 
-            <button className="mt-8 px-6 py-3 bg-[#0852A1] text-white rounded-lg font-semibold hover:bg-[#063F7C] transition">
-              Book a Free Trial
-            </button>
+            
+               <Link to="/login">
+  <button className="mt-8 px-6 py-3 bg-[#0852A1] text-white rounded-lg font-semibold hover:bg-[#063F7C] transition">
+    Book a Free Trial
+  </button>
+</Link>
           </div>
+
 
           {/* RIGHT IMAGE */}
           <div className="flex justify-center">
             <img
-              src={tutorImg}
+              src={tutorheroImg}
               alt="Tutors"
-              className="max-w-md w-full shadow-xl"
+              className="max-w-md w-full shadow-xl border-round"
             />
           </div>
         </div>
@@ -173,10 +180,12 @@ const Tutors = () => {
                     </span>
                   ))}
                 </div>
-
+ <Link to="/login">
                 <button className="mt-6 w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-full font-semibold transition">
                   Schedule Trial
                 </button>
+                </Link>
+
               </div>
             </div>
           ))}

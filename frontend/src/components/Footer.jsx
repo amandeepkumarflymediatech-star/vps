@@ -249,7 +249,7 @@ const Footer = () => {
             © {new Date().getFullYear()} The English Raj. All Rights Reserved.
           </p>
         </div>
-
+          
         {/* Legal Links */}
         <div className="text-center text-xs text-black/60 pb-6">
           <Link to="/privacy" className="mx-2 hover:underline">Privacy</Link>

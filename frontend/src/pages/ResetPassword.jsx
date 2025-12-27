@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { resetPassword } from "../api/auth.api";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const ResetPassword = () => {
   const [password, setPassword] = useState("");
@@ -11,12 +11,21 @@ const ResetPassword = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const navigate = useNavigate(); // ✅ added
+  const navigate = useNavigate();
+  const { state } = useLocation();
+  const email = state?.email;
+  const otp = state?.otp;
 
   const handleReset = async (e) => {
     e.preventDefault();
     setError("");
     setSuccess("");
+
+    if (!email || !otp) {
+      setError("Session expired. Please start over.");
+      setTimeout(() => navigate("/forgot-password"), 2000);
+      return;
+    }
 
     if (password.length < 6) {
       setError("Password must be at least 6 characters");
@@ -31,14 +40,15 @@ const ResetPassword = () => {
     try {
       setLoading(true);
 
-      await resetPassword({ password });
+      // Send email, otp, and newPassword to backend
+      await resetPassword({ email, otp, newPassword: password });
 
       setSuccess("Password updated successfully. Redirecting to login...");
 
       setPassword("");
       setConfirmPassword("");
 
-      // ✅ Redirect to login after 2 seconds
+      // Redirect to login after 2 seconds
       setTimeout(() => {
         navigate("/login");
       }, 2000);

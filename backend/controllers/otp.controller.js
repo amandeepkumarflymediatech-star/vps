@@ -4,33 +4,69 @@
 // import sendEmail from "../utils/sendEmail.js";
 
 // export const sendOtp = async (req, res) => {
-//   const { email } = req.body;
+//   try {
+//     const { email } = req.body;
 
-//   const otp = generateOtp();
-//   await Otp.deleteMany({ email });
+//     if (!email) {
+//       return res.status(400).json({ message: "Email is required" });
+//     }
 
-//   await Otp.create({
-//     email,
-//     otp,
-//     expiresAt: Date.now() + 5 * 60 * 1000,
-//   });
+//     // Generate OTP
+//     const otp = generateOtp();
 
-//   await sendEmail(email, otp);
+//     // Delete old OTPs for this email (any type)
+//     await Otp.deleteMany({ email });
 
-//   res.json({ message: "OTP sent" });
+//     // Create new OTP (default type is "register")
+//     await Otp.create({
+//       email,
+//       otp,
+//       type: "register",
+//       expiresAt: Date.now() + 5 * 60 * 1000, // 5 minutes
+//     });
+
+//     // Send OTP email
+//     await sendEmail(email, otp);
+
+//     res.json({ message: "OTP sent successfully" });
+//   } catch (error) {
+//     console.error("Send OTP error:", error);
+//     res.status(500).json({ message: "Failed to send OTP" });
+//   }
 // };
 
 // export const verifyOtp = async (req, res) => {
-//   const { email, otp } = req.body;
+//   try {
+//     const { email, otp } = req.body;
 
-//   const record = await Otp.findOne({ email, otp });
-//   if (!record || record.expiresAt < Date.now())
-//     return res.status(400).json({ message: "Invalid or expired OTP" });
+//     if (!email || !otp) {
+//       return res.status(400).json({ message: "Email and OTP are required" });
+//     }
 
-//   await User.updateOne({ email }, { isVerified: true });
-//   await Otp.deleteMany({ email });
+//     // Find OTP record
+//     const record = await Otp.findOne({ email, otp });
 
-//   res.json({ message: "OTP verified" });
+//     if (!record || record.expiresAt < Date.now()) {
+//       return res.status(400).json({ message: "Invalid or expired OTP" });
+//     }
+
+//     // If this is a registration OTP, mark user as verified
+//     if (record.type === "register") {
+//       const user = await User.findOne({ email });
+//       if (user && !user.isVerified) {
+//         user.isVerified = true;
+//         await user.save();
+//       }
+//     }
+
+//     // Delete OTP after verification
+//     await Otp.deleteMany({ email });
+
+//     res.json({ message: "OTP verified successfully" });
+//   } catch (error) {
+//     console.error("Verify OTP error:", error);
+//     res.status(500).json({ message: "Failed to verify OTP" });
+//   }
 // };
 
 
@@ -40,7 +76,8 @@ import User from "../models/User.js";
 import generateOtp from "../utils/generateOtp.js";
 import sendEmail from "../utils/sendEmail.js";
 
-export const sendOtp = async (req, res) => {
+/* ================= REGISTER OTP ================= */
+export const sendRegisterOtp = async (req, res) => {
   try {
     const { email } = req.body;
 
@@ -50,58 +87,71 @@ export const sendOtp = async (req, res) => {
 
     const otp = generateOtp();
 
-    await Otp.deleteMany({ email });
+    await Otp.deleteMany({ email, type: "register" });
 
     await Otp.create({
       email,
       otp,
+      type: "register",
       expiresAt: Date.now() + 5 * 60 * 1000,
     });
 
-    // 🔥 MOST LIKELY FAILING HERE
     await sendEmail(email, otp);
 
-    return res.status(200).json({
-      success: true,
-      message: "OTP sent successfully",
-    });
+    res.json({ message: "Register OTP sent successfully" });
   } catch (error) {
-    console.error("SEND OTP ERROR 👉", error);
-
-    return res.status(500).json({
-      success: false,
-      message: "Failed to send OTP",
-    });
+    console.error("Send register OTP error:", error);
+    res.status(500).json({ message: "Failed to send OTP" });
   }
 };
 
-export const verifyOtp = async (req, res) => {
+/* ================= VERIFY REGISTER OTP ================= */
+export const verifyRegisterOtp = async (req, res) => {
   try {
     const { email, otp } = req.body;
 
-    if (!email || !otp) {
-      return res.status(400).json({ message: "Email and OTP required" });
-    }
-
-    const record = await Otp.findOne({ email, otp });
+    const record = await Otp.findOne({ email, otp, type: "register" });
 
     if (!record || record.expiresAt < Date.now()) {
       return res.status(400).json({ message: "Invalid or expired OTP" });
     }
 
     await User.updateOne({ email }, { isVerified: true });
-    await Otp.deleteMany({ email });
+    await Otp.deleteMany({ email, type: "register" });
 
-    return res.status(200).json({
-      success: true,
-      message: "OTP verified successfully",
-    });
+    res.json({ message: "Registration verified successfully" });
   } catch (error) {
-    console.error("VERIFY OTP ERROR 👉", error);
+    console.error("Verify register OTP error:", error);
+    res.status(500).json({ message: "OTP verification failed" });
+  }
+};
 
-    return res.status(500).json({
-      success: false,
-      message: "OTP verification failed",
+/* ================= PASSWORD RESET OTP ================= */
+export const sendResetOtp = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    }
+
+    const otp = generateOtp();
+
+    await Otp.deleteMany({ email, type: "password-reset" });
+
+    await Otp.create({
+      email,
+      otp,
+      type: "password-reset",
+      expiresAt: Date.now() + 5 * 60 * 1000,
     });
+
+    await sendEmail(email, otp);
+
+    res.json({ message: "Password reset OTP sent" });
+  } catch (error) {
+    console.error("Send reset OTP error:", error);
+    res.status(500).json({ message: "Failed to send reset OTP" });
   }
 };

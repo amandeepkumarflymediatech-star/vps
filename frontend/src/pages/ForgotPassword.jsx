@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { sendOtp } from "../api/otp.api";
+import { forgotPassword } from "../api/auth.api";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
@@ -8,7 +8,7 @@ const ForgotPassword = () => {
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
 
-  const navigate = useNavigate(); // ✅ ADD THIS
+  const navigate = useNavigate();
 
   const handleSendOtp = async (e) => {
     e.preventDefault();
@@ -24,12 +24,12 @@ const ForgotPassword = () => {
     try {
       setLoading(true);
 
-      // 👉 API CALL
-      await sendOtp({ email });
+      // Call forgot-password API which sends OTP
+      await forgotPassword(email);
 
       setSuccess("OTP has been sent to your email");
 
-      // ✅ REDIRECT TO OTP PAGE (WITH EMAIL)
+      // Redirect to OTP verification page with email
       setTimeout(() => {
         navigate("/verify-otp", { state: { email } });
       }, 800);
