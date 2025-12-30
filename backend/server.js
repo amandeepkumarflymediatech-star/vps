@@ -19,6 +19,11 @@ app.use(
   })
 );
 
+
+app.get("/", (req, res) => {
+  res.send("Backend LIVE from VPS 🚀");
+});
+
 /* ================= MIDDLEWARE ================= */
 app.use(express.json());
 app.use(cookieParser());
