@@ -1,115 +1,273 @@
 
+
+
+
+// import { motion } from "framer-motion";
+// import { useNavigate } from "react-router-dom";
+// import heroBg from "@/assets/home-bg/englsih-raj.jpg";
+
+// const fadeUp = {
+//   hidden: { opacity: 0, y: 40 },
+//   visible: { opacity: 1, y: 0 },
+// };
+
+// const Home = () => {
+//   const navigate = useNavigate();
+//   const isLoggedIn = !!localStorage.getItem("token");
+
+//   const handleBookNow = () => {
+//     navigate(isLoggedIn ? "/tutors" : "/register");
+//   };
+
+//   return (
+//     <div className="w-full overflow-hidden">
+
+//       {/* ================= HERO SECTION ================= */}
+//       <section
+//         className="relative min-h-[95vh] flex items-center"
+//         style={{
+//           backgroundImage: `url(${heroBg})`,
+//           backgroundSize: "cover",
+//           backgroundPosition: "center",
+//         }}
+//       >
+//         {/* Overlay */}
+//         <div className="absolute inset-0 bg-black/40"></div>
+
+//         <div className="relative z-10 max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-14 items-center">
+
+//           {/* ================= LEFT MAIN CONTENT ================= */}
+//           <motion.div
+//             variants={fadeUp}
+//             initial="hidden"
+//             animate="visible"
+//             transition={{ duration: 0.8 }}
+//             className="bg-white/30 backdrop-blur-md rounded-2xl p-10 shadow-2xl"
+//           >
+//             <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
+//               The English Raj
+//             </h1>
+
+//             <h2 className="mt-2 text-lg lg:text-xl font-semibold text-[#0852A1]">
+//               Conquer the world with your English
+//             </h2>
+
+//             <h3 className="mt-6 text-xl font-bold text-gray-900">
+//               About Us
+//             </h3>
+
+//             <p className="mt-3 text-gray-700 text-sm lg:text-base leading-relaxed">
+//               Our students continue to carve their niche in diverse fields,
+//               supported by our adept team of professionals.
+//             </p>
+
+//             <p className="mt-4 text-gray-700 text-sm lg:text-base leading-relaxed">
+//               Whether you are a working professional, a beginner, a student
+//               aspiring to study abroad, or a graduate preparing for interviews —
+//               <span className="font-semibold text-[#0852A1]">
+//                 {" "}your progress begins here.
+//               </span>
+//             </p>
+
+//             <h3 className="text-lg font-bold text-gray-900 mb-5">
+//               Our Expertise
+//             </h3>
+
+//             <div className="flex flex-wrap gap-3">
+//               {[
+//                 "IELTS Preparation",
+//                 "English Phonetics",
+//                 "Public Speaking",
+//                 "Grammatical Accuracy",
+//                 "Interview Preparation",
+//                 "Business English",
+//                 "Creative Writing",
+//               ].map((skill, index) => (
+//                 <span
+//                   key={index}
+//                   className="px-4 py-2 text-sm rounded-full bg-blue-100 text-[#0852A1] font-medium"
+//                 >
+//                   {skill}
+//                 </span>
+//               ))}
+//             </div>
+
+//             <motion.button
+//               whileHover={{ scale: 1.05 }}
+//               whileTap={{ scale: 0.95 }}
+//               onClick={handleBookNow}
+//               className="mt-8 bg-[#0852A1] hover:bg-[#063F7C] cursor-pointer text-white px-8 py-3 rounded-full text-sm font-semibold"
+//             >
+//               ACTIVATE
+//             </motion.button>
+//           </motion.div>
+//         </div>
+//       </section>
+
+//       {/* ================= STATS SECTION ================= */}
+//       <section className="bg-gradient-to-r from-[#0B3C66] to-[#0852A1] py-14">
+//         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+//           {[
+//             { value: "1,000+", label: "Successful Learners", icon: "🎯" },
+//             { value: "95%", label: "Satisfaction Rate", icon: "⭐" },
+//             { value: "3x Faster", label: "Speaking Improvement", icon: "🚀" },
+//           ].map((stat, index) => (
+//             <motion.div
+//               key={index}
+//               initial={{ opacity: 0, y: 30 }}
+//               whileInView={{ opacity: 1, y: 0 }}
+//               transition={{ delay: index * 0.15 }}
+//               viewport={{ once: true }}
+//               className="bg-white rounded-xl p-6 shadow-lg flex items-center gap-4"
+//             >
+//               <div className="w-12 h-12 flex items-center justify-center rounded-full bg-blue-100 text-2xl">
+//                 {stat.icon}
+//               </div>
+//               <div>
+//                 <h3 className="text-xl font-bold text-gray-900">
+//                   {stat.value}
+//                 </h3>
+//                 <p className="text-sm text-gray-600">
+//                   {stat.label}
+//                 </p>
+//               </div>
+//             </motion.div>
+//           ))}
+//         </div>
+//       </section>
+
+//     </div>
+//   );
+// };
+
+// export default Home;
+
+
+
+
+
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import heroBg from "@/assets/home-bg/englsih-raj.jpg";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 40 },
   visible: { opacity: 1, y: 0 },
 };
 
-const slideRight = {
-  hidden: { opacity: 0, x: 80 },
-  visible: { opacity: 1, x: 0 },
-};
-
 const Home = () => {
   const navigate = useNavigate();
+  const isLoggedIn = !!localStorage.getItem("token");
+
+  const handleBookNow = () => {
+    navigate(isLoggedIn ? "/tutors" : "/register");
+  };
 
   return (
     <div className="w-full overflow-hidden">
 
-      {/* ===== HERO SECTION ===== */}
+      {/* ================= HERO SECTION ================= */}
       <section
-        className="relative min-h-[95vh] flex items-center"
+        className="relative min-h-screen flex items-center"
         style={{
-          backgroundImage:
-            "url('https://images.unsplash.com/photo-1519389950473-47ba0277781c')",
+          backgroundImage: `url(${heroBg})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
       >
-        <div className="absolute inset-0 bg-black/30"></div>
+        {/* Overlay */}
+        <div className="absolute inset-0 bg-black/40"></div>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
 
-          {/* ===== LEFT CONTENT ===== */}
+          {/* ================= MAIN CONTENT ================= */}
           <motion.div
             variants={fadeUp}
             initial="hidden"
             animate="visible"
             transition={{ duration: 0.8 }}
-            className="backdrop-blur-md bg-white/80 rounded-2xl p-8 shadow-xl max-w-xl"
+            className="bg-white/40 backdrop-blur-lg rounded-2xl shadow-2xl
+                       p-6 sm:p-8 lg:p-10
+                       max-w-full lg:max-w-2xl"
           >
-            <motion.h1
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="text-4xl font-bold text-gray-900 leading-tight"
-            >
-              Master English with <br />
-              <span className="text-[#0852A1]">Live 1-on-1 Sessions</span>
-            </motion.h1>
+            {/* Title */}
+            <h1 className="text-xl sm:text-2xl lg:text-1xl font-bold text-gray-900">
+              The English Raj
+            </h1>
 
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.4 }}
-              className="mt-5 text-gray-700 leading-relaxed text-sm"
-            >
-              The English Raj offers personalized one-on-one English learning with expert tutors. Whether you’re preparing for interviews, office meetings, or public speaking, learn at your own pace, choose flexible time slots, and build real-life confidence through practical conversations that accelerate your growth.
-            </motion.p>
+            <h2 className=" mt-1 text-base sm:text-md lg:text-lg font-semibold text-[#0852A1]">
+              Conquer the world with your English
+            </h2>
 
+            {/* About */}
+            <h3 className="mt-3 text-lg sm:text-xl font-bold text-gray-900">
+              About Us
+            </h3>
+
+            <p className="mt-1 text-gray-800 text-sm sm:text-base leading-relaxed">
+              Our students continue to carve their niche in diverse fields,
+              supported by our adept team of professionals.
+            </p>
+
+            <p className="mt-2 text-gray-800 text-sm sm:text-base leading-relaxed">
+              Whether you are a working professional, a beginner, a student
+              aspiring to study abroad, or a graduate preparing for interviews —
+              <span className="font-semibold text-[#0852A1]">
+                {" "}your progress begins here.
+              </span>
+            </p>
+
+            {/* Expertise */}
+            <h3 className="mt-2 text-base sm:text-lg font-bold text-gray-900">
+              Our Expertise
+            </h3>
+
+            <div className="mt-3 flex flex-wrap gap-2 sm:gap-2">
+              {[
+                "IELTS Preparation",
+                "English Phonetics",
+                "Public Speaking",
+                "Grammatical Accuracy",
+                "Interview Preparation",
+                "Business English",
+                "Creative Writing",
+              ].map((skill, index) => (
+                <span
+                  key={index}
+                  className="px-2 py-1.5 sm:px-3 sm:py-2
+                             text-xs sm:text-sm
+                             rounded-full
+                             bg-blue-100 text-[#0852A1] font-medium"
+                >
+                  {skill}
+                </span>
+              ))}
+            </div>
+
+            {/* CTA */}
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={() => navigate("/register")}
-              className="mt-6 bg-[#0852A1] hover:bg-[#063F7C] text-white px-6 py-3 rounded-full text-sm font-medium"
+              onClick={handleBookNow}
+              className="mt-8 w-full sm:w-auto
+                         bg-[#0852A1] hover:bg-[#063F7C]
+                         text-white px-8 py-3
+                         rounded-full text-sm font-semibold"
             >
-              BOOK NOW →
+              ACTIVATE
             </motion.button>
-          </motion.div> {/* ✅ FIX HERE */}
-
-          {/* ===== RIGHT PRICING CARDS ===== */}
-          <motion.div
-            variants={slideRight}
-            initial="hidden"
-            animate="visible"
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="flex flex-col gap-4 items-end"
-          >
-            {[
-              { lessons: "8 LESSONS", price: "2830 (including GST)", icon: "📘" },
-              { lessons: "12 LESSONS", price: "3530 (including GST)", icon: "🏠" },
-              { lessons: "16 LESSONS", price: "4720 (including GST)", icon: "👥" },
-            ].map((item, index) => (
-              <motion.div
-                key={index}
-                whileHover={{ y: -6, scale: 1.03 }}
-                transition={{ type: "spring", stiffness: 300 }}
-                className="bg-white rounded-xl shadow-lg px-5 py-4 w-64 flex items-center gap-3"
-              >
-                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                  {item.icon}
-                </div>
-                <div>
-                  <h4 className="text-sm font-semibold">{item.lessons}</h4>
-                  <p className="text-xs text-gray-500">{item.price}</p>
-                </div>
-              </motion.div>
-            ))}
           </motion.div>
-
         </div>
       </section>
 
-      {/* ===== STATS ===== */}
-      {/* <section className="bg-gradient-to-r from-[#0B3C66] to-[#0852A1] py-10">
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-6">
+      {/* ================= STATS SECTION ================= */}
+      <section className="bg-gradient-to-r from-[#0B3C66] to-[#0852A1] py-12 sm:py-14">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8
+                        grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8">
           {[
-            { value: "10,000+", label: "Successful Learners", icon: "🖥️" },
-            { value: "500+", label: "Verified Tutors", icon: "👥" },
-            { value: "95%", label: "Satisfaction Rate", icon: "🎓" },
-            { value: "3x Faster", label: "Improvement", icon: "🧾" },
+            { value: "1,000+", label: "Successful Learners", icon: "🎯" },
+            { value: "95%", label: "Satisfaction Rate", icon: "⭐" },
+            { value: "3x Faster", label: "Speaking Improvement", icon: "🚀" },
           ].map((stat, index) => (
             <motion.div
               key={index}
@@ -117,67 +275,23 @@ const Home = () => {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.15 }}
               viewport={{ once: true }}
-              className="bg-white rounded-xl p-4 text-center shadow-md"
+              className="bg-white rounded-xl p-5 sm:p-6 shadow-lg flex items-center gap-4"
             >
-              <div className="text-2xl mb-1">{stat.icon}</div>
-              <h3 className="text-xl font-bold">{stat.value}</h3>
-              <p className="text-xs text-gray-600">{stat.label}</p>
+              <div className="w-12 h-12 flex items-center justify-center rounded-full bg-blue-100 text-2xl">
+                {stat.icon}
+              </div>
+              <div>
+                <h3 className="text-lg sm:text-xl font-bold text-gray-900">
+                  {stat.value}
+                </h3>
+                <p className="text-sm text-gray-600">
+                  {stat.label}
+                </p>
+              </div>
             </motion.div>
           ))}
         </div>
-      </section> */}
-
-
-<section className="bg-gradient-to-r from-[#0B3C66] to-[#0852A1] py-10">
-  <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-    {[
-      {
-        value: "10,000+",
-        label: "Successful Learners",
-        icon: "🖥️",
-      },
-      {
-        value: "500+",
-        label: "Verified Expert Tutors",
-        icon: "👥",
-      },
-      {
-        value: "95%",
-        label: "Learner Satisfaction Rate",
-        icon: "🎓",
-      },
-      {
-        value: "3x Faster",
-        label: "Speaking Improvement",
-        icon: "🧾",
-      },
-    ].map((stat, index) => (
-      <motion.div
-        key={index}
-        initial={{ opacity: 0, y: 30 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ delay: index * 0.15 }}
-        viewport={{ once: true }}
-        className="bg-white rounded-xl p-5 shadow-md flex items-center gap-4"
-      >
-        {/* LEFT ICON */}
-        <div className="w-12 h-12 flex items-center justify-center rounded-full bg-blue-100 text-2xl">
-          {stat.icon}
-        </div>
-
-        {/* RIGHT TEXT */}
-        <div>
-          <h3 className="text-xl font-bold text-gray-900">
-            {stat.value}
-          </h3>
-          <p className="text-sm text-gray-600">
-            {stat.label}
-          </p>
-        </div>
-      </motion.div>
-    ))}
-  </div>
-</section>
+      </section>
 
     </div>
   );

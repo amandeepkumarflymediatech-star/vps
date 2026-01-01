@@ -8,6 +8,12 @@ const API = axios.create({
   },
 });
 
+/* ================= APPLY TUTOR ================= */
 export const applyTutorApi = (data) => {
   return API.post("/api/tutor/apply", data);
+};
+
+/* ================= TUTOR LOGIN ================= */
+export const tutorLogin = (data) => {
+  return API.post("/api/tutor/login", data);
 };

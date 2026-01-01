@@ -35,12 +35,12 @@ const goals = [
     image: speakingImg,
     desc: "Speak fluently in front of others without fear",
   },
-  {
-    id: "ielts",
-    label: "IELTS Speaking",
-    image: IELTSImg,
-    desc: "Speak Fluently & Confidently for IELTS Speaking",
-  },
+ {
+  id: "competitive-exams",
+  label: "IELTS / CAT / SSC",
+  image: IELTSImg, // you can change to a generic exam image
+  desc: "Fluency, accuracy & confidence for IELTS, CAT & SSC exams",
+},
 ];
 
 /* ================= COMPONENT ================= */

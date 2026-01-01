@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "https://api.theenglishraj.com//api",
+  baseURL: import.meta.env.VITE_API_URL || "https://api.theenglishraj.com/api",
   withCredentials: true,
 });
 
