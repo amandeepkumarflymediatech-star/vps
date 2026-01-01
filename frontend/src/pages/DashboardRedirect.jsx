@@ -33,7 +33,7 @@ const DashboardRedirect = () => {
     return <Navigate to="/tutor/dashboard" replace />;
   }
 
-  return <Navigate to="/dashboard" replace />;
+  return <Navigate to="/" replace />;
 };
 
 export default DashboardRedirect;

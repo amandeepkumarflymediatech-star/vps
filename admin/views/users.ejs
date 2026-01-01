@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Management</title>
+</head>
+<body>
+  <h1>Manage Users</h1>
+  <form action="/admin/users/create" method="POST">
+    <input type="text" name="username" placeholder="Username" required>
+    <input type="password" name="password" placeholder="Password" required>
+    <button type="submit">Create User</button>
+  </form>
+
+  <h2>Existing Users</h2>
+  <ul>
+    <% users.forEach(user => { %>
+      <li><%= user.username %> - <%= user.role %></li>
+    <% }) %>
+  </ul>
+</body>
+</html>

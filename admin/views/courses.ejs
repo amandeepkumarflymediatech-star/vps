@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Course Management</title>
+</head>
+<body>
+  <h1>Manage Courses</h1>
+  <form action="/admin/courses/create" method="POST">
+    <input type="text" name="title" placeholder="Course Title" required>
+    <textarea name="description" placeholder="Course Description" required></textarea>
+    <input type="text" name="instructor" placeholder="Instructor" required>
+    <input type="number" name="price" placeholder="Price" required>
+    <label for="published">Published:</label>
+    <input type="checkbox" name="published">
+    <button type="submit">Create Course</button>
+  </form>
+
+  <h2>Existing Courses</h2>
+  <ul>
+    <% courses.forEach(course => { %>
+      <li><%= course.title %> - <%= course.published ? 'Published' : 'Draft' %></li>
+    <% }) %>
+  </ul>
+</body>
+</html>
