@@ -1,5 +1,5 @@
 import User from "../models/User.js";
-import Organization from "../models/Organization.js";
+import Organization from "../models/organization.js";
 import bcrypt from "bcryptjs";
 
 export const createOrganization = async (req, res) => {
