@@ -1,4 +1,6 @@
 import TutorApplication from "../models/TutorApplication.js";
+import Class from "../models/class.js";
+import Batch from "../models/batch.js";
 
 export const applyTutor = async (req, res) => {
   console.log("🔥 POST /api/tutor/apply HIT");
@@ -40,7 +42,6 @@ export const applyTutor = async (req, res) => {
       success: true,
       message: "Application submitted successfully",
     });
-
   } catch (error) {
     console.error("❌ Tutor Apply Error:", error);
 
@@ -49,4 +50,23 @@ export const applyTutor = async (req, res) => {
       message: "Internal server error",
     });
   }
+};
+
+export const createClass = async (req, res) => {
+  const newClass = await Class.create({
+    title: req.body.title,
+    description: req.body.description,
+    tutorId: req.user.id,
+    organizationId: req.user.organizationId,
+  });
+  res.json(newClass);
+};
+
+export const createBatch = async (req, res) => {
+  const batch = await Batch.create({
+    ...req.body,
+    tutorId: req.user.id,
+    organizationId: req.user.organizationId,
+  });
+  res.json(batch);
 };
