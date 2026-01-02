@@ -20,9 +20,12 @@ import VerifyOtp from "./authentication/VerifyOtp";
 import ResetPassword from "./authentication/ResetPassword";
 import RegisterOtp from "./authentication/Registerotp";
 
-/* ================= TUTOR ================= */
-import TutorLogin from "@/tutor/pages/TutorLogin";
-import TutorDashboard from "@/tutor/pages/Dashboard";
+/* TUTOR */
+import TutorLogin from "./tutor/pages/TutorLogin";
+import TutorDashboard from "./tutor/pages/Dashboard";
+import Classes from "./tutor/Classes";
+import Settings from "./tutor/Settings";
+import TutorLayout from "./tutor/pages/TutorLayout";
 
 /* ================= DASHBOARD ================= */
 import DashboardRedirect from "./pages/DashboardRedirect";
@@ -61,9 +64,14 @@ const App = () => {
 
         {/* 👨‍🏫 TUTOR */}
         <Route path="/tutor/login" element={<TutorLogin />} />
-        <Route path="/tutor/dashboard" element={<TutorDashboard />} />
 
-     
+        {/* 👨‍🏫 TUTOR DASHBOARD WITH LAYOUT */}
+        <Route path="/tutor" element={<TutorLayout />}>
+          <Route index element={<TutorDashboard />} />
+          <Route path="dashboard" element={<TutorDashboard />} />
+          <Route path="classes" element={<Classes />} />
+          <Route path="settings" element={<Settings />} />
+        </Route>      
       </Routes>
     </>
   );
