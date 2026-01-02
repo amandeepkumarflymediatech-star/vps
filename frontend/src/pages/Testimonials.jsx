@@ -117,26 +117,6 @@ const Testimonials = () => {
           </motion.div>
         ))}
       </div>
-
-      {/* ===== CTA ===== */}
-      {/* <motion.div
-        initial={{ opacity: 0, y: 40 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        viewport={{ once: true }}
-        className="text-center mt-20"
-      >
-        <h3 className="text-2xl font-bold text-gray-800">
-          Ready to start your English journey?
-        </h3>
-        <p className="text-gray-600 mt-3">
-          Join thousands of learners who trust The English Raj.
-        </p>
-
-        <button className="mt-6 px-6 py-3 bg-[#0852A1] text-white rounded-lg font-medium hover:bg-[#063F7C] transition">
-          Book a Free Trial
-        </button>
-      </motion.div> */}
     </section>
   );
 };

@@ -1,30 +1,213 @@
-body {
-  font-family: Arial, sans-serif;
+* {
   margin: 0;
   padding: 0;
-  background-color: #f4f4f4;
+  box-sizing: border-box;
+  font-family: Arial, Helvetica, sans-serif;
 }
 
-h1 {
-  background-color: #333;
-  color: white;
+body {
+  display: flex;
+  background-color: #f4f6f8;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 240px;
+  height: 100vh;
+  background-color: #111827;
+  color: #fff;
+  position: fixed;
+}
+
+.logo {
+  text-align: center;
+  padding: 20px;
+  font-size: 22px;
+  border-bottom: 1px solid #1f2933;
+}
+
+.menu {
+  list-style: none;
+  margin-top: 20px;
+}
+
+.menu li {
+  padding: 15px 20px;
+}
+
+.menu li a {
+  color: #cbd5e1;
+  text-decoration: none;
+  display: block;
+}
+
+.menu li:hover,
+.menu li.active {
+  background-color: #1f2933;
+}
+
+.menu li.active a {
+  color: #fff;
+}
+
+/* Main Content */
+.main-content {
+  margin-left: 240px;
+  width: calc(100% - 240px);
+}
+
+/* Topbar */
+.topbar {
+  height: 60px;
+  background-color: #fff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.admin-profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-profile img {
+  border-radius: 50%;
+}
+
+/* Cards */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
   padding: 20px;
 }
 
-nav ul {
-  list-style-type: none;
-  padding: 0;
+.card {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08);
 }
 
-nav ul li {
-  display: inline;
-  margin-right: 10px;
+.card h3 {
+  font-size: 14px;
+  color: #6b7280;
 }
 
-form {
+.card p {
+  font-size: 28px;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+/* Content Box */
+.content-box {
+  background-color: #fff;
   margin: 20px;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08);
 }
 
-input, textarea, button {
-  margin: 10px 0;
+/* =========================
+   RESPONSIVE DESIGN
+========================= */
+
+/* Tablets */
+@media (max-width: 1024px) {
+  .cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  body {
+    flex-direction: column;
+  }
+
+  /* Sidebar becomes top menu */
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: relative;
+  }
+
+  .logo {
+    text-align: left;
+    padding-left: 20px;
+  }
+
+  .menu {
+    display: flex;
+    overflow-x: auto;
+  }
+
+  .menu li {
+    flex: 1;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .main-content {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .topbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    height: auto;
+    padding: 15px;
+  }
+
+  .cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Small Mobile */
+@media (max-width: 480px) {
+  .admin-profile span {
+    display: none;
+  }
+
+  .card p {
+    font-size: 22px;
+  }
+
+  .logo {
+    font-size: 18px;
+  }
+  .sidebar {
+    display: flex;
+    justify-content: space-between;
+  }
+}
+.menu-btn {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+/* Show button on mobile */
+@media (max-width: 768px) {
+  .menu-btn {
+    display: block;
+  }
+
+  .menu {
+    display: none;
+  }
+
+  .sidebar.active .menu {
+    display: flex;
+    flex-direction: column;
+  }
 }

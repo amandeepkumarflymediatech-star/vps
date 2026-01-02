@@ -27,7 +27,6 @@ import TutorLogin from "@/tutor/pages/TutorLogin";
 import DashboardRedirect from "./pages/DashboardRedirect";
 
 /* ================= ADMIN ================= */
-import AdminLayout from "./layouts/AdminLayout";
 import ProtectedRoute from "./common/ProtectedRoute";
 
 const App = () => {
@@ -62,15 +61,7 @@ const App = () => {
         {/* 👨‍🏫 TUTOR */}
         <Route path="/tutor/login" element={<TutorLogin />} />
 
-        {/* 🛡️ ADMIN */}
-        <Route
-          path="/admin/*"
-          element={
-            <ProtectedRoute role="admin">
-              <AdminLayout />
-            </ProtectedRoute>
-          }
-        />
+     
       </Routes>
     </>
   );
