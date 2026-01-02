@@ -1,13 +1,12 @@
 import TutorApplication from "../models/TutorApplication.js";
 import Class from "../models/class.js";
 import Batch from "../models/batch.js";
+import User from "../models/User.js";
 
 export const applyTutor = async (req, res) => {
-  console.log("🔥 POST /api/tutor/apply HIT");
-
   try {
     const { name, email, phone, expertise, experience } = req.body;
-
+    console.log("Received tutor application data:", req.body);
     // 1️⃣ Validation
     if (!name || !email || !phone || !expertise || !experience) {
       return res.status(400).json({
@@ -17,10 +16,10 @@ export const applyTutor = async (req, res) => {
     }
 
     // 2️⃣ Prevent duplicate applications
-    const existingTutor = await TutorApplication.findOne({
+    const existingTutor = await User.findOne({
       $or: [{ email }, { phone }],
     });
-
+    console.log("Existing tutor application check:", existingTutor);
     if (existingTutor) {
       return res.status(409).json({
         success: false,
@@ -29,12 +28,13 @@ export const applyTutor = async (req, res) => {
     }
 
     // 3️⃣ Save application
-    await TutorApplication.create({
+    await User.create({
       name,
       email,
       phone,
       expertise,
       experience,
+      role: "TUTOR",
     });
 
     // 4️⃣ Success response

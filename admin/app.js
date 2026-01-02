@@ -38,10 +38,13 @@ app.use(passport.session());
 
 // Routes
 app.use("/admin/users", require("./routes/userRoutes"));
-app.use("/admin/courses", require("./routes/courseRoutes")) 
+app.use("/admin/courses", require("./routes/courseRoutes"));
 app.use("/admin/", require("./routes/admin.routes"));
 // Dashboard Route
 app.get("/admin", (req, res) => {
+  if (!req.user) {
+    return res.redirect("/admin/login");
+  }
   res.render("dashboard");
 });
 

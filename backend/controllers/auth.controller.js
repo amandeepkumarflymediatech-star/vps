@@ -252,21 +252,21 @@ export const resetPassword = async (req, res) => {
 /* ================= LOGIN ================= */
 export const login = async (req, res) => {
   try {
-    const emailRaw = req.body.email;
-    const passwordRaw = req.body.password;
+    const { email: emailRaw, password: passwordRaw, role } = req.body;
 
     // 1️⃣ Validate input
-    if (!emailRaw || !passwordRaw) {
+    if (!emailRaw || !passwordRaw || !role) {
       return res.status(400).json({
         success: false,
-        message: "Email and password are required",
+        message: "Email, password, and role are required",
       });
     }
 
     const email = emailRaw.toLowerCase().trim();
     const password = String(passwordRaw);
+    const requestedRole = role.toUpperCase();
 
-    console.log("[login] attempt:", { email });
+    console.log("[login] attempt:", { email, requestedRole });
 
     // 2️⃣ Find user
     const user = await User.findOne({ email }).select("+password");
@@ -277,7 +277,23 @@ export const login = async (req, res) => {
       });
     }
 
-    // 3️⃣ Check email verification
+    // 3️⃣ Block admin login here
+    if (user.role === "ADMIN") {
+      return res.status(403).json({
+        success: false,
+        message: "Please use the admin login portal",
+      });
+    }
+
+    // 4️⃣ Role mismatch protection
+    if (user.role !== requestedRole) {
+      return res.status(403).json({
+        success: false,
+        message: `You are not allowed to login as ${requestedRole}`,
+      });
+    }
+
+    // 5️⃣ Email verification check
     if (!user.isVerified) {
       return res.status(401).json({
         success: false,
@@ -285,7 +301,7 @@ export const login = async (req, res) => {
       });
     }
 
-    // 4️⃣ Compare password safely
+    // 6️⃣ Password check
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({
@@ -294,20 +310,26 @@ export const login = async (req, res) => {
       });
     }
 
-    // 5️⃣ Generate JWT
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: process.env.JWT_EXPIRES_IN || "7d",
-    });
+    // 7️⃣ Generate JWT
+    const token = jwt.sign(
+      {
+        id: user._id,
+        role: user.role,
+        organizationId: user.organizationId,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES_IN || "7d" }
+    );
 
-    // 6️⃣ Set cookie
+    // 8️⃣ Set cookie
     res.cookie("token", token, {
       httpOnly: true,
-      sameSite: "lax",
-      secure: false, // set true in production with HTTPS
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    // 7️⃣ Response
+    // 9️⃣ Response
     return res.status(200).json({
       success: true,
       message: "Login successful",
@@ -316,6 +338,8 @@ export const login = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
+        role: user.role,
+        organizationId: user.organizationId,
       },
     });
   } catch (error) {
