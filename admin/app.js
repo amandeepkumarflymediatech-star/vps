@@ -58,7 +58,7 @@ app.use((req, res, next) => {
 
 app.use((err, req, res) => {
   if (err.message === "TOKEN_EXPIRED") {
-    return res.render("layouts/alert-redirect", {
+    return req.render("layouts/alert-redirect", {
       type: "error",
       title: "Session Expired",
       message: "Please login again.",
@@ -66,7 +66,7 @@ app.use((err, req, res) => {
     });
   }
 
-  return res.status(404).render("layouts/error", {
+  return req.status(404).render("layouts/error", {
     message: "Page not found",
     path: req.originalUrl,
   });

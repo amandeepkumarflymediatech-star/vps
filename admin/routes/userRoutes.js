@@ -114,16 +114,18 @@ router.post("/delete/:id", auth, role("ADMIN"), async (req, res) => {
 router.post("/toggle-status", async (req, res) => {
   try {
     let { id, status } = req.body;
-    status = status === true || status === "true";
 
+    console.log("Toggle Status Request:", req.body);
     const user = await User.findById(id);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
+    console.log("Updating user s befirtatus to:", user);
 
-    const newStatus = status ? "ACTIVE" : "INACTIVE";
+    const newStatus = status === "ACTIVE" ? "ACTIVE" : "INACTIVE";
 
-    if (newStatus === "ACTIVE") {
+    console.log("Current user status:", newStatus,newStatus !== "ACTIVE");
+    if (newStatus !== "ACTIVE") {
       // If activating a tutor who hasn't set password / verified, send setup link
       if (user.role === "TUTOR" && !user.isVerified) {
         const token = crypto.randomBytes(32).toString("hex");
@@ -155,7 +157,10 @@ router.post("/toggle-status", async (req, res) => {
       user.status = "INACTIVE";
     }
 
+    console.log("Updating user status to:", user);
+
     await user.save();
+     console.log("Updating user status taftero:", user);
     return res.json({
       success: true,
       status: user.status,

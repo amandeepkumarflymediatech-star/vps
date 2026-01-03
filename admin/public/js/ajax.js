@@ -1,25 +1,21 @@
-
 /* ===============================
    User Status Toggle
    =============================== */
 
-   // SweetAlert2 is already available as "Swal"
+// SweetAlert2 is already available as "Swal"
 
 $(document).on("click", ".status-toggle", function () {
-
   const badge = $(this);
   const userId = badge.data("id");
-  const currentStatus = badge.data("status");
-
+  const currentStatus = badge.data("status"); 
   Swal.fire({
     title: "Change status?",
     text: "Do you want to update this user status?",
     icon: "question",
     showCancelButton: true,
     confirmButtonText: "Yes",
-    cancelButtonText: "Cancel"
+    cancelButtonText: "Cancel",
   }).then((result) => {
-
     if (!result.isConfirmed) return;
 
     $.ajax({
@@ -27,13 +23,13 @@ $(document).on("click", ".status-toggle", function () {
       type: "POST",
       data: {
         id: userId,
-        status: !currentStatus
+        status: currentStatus,
       },
       success: function (res) {
+        console.log("Status Toggle Response:", res);
+        badge.data("status", res.status);
 
-        badge.data("status", res.isVerified);
-
-        if (res.isVerified) {
+        if (res.status=== "ACTIVE") {
           badge
             .text("Active")
             .removeClass("bg-yellow-100 text-yellow-700")
@@ -51,13 +47,12 @@ $(document).on("click", ".status-toggle", function () {
           icon: "success",
           title: "Status updated",
           showConfirmButton: false,
-          timer: 2000
+          timer: 2000,
         });
       },
       error: function () {
         Swal.fire("Error", "Failed to update status", "error");
-      }
+      },
     });
-
   });
 });
