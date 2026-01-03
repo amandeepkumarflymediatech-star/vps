@@ -1,15 +1,17 @@
-<aside class="sidebar">
-  <div class="logo-box">
-    <img src="/logo.png" alt="Logo" class="logo-img" />
-  </div>
+<div class="flex min-h-screen bg-pink-100">
+  <aside class="sidebar w-64 bg-blue-600 text-white fixed md:static h-full hidden md:block">
+    <div class="p-4 text-center border-b border-blue-400">
+      <img src="/logo.png" class="mx-auto w-20 mb-2" />
+      <h2 class="font-semibold">THE ENGLISH RAJ</h2>
+    </div>
 
-  <ul class="menu">
-    <li class="active"><a href="/admin/dashboard">Dashboard</a></li>
-    <li><a href="/admin/users">Users</a></li>
-    <li><a href="/admin/courses">Courses</a></li>
-    <li><a href="#">Tests</a></li>
-    <li><a href="#">Results</a></li>
-    <li><a href="#">Settings</a></li>
-    <li><a href="#" id="logoutbtn">Logout</a></li>
-  </ul>
-</aside>
+    <ul class="menu p-4 space-y-2">
+      <li><a href="/admin/dashboard" class="block px-4 py-2 rounded">Dashboard</a></li>
+      <li class="active"><a href="/admin/users" class="block px-4 py-2 rounded ">Users</a></li>
+      <li><a href="/admin/courses" class="block px-4 py-2 rounded">Courses</a></li>
+      <li><a href="#" class="block px-4 py-2 rounded">Tests</a></li>
+      <li><a href="#" class="block px-4 py-2 rounded">Results</a></li>
+      <li><a href="#" class="block px-4 py-2 rounded">Settings</a></li>
+      <li><a href="#" id="logoutbtn" class="block px-4 py-2 rounded text-red-200">Logout</a></li>
+    </ul>
+  </aside>

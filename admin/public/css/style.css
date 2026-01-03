@@ -14,7 +14,7 @@ body {
 .sidebar {
   width: 240px;
   height: 100vh;
-  background-color: #387DC6;
+  background-color: #387dc6;
   color: #fff;
   position: fixed;
 }
@@ -41,15 +41,16 @@ body {
   display: block;
 }
 
-.menu li:hover,
-.menu li.active {
-  background-color: #0852A1;
+ 
+
+.menu li a {
+  display: block;
 }
 
 .menu li.active a {
-  color: #fff;
+  background-color: #1e40af;
+  color: #ffffff;
 }
-
 /* Main Content */
 .main-content {
   margin-left: 240px;
@@ -212,19 +213,17 @@ body {
   }
 }
 
-
-
 /* LOGO FIX */
 .logo-box {
   padding: 20px;
-  border-bottom: 1px solid rgba(255,255,255,0.2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
 .logo-img {
-  max-width: 140px;   /* perfect sidebar size */
+  max-width: 140px; /* perfect sidebar size */
   height: auto;
   object-fit: contain;
 }

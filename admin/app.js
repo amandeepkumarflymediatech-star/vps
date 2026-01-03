@@ -16,6 +16,8 @@ app.use(cookieParser());
 // Setup EJS view engine
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
+// Serve static files from node_modules
+app.use("/vendor", express.static(path.join(__dirname, "node_modules")));
 
 // Middleware
 app.use(express.static(path.join(__dirname, "public")));
@@ -52,9 +54,19 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use((req, res) => {
-  console.log("404 Error - Path not found:", req.originalUrl);
-  res.status(404).render("layouts/error", {
+// 404 Error Handling
+
+app.use((err, req, res) => {
+  if (err.message === "TOKEN_EXPIRED") {
+    return res.render("layouts/alert-redirect", {
+      type: "error",
+      title: "Session Expired",
+      message: "Please login again.",
+      redirect: "/admin/login",
+    });
+  }
+
+  return res.status(404).render("layouts/error", {
     message: "Page not found",
     path: req.originalUrl,
   });

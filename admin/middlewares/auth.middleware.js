@@ -9,8 +9,12 @@ const auth = (req, res, next) => {
     req.user = decoded;
     next();
   } catch (err) {
-    console.error("Auth middleware error:", err);
-    return res.status(401).json({ message: "Invalid or expired token" });
+    return res.render("layouts/alert-redirect", {
+      type: "error",
+      title: "Session Expired",
+      message: err.message,
+      redirect: "/admin/login",
+    });
   }
 };
 const role = (...roles) => {

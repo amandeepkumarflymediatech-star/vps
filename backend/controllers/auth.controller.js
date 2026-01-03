@@ -266,8 +266,6 @@ export const login = async (req, res) => {
     const password = String(passwordRaw);
     const requestedRole = role.toUpperCase();
 
-    console.log("[login] attempt:", { email, requestedRole });
-
     // 2️⃣ Find user
     const user = await User.findOne({ email }).select("+password");
     if (!user) {
@@ -298,6 +296,14 @@ export const login = async (req, res) => {
       return res.status(401).json({
         success: false,
         message: "Please verify your email first",
+      });
+    }
+
+    // Inactive account check - block any non-ACTIVE account
+    if (user.status !== "ACTIVE") {
+      return res.status(403).json({
+        success: false,
+        message: "Your account is inactive. Please contact support.",
       });
     }
 

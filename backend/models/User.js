@@ -4,7 +4,7 @@ const userSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
-    phone: { type: String, required: true },
+    phone: { type: String, required: true, unique: true },
     password: { type: String },
     role: {
       type: String,
@@ -16,6 +16,9 @@ const userSchema = new mongoose.Schema(
       ref: "Organization",
     },
     isVerified: { type: Boolean, default: false },
+    status: { type: String, enum: ["ACTIVE", "INACTIVE"], default: "ACTIVE" },
+    resetToken: String,
+    resetTokenExpiry: Date,
   },
   { timestamps: true }
 );
