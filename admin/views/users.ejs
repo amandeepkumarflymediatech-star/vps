@@ -1,90 +1,147 @@
 <%- include('layouts/header') %> <%- include('layouts/sidebar') %>
 
-<main class="flex-1 md:ml-64 p-4 md:p-6">
-  <!-- MOBILE HEADER -->
-  <div class="flex items-center justify-between mb-6 md:hidden">
-    <button class="menu-btn bg-blue-600 text-white px-3 py-2 rounded">☰</button>
-    <h1 class="text-xl font-semibold">User List</h1>
-  </div>
+<!-- <main class=" bg-gray-100 flex justify-center px-3 md:px-6 py-6"> -->
+  <main class="bg-gray-100 flex justify-center px-3 md:px-6 py-6
+             w-full md:ml-64">
 
-  <div class="hidden md:flex justify-between items-center mb-6">
-    <h1 class="hidden md:block text-2xl font-semibold mb-6">User List</h1>
-    <a
-      href="/admin/users/adduser"
-      class="text-sm bg-gray-200 px-4 py-2 rounded hover:bg-gray-300"
-    >
-      add user
-    </a>
-  </div>
-  <!-- CARD -->
-  <div class="bg-white p-4 md:p-6 rounded-xl shadow">
-    <h2 class="text-xl font-semibold mb-4">Users</h2>
 
-    <% if (data && data.length > 0) { %>
+  <!-- CONTENT WRAPPER (CENTERED) -->
+  <div class="w-full max-w-7xl">
 
-    <!-- TABLE (DESKTOP) -->
-    <div class="hidden md:block overflow-x-auto">
-      <table class="min-w-full text-sm">
-        <thead>
-          <tr class="border-b text-left text-gray-500">
-            <th class="py-2 px-3">Name</th>
-            <th class="py-2 px-3">Email</th>
-            <th class="py-2 px-3">Role</th>
-            <th class="py-2 px-3">Phone</th>
-            <th class="py-2 px-3">Status</th>
-            <th class="py-2 px-3">Action</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          <% data.forEach(item => { %>
-          <tr class="border-b hover:bg-gray-50">
-            <td class="py-3 px-3 font-medium uppercase"><%= item.name %></td>
-            <td class="py-3 px-3 break-all"><%= item.email %></td>
-            <td class="py-3 px-3"><%= item.role %></td>
-            <td class="py-3 px-3"><%= item.phone %></td>
-            <td class="py-3 px-3">
-              <span
-                class="status-toggle cursor-pointer px-3 py-1 rounded-full text-sm font-semibold <%= item.status==='ACTIVE' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700' %>"
-                data-id="<%= item._id %>"
-                data-status="<%= item.status %>"
-              >
-                <%= item.status==="ACTIVE" ? "Active" : "Pending" %>
-              </span>
-            </td>
-            <td class="py-3 px-3 space-x-3">
-              <a href="/admin/users/<%= item._id %>" class="text-blue-600"
-                >View</a
-              >
-              <!-- <a href="#" class="text-green-600">Edit</a> -->
-            </td>
-          </tr>
-          <% }) %>
-        </tbody>
-      </table>
+    <!-- MOBILE HEADER -->
+    <div class="flex items-center justify-center mb-6 md:hidden">
+      <button class="menu-btn bg-blue-600 text-white px-4 py-2 rounded-lg shadow">
+        ☰
+      </button>
+      <h1 class="text-xl font-semibold text-gray-800">User List</h1>
     </div>
 
-    <!-- MOBILE CARDS -->
-    <div class="md:hidden space-y-4">
-      <% data.forEach(item => { %>
-      <div class="border rounded-lg p-4 shadow-sm">
-        <p><strong>Name:</strong> <%= item.name %></p>
-        <p class="break-all"><strong>Email:</strong> <%= item.email %></p>
-        <p><strong>Role:</strong> <%= item.role %></p>
-        <p><strong>Phone:</strong> <%= item.phone %></p>
-        <p><strong>Department:</strong> <%= item.department %></p>
+    <!-- DESKTOP HEADER -->
+    <div class="hidden md:flex items-center justify-between mb-6">
+  <h1 class="text-2xl font-semibold text-gray-800">
+    User List
+  </h1>
 
-        <div class="mt-3 space-x-4">
-          <a href="/admin/users/<%= item._id %>" class="text-blue-600">View</a>
-          <!-- <a href="#" class="text-green-600">Edit</a> -->
-        </div>
+  <a
+    href="/admin/users/adduser"
+    class="text-sm bg-blue-600 text-white px-4 py-2 rounded-lg
+           hover:bg-blue-700 transition"
+  >
+    + Add User
+  </a>
+</div>
+
+
+    <!-- CARD -->
+    <div class="bg-white p-4 md:p-6 rounded-2xl shadow-md">
+
+
+      <h2 class="text-lg md:text-xl font-semibold mb-4 text-gray-700">
+        Users
+      </h2>
+
+      <% if (data && data.length > 0) { %>
+
+      <!-- DESKTOP TABLE -->
+      <div class="hidden md:block overflow-x-auto">
+        <table class="min-w-full text-sm border-collapse">
+          <thead>
+            <tr class="border-b bg-gray-50 text-gray-600">
+              <th class="py-3 px-4 text-left">Name</th>
+              <th class="py-3 px-4 text-left">Email</th>
+              <th class="py-3 px-4 text-left">Role</th>
+              <th class="py-3 px-4 text-left">Phone</th>
+              <th class="py-3 px-4 text-left">Status</th>
+              <th class="py-3 px-4 text-left">Action</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <% data.forEach(item => { %>
+            <tr class="border-b hover:bg-gray-50 transition">
+              <td class="py-3 px-4 font-medium uppercase">
+                <%= item.name %>
+              </td>
+              <td class="py-3 px-4 break-all">
+                <%= item.email %>
+              </td>
+              <td class="py-3 px-4">
+                <%= item.role %>
+              </td>
+              <td class="py-3 px-4">
+                <%= item.phone %>
+              </td>
+              <td class="py-3 px-4">
+                <span
+                  class="status-toggle cursor-pointer px-3 py-1 rounded-full text-xs font-semibold
+                  <%= item.status === 'ACTIVE'
+                    ? 'bg-green-100 text-green-700'
+                    : 'bg-yellow-100 text-yellow-700' %>"
+                  data-id="<%= item._id %>"
+                  data-status="<%= item.status %>"
+                >
+                  <%= item.status === "ACTIVE" ? "Active" : "Pending" %>
+                </span>
+              </td>
+              <td class="py-3 px-4">
+                <a
+                  href="/admin/users/<%= item._id %>"
+                  class="text-blue-600 hover:underline"
+                >
+                  View
+                </a>
+              </td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
       </div>
-      <% }) %>
-    </div>
 
-    <% } else { %>
-    <p class="text-gray-500">No data found.</p>
-    <% } %>
+      <!-- MOBILE / TABLET CARDS -->
+      <div class="md:hidden space-y-4">
+        <% data.forEach(item => { %>
+        <div class="border rounded-xl p-4 shadow-sm bg-gray-50">
+          <p class="font-semibold uppercase text-gray-800">
+            <%= item.name %>
+          </p>
+          <p class="text-sm break-all text-gray-600 mt-1">
+            <strong>Email:</strong> <%= item.email %>
+          </p>
+          <p class="text-sm text-gray-600">
+            <strong>Role:</strong> <%= item.role %>
+          </p>
+          <p class="text-sm text-gray-600">
+            <strong>Phone:</strong> <%= item.phone %>
+          </p>
+
+          <span
+            class="inline-block mt-2 px-3 py-1 rounded-full text-xs font-semibold
+            <%= item.status === 'ACTIVE'
+              ? 'bg-green-100 text-green-700'
+              : 'bg-yellow-100 text-yellow-700' %>"
+          >
+            <%= item.status === "ACTIVE" ? "Active" : "Pending" %>
+          </span>
+
+          <div class="mt-4">
+            <a
+              href="/admin/users/<%= item._id %>"
+              class="inline-block text-blue-600 font-medium"
+            >
+              View Details →
+            </a>
+          </div>
+        </div>
+        <% }) %>
+      </div>
+
+      <% } else { %>
+      <p class="text-gray-500 text-center py-10">
+        No users found.
+      </p>
+      <% } %>
+
+    </div>
   </div>
 </main>
 
