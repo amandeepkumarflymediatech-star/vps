@@ -1,5 +1,13 @@
 import { useEffect, useState } from "react";
-import { Plus, Edit, Trash2, Upload, X, Image as ImageIcon, Loader2 } from "lucide-react";
+import {
+  Plus,
+  Edit,
+  Trash2,
+  Upload,
+  X,
+  Image as ImageIcon,
+  Loader2,
+} from "lucide-react";
 import {
   getCourses,
   createCourse,
@@ -11,11 +19,11 @@ const Courses = () => {
   const [showModal, setShowModal] = useState(false);
   const [courses, setCourses] = useState([]);
   const [editCourse, setEditCourse] = useState(null);
-  const [uploading, setUploading] = useState(false);
-  
-  const [previewImage, setPreviewImage] = useState("");
-  const [finalImage, setFinalImage] = useState("");
 
+  const [previewImage, setPreviewImage] = useState("");
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  /* ================= FETCH COURSES ================= */
   const fetchCourses = async () => {
     try {
       const res = await getCourses();
@@ -29,75 +37,68 @@ const Courses = () => {
     fetchCourses();
   }, []);
 
-  const handleFileUpload = async (e) => {
+  /* ================= IMAGE SELECT ================= */
+  const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Check if file is too large before processing (Frontend safety)
-    if (file.size > 10 * 1024 * 1024) {
-      alert("Image is too large. Please select a file under 10MB.");
+    if (file.size > 2 * 1024 * 1024) {
+      alert("Image must be under 2MB");
       return;
     }
 
+    setSelectedFile(file);
     setPreviewImage(URL.createObjectURL(file));
-    setUploading(true);
-
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => {
-      setFinalImage(reader.result);
-      setUploading(false);
-    };
-    reader.onerror = (error) => {
-      console.error("Error reading file:", error);
-      setUploading(false);
-    };
   };
 
+  /* ================= SUBMIT ================= */
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setUploading(true);
+
     const form = e.target;
+    const formData = new FormData();
 
-    // Logic: Use newly uploaded image, or keep old image, or empty
-    const imageToSave = finalImage || editCourse?.image || "";
+    formData.append("title", form.title.value);
+    formData.append("description", form.description.value);
+    formData.append("price", form.price.value);
+    formData.append("published", form.published.value);
 
-    const data = {
-      title: form.title.value,
-      description: form.description.value,
-      image: imageToSave,
-      // FIX: Ensure empty strings are sent as null/undefined for Mongoose ObjectIds
-      tutorId: form.tutorId.value.trim() || null, 
-      organizationId: form.organizationId.value.trim() || null,
-      price: Number(form.price.value),
-      published: form.published.value === "true",
-    };
+    const user = JSON.parse(localStorage.getItem("user"));
+    formData.append("tutorId", user.id);
+
+    if (selectedFile) {
+      formData.append("image", selectedFile);
+    }
 
     try {
       if (editCourse) {
-        const res = await updateCourse(editCourse._id, data);
+        const res = await updateCourse(editCourse._id, formData);
         setCourses((prev) =>
           prev.map((c) => (c._id === editCourse._id ? res.data : c))
         );
       } else {
-        const res = await createCourse(data);
+        const res = await createCourse(formData);
         setCourses((prev) => [res.data, ...prev]);
       }
       handleCloseModal();
     } catch (err) {
-      console.error("Submission Error:", err.response?.data);
-      // Detailed alert for debugging
-      const errorMsg = err.response?.data?.message || "Internal Server Error";
-      alert(`Error: ${errorMsg}`);
+      console.error("Submit error:", err.response?.data);
+      alert(err.response?.data?.message || "Error occurred");
+    } finally {
+      setUploading(false);
     }
   };
 
+  /* ================= CLOSE MODAL ================= */
   const handleCloseModal = () => {
     setShowModal(false);
     setEditCourse(null);
     setPreviewImage("");
-    setFinalImage("");
+    setSelectedFile(null);
   };
 
+  /* ================= DELETE ================= */
   const handleDelete = async (id) => {
     if (!confirm("Are you sure you want to delete this course?")) return;
     try {
@@ -108,124 +109,170 @@ const Courses = () => {
     }
   };
 
+  /* ================= UI ================= */
   return (
-    <div className="max-w-7xl mx-auto p-6 space-y-8 bg-gray-50/50 min-h-screen">
-      <div className="flex flex-wrap justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-gray-100 gap-4">
+    <div className="max-w-7xl mx-auto p-6 space-y-8 min-h-screen bg-gray-50">
+      {/* HEADER */}
+      <div className="flex justify-between items-center bg-white p-6 rounded-xl shadow">
         <div>
-          <h2 className="text-3xl font-extrabold text-slate-900">Course Management</h2>
-          <p className="text-slate-500 text-sm">Create and organize your curriculum</p>
+          <h2 className="text-2xl font-bold">Course Management</h2>
+          <p className="text-sm text-gray-500">Create & manage courses</p>
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl transition-all shadow-lg shadow-blue-200 font-semibold"
+          className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-lg"
         >
-          <Plus size={20} /> Add Course
+          <Plus size={18} /> Add Course
         </button>
       </div>
 
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {courses.map((item) => (
-          <div key={item._id} className="group bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-all">
-            <div className="h-44 bg-slate-200 relative">
-              {item.image ? (
-                <img src={item.image} alt="" className="w-full h-full object-cover" />
-              ) : (
-                <div className="flex items-center justify-center h-full text-slate-400"><ImageIcon size={40} /></div>
-              )}
-              <div className="absolute top-3 right-3">
-                <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase ${item.published ? "bg-green-500 text-white" : "bg-slate-500 text-white"}`}>
-                  {item.published ? "Live" : "Draft"}
-                </span>
+      {/* COURSE GRID */}
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {courses.map((item) => {
+          console.log("Rendering course item:", item);
+          return (
+            <div
+              key={item._id}
+              className="bg-white rounded-xl overflow-hidden border shadow-sm"
+            >
+              <div className="h-40 bg-gray-200">
+                {item.image ? (
+                  <img
+                    src={item.image}
+                    className="w-full h-full object-cover"
+                    alt=""
+                  />
+                ) : (
+                  <div className="flex h-full items-center justify-center text-gray-400">
+                    <ImageIcon size={36} />
+                  </div>
+                )}
               </div>
-            </div>
-            
-            <div className="p-5">
-              <h3 className="font-bold text-lg text-slate-800 line-clamp-1">{item.title}</h3>
-              <p className="text-sm text-slate-500 line-clamp-2 mt-1 mb-4 h-10">{item.description}</p>
-              
-              <div className="flex justify-between items-center pt-4 border-t border-gray-50">
-                <span className="text-xl font-bold text-blue-600">₹{item.price}</span>
-                <div className="flex gap-1">
-                  <button onClick={() => { setEditCourse(item); setPreviewImage(item.image); setShowModal(true); }} className="p-2 hover:bg-blue-50 text-blue-600 rounded-lg"><Edit size={18} /></button>
-                  <button onClick={() => handleDelete(item._id)} className="p-2 hover:bg-red-50 text-red-600 rounded-lg"><Trash2 size={18} /></button>
+
+              <div className="p-4">
+                <h3 className="font-semibold text-lg">{item.title}</h3>
+                <p className="text-sm text-gray-500 line-clamp-2">
+                  {item.description}
+                </p>
+
+                <div className="flex justify-between items-center mt-4">
+                  <span className="font-bold text-blue-600">₹{item.price}</span>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        setEditCourse(item);
+                        setPreviewImage(
+                          item.image ? imagepath + item.image : ""
+                        );
+                        setShowModal(true);
+                      }}
+                      className="text-blue-600"
+                    >
+                      <Edit size={18} />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(item._id)}
+                      className="text-red-600"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
+      {/* MODAL */}
       {showModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden">
-            <div className="px-8 py-5 border-b flex justify-between items-center bg-gray-50/50">
-              <h3 className="text-xl font-bold text-slate-800">{editCourse ? "Update Course" : "New Course"}</h3>
-              <button onClick={handleCloseModal} className="text-slate-400 hover:text-slate-600 transition-colors"><X size={22} /></button>
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+          <div className="bg-white w-full max-w-lg rounded-xl overflow-hidden">
+            <div className="flex justify-between items-center p-5 border-b">
+              <h3 className="font-bold">
+                {editCourse ? "Edit Course" : "Create Course"}
+              </h3>
+              <button onClick={handleCloseModal}>
+                <X />
+              </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-8 space-y-5 max-h-[75vh] overflow-y-auto">
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Course Banner</label>
-                <div className="relative h-36 border-2 border-dashed border-slate-200 rounded-xl flex flex-col items-center justify-center bg-slate-50 hover:bg-slate-100 transition-all cursor-pointer overflow-hidden">
-                  {previewImage ? (
-                    <>
-                      <img src={previewImage} className="w-full h-full object-cover" alt="" />
-                      <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                        <Upload className="text-white" />
-                      </div>
-                    </>
+            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+              {/* IMAGE */}
+              <div className="relative h-36 border-2 border-dashed rounded-lg overflow-hidden">
+                {previewImage ? (
+                  <img
+                    src={previewImage}
+                    className="w-full h-full object-cover"
+                    alt=""
+                  />
+                ) : (
+                  <div className="h-full flex items-center justify-center text-gray-400">
+                    <Upload />
+                  </div>
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileUpload}
+                  className="absolute inset-0 opacity-0 cursor-pointer"
+                />
+              </div>
+
+              <input
+                name="title"
+                defaultValue={editCourse?.title || ""}
+                placeholder="Course title"
+                required
+                className="w-full border px-4 py-2 rounded-lg"
+              />
+
+              <textarea
+                name="description"
+                defaultValue={editCourse?.description || ""}
+                placeholder="Course description"
+                required
+                className="w-full border px-4 py-2 rounded-lg"
+              />
+
+              <div className="grid grid-cols-2 gap-3">
+                <input
+                  type="number"
+                  name="price"
+                  defaultValue={editCourse?.price || ""}
+                  placeholder="Price"
+                  required
+                  className="border px-4 py-2 rounded-lg"
+                />
+                <select
+                  name="published"
+                  defaultValue={editCourse?.published ? "true" : "false"}
+                  className="border px-4 py-2 rounded-lg"
+                >
+                  <option value="true">Published</option>
+                  <option value="false">Draft</option>
+                </select>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={handleCloseModal}
+                  className="px-4 py-2"
+                >
+                  Cancel
+                </button>
+                <button
+                  disabled={uploading}
+                  className="bg-blue-600 text-white px-6 py-2 rounded-lg"
+                >
+                  {uploading ? (
+                    <Loader2 className="animate-spin" />
+                  ) : editCourse ? (
+                    "Update"
                   ) : (
-                    <div className="text-center">
-                      <Upload className="text-slate-300 mx-auto mb-2" size={28} />
-                      <p className="text-xs text-slate-400 font-medium">Click to upload image</p>
-                    </div>
+                    "Create"
                   )}
-                  <input type="file" onChange={handleFileUpload} className="absolute inset-0 opacity-0 cursor-pointer" accept="image/*" />
-                </div>
-                {uploading && <div className="flex items-center gap-2 text-xs text-blue-600"><Loader2 size={14} className="animate-spin"/> Processing image...</div>}
-              </div>
-
-              <div className="space-y-4">
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Title</label>
-                  <input name="title" defaultValue={editCourse?.title || ""} placeholder="Mastering React" className="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all" required />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Description</label>
-                  <textarea name="description" defaultValue={editCourse?.description || ""} rows="2" className="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none resize-none" required />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Price (₹)</label>
-                    <input type="number" name="price" defaultValue={editCourse?.price || ""} className="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none" required />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Visibility</label>
-                    <select name="published" defaultValue={editCourse?.published ? "true" : "false"} className="w-full px-4 py-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none bg-white">
-                      <option value="true">Published</option>
-                      <option value="false">Draft</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                   <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Tutor ID</label>
-                    <input name="tutorId" defaultValue={editCourse?.tutorId || ""} className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-sm" />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Org ID</label>
-                    <input name="organizationId" defaultValue={editCourse?.organizationId || ""} className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-sm" />
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-3 pt-6 border-t mt-4">
-                <button type="button" onClick={handleCloseModal} className="px-5 py-2.5 rounded-lg font-semibold text-slate-500 hover:bg-slate-50">Cancel</button>
-                <button disabled={uploading} className="px-8 py-2.5 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 shadow-lg shadow-blue-100 disabled:opacity-50 transition-all">
-                  {editCourse ? "Update Course" : "Create Course"}
                 </button>
               </div>
             </form>

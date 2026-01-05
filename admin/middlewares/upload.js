@@ -1,36 +1,20 @@
 const multer = require("multer");
-const path = require("path");
-const fs = require("fs");
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
+const cloudinary = require("./index");
 
-// PUBLIC upload path
-const uploadDir = path.join(__dirname, "../public/uploads/courses");
-
-// Create folder if not exists
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueName =
-      Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, uniqueName + path.extname(file.originalname));
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: "courses",
+    allowed_formats: ["jpg", "jpeg", "png", "webp"],
+    transformation: [
+      { width: 800, height: 500, crop: "limit", quality: "auto" },
+    ],
   },
 });
 
-const fileFilter = (req, file, cb) => {
-  if (file.mimetype.startsWith("image/")) {
-    cb(null, true);
-  } else {
-    cb(new Error("Only image files allowed"), false);
-  }
-};
-
-module.exports = multer({
+const upload = multer({
   storage,
-  fileFilter,
   limits: { fileSize: 2 * 1024 * 1024 }, // 2MB
 });
+module.exports = upload;

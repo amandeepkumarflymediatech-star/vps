@@ -1,12 +1,13 @@
 import express from "express";
-import { 
-    createCourse, 
-    getCourses, 
-    getCourseById, 
-    updateCourse, 
-    deleteCourse 
+import {
+  createCourse,
+  getCourses,
+  getCourseById,
+  updateCourse,
+  deleteCourse,
 } from "../controllers/course.controller.js";
-import { upload } from "../middlewares/upload.js"; // Aapka multer config
+
+import upload from "../../admin/middlewares/upload.js"; // Aapka multer config
 
 const router = express.Router();
 

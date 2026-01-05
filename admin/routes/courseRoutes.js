@@ -6,6 +6,7 @@ const Course = require("../models/courseModel");
 const { auth, role } = require("../middlewares/auth.middleware");
 const upload = require("../middlewares/upload");
 const User = require("../models/userModel");
+const cloudinary = require("../middlewares/index");
 /*
 |--------------------------------------------------------------------------
 | READ – List Courses
@@ -74,8 +75,9 @@ router.post(
     try {
       const { title, description, tutorId, price, published, organizationId } =
         req.body;
-      console.log("Form Data:", req.body);
-      const image = req.file ? req.file.filename : null;
+      const imageUrl = req.file?.path; // Cloudinary URL
+      const imageId = req.file?.filename;
+
       let data = await Course.create({
         title,
         description,
@@ -83,7 +85,8 @@ router.post(
         organizationId: organizationId || null,
         price: Number(price || 0),
         published: published === "on" ? true : false,
-        image, // 👈 SAVE IMAGE
+        image: imageUrl,
+        imageId, // 👈 SAVE IMAGE
       });
       console.log("New Course Created:", data);
       return res.redirect("/admin/courses");
@@ -130,33 +133,27 @@ router.post(
   role("ADMIN"),
   upload.single("image"),
   async (req, res) => {
-    try {
-      const course = await Course.findById(req.params.id);
-      if (!course) return res.redirect("/admin/courses");
+    const course = await Course.findById(req.params.id);
+    if (!course) return res.status(404).send("Not found");
 
-      if (req.file && course.image) {
-        const oldPath = path.join(
-          __dirname,
-          "../public/uploads/courses",
-          course.image
-        );
-        if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
-      }
-
-      await Course.findByIdAndUpdate(req.params.id, {
-        title: req.body.title,
-        description: req.body.description,
-        tutorId: req.body.tutorId,
-        price: Number(req.body.price || 0),
-        published: req.body.published === "on" ? true : false,
-        image: req.file ? req.file.filename : course.image,
-      });
-
-      res.redirect("/admin/courses");
-    } catch (err) {
-      console.error(err);
-      res.status(500).send("Server Error");
+    if (req.file && course.imageId) {
+      await cloudinary.uploader.destroy(course.imageId);
     }
+
+    course.title = req.body.title;
+    course.description = req.body.description;
+    course.tutorId = req.body.tutorId || null;
+    course.organizationId = req.body.organizationId || null;
+    course.price = Number(req.body.price);
+    course.published = req.body.published === "true";
+
+    if (req.file) {
+      course.image = req.file.path;
+      course.imageId = req.file.filename;
+    }
+
+    await course.save();
+    res.redirect("/admin/courses");
   }
 );
 
@@ -176,21 +173,18 @@ router.post("/delete/:id", auth, role("ADMIN"), async (req, res) => {
 
     // 2. Delete image if exists
     if (course.image) {
-      const imagePath = path.join(
-        __dirname,
-        "../public/uploads/courses",
-        course.image
-      );
-
-      if (fs.existsSync(imagePath)) {
-        fs.unlinkSync(imagePath); // 🔥 delete image
+      let deletimg = await cloudinary.uploader.destroy(course.imageId);
+      console.log("Cloudinary delete response:", deletimg);
+      if (deletimg.result !== "ok") {
+        console.warn("Warning: Image deletion from Cloudinary failed");
+        throw new Error("Failed to delete image from Cloudinary");
+      } else {
+        console.log("Image deleted from Cloudinary successfully");
+        // 3. Delete course from DB
+        await Course.findByIdAndDelete(req.params.id);
+        res.redirect("/admin/courses");
       }
     }
-
-    // 3. Delete course from DB
-    await Course.findByIdAndDelete(req.params.id);
-
-    res.redirect("/admin/courses");
   } catch (err) {
     console.error("Delete course error:", err);
     res.status(500).send("Server Error");

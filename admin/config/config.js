@@ -9,4 +9,9 @@ module.exports = {
   EMAIL_SECURE: process.env.EMAIL_SECURE === "true",
   BASE_URL: process.env.BASE_URL || "http://localhost:5000",
   FRONTEND_URL: process.env.FRONTEND_URL || "http://localhost:5173",
+  CLOUDINARY_CLOUD_NAME:
+    process.env.CLOUDINARY_CLOUD_NAME || "http://localhost:5173",
+  CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY || "http://localhost:5173",
+  CLOUDINARY_API_SECRET:
+    process.env.CLOUDINARY_API_SECRET || "http://localhost:5173",
 };

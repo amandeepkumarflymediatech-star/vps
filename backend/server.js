@@ -1,5 +1,6 @@
 import express from "express";
 import dotenv from "dotenv";
+dotenv.config();
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import path from "path"; // 1. Path import karein
@@ -11,7 +12,6 @@ import adminRoutes from "./routes/admin.routes.js";
 import studentRoutes from "./routes/student.routes.js";
 import courseRoutes from "./routes/course.routes.js";
 
-dotenv.config();
 
 // ES Modules mein __dirname setup (Zaroori hai uploads folder access karne ke liye)
 const __filename = fileURLToPath(import.meta.url);
@@ -41,7 +41,8 @@ app.use(express.urlencoded({ limit: "10mb", extended: true }));
 
 // 2. Uploads folder ko STATIC banayein (Taki image URL kaam kare)
 // Ab image ka link hoga: http://localhost:8000/uploads/filename.png
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use("/uploads", express.static("public/uploads"));
+
 
 /* ================= ROUTES ================= */
 app.get("/", (req, res) => {
