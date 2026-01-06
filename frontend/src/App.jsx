@@ -28,6 +28,14 @@ import Classes from "./tutor/Classes";
 import Settings from "./tutor/Settings";
 import TutorLayout from "./tutor/pages/TutorLayout";
 
+/* ================= STUDENT ================= */
+import StudentLayout from "./student/StudentLayout";
+import StudentDashboard from "./student/pages/Dashboard";
+import MyCourses from "./student/pages/MyCourses";
+import CourseDetails from "./student/pages/CourseDetails";
+import StudentProfile from "./student/pages/Profile";
+import StudentSettings from "./student/pages/Settings";
+
 /* ================= DASHBOARD ================= */
 import DashboardRedirect from "./pages/DashboardRedirect";
 
@@ -74,6 +82,24 @@ const App = () => {
           <Route path="settings" element={<Settings />} />
           <Route path="courses" element={<Courses />} />
         </Route>
+
+          {/* 🎓 STUDENT DASHBOARD */}
+        <Route
+          path="/student"
+          element={
+            <ProtectedRoute role="STUDENT">
+              <StudentLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<StudentDashboard />} />
+          <Route path="dashboard" element={<StudentDashboard />} />
+          <Route path="courses" element={<MyCourses />} />
+          <Route path="courses/:id" element={<CourseDetails />} />
+          <Route path="profile" element={<StudentProfile />} />
+          <Route path="settings" element={<StudentSettings />} />
+        </Route>
+        
       </Routes>
     </>
   );
