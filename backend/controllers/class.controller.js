@@ -8,6 +8,12 @@ export const createClass = async (req, res) => {
   try {
     const data = req.body;
 
+    if (!data.meetLink) {
+      return res.status(400).json({
+        message: "Meeting link is required",
+      });
+    }
+
     const courseExists = await Course.findById(data.courseId);
     if (!courseExists) {
       return res.status(404).json({ message: "Course not found" });
@@ -25,6 +31,7 @@ export const createClass = async (req, res) => {
   }
 };
 
+
 /**
  * GET ALL CLASSES
  * Optional filters: courseId, instructorId, status
@@ -39,8 +46,8 @@ export const getAllClasses = async (req, res) => {
     if (status) filter.status = status;
 
     const classes = await Class.find(filter)
-      .populate("courseId", "title")
-      .populate("instructorId", "name email")
+      .populate({ path: "courseId", select: "title", strictPopulate: false })
+      .populate({ path: "instructorId", select: "name email", strictPopulate: false })
       .sort({ createdAt: -1 });
 
     res.json({ success: true, data: classes });
@@ -55,8 +62,8 @@ export const getAllClasses = async (req, res) => {
 export const getClassById = async (req, res) => {
   try {
     const classData = await Class.findById(req.params.id)
-      .populate("courseId", "title")
-      .populate("instructorId", "name email");
+      .populate({ path: "courseId", select: "title", strictPopulate: false })
+      .populate({ path: "instructorId", select: "name email", strictPopulate: false });
 
     if (!classData) {
       return res.status(404).json({ message: "Class not found" });
@@ -73,11 +80,9 @@ export const getClassById = async (req, res) => {
  */
 export const updateClass = async (req, res) => {
   try {
-    const updated = await Class.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true }
-    );
+    const updated = await Class.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+    });
 
     if (!updated) {
       return res.status(404).json({ message: "Class not found" });
@@ -98,8 +103,9 @@ export const updateClass = async (req, res) => {
  */
 export const deleteClass = async (req, res) => {
   try {
+    console.log(req.params.id);
     const deleted = await Class.findByIdAndDelete(req.params.id);
-
+    console.log(deleted);
     if (!deleted) {
       return res.status(404).json({ message: "Class not found" });
     }

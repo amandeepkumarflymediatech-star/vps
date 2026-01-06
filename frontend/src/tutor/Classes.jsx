@@ -9,21 +9,23 @@ import {
   X,
   Loader2,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 import {
   getAllClasses,
   createClass,
   updateClass,
   deleteClass,
 } from "../api/classes.api";
+import { getCourses } from "../api/course.api";
+
+const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 const Classes = () => {
-  const navigate = useNavigate();
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
 
-  const [showModal, setShowModal] = useState(false);
   const [classes, setClasses] = useState([]);
+  const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [showModal, setShowModal] = useState(false);
   const [editClass, setEditClass] = useState(null);
 
   const [form, setForm] = useState({
@@ -34,55 +36,56 @@ const Classes = () => {
     startDate: "",
     endDate: "",
     maxStudents: 50,
+    meetingLink: "",
+    schedule: [{ day: "Mon", startTime: "", endTime: "" }],
   });
 
   /* ================= FETCH ================= */
   useEffect(() => {
-    fetchData();
+    fetchClasses();
+    fetchCourses();
   }, []);
 
-  const fetchData = async () => {
+  const fetchClasses = async () => {
     try {
       setLoading(true);
       const res = await getAllClasses();
-      if (res.data.success) setClasses(res.data.data);
-    } catch (err) {
-      setError("Failed to load classes");
+      if (res?.data?.success) setClasses(res.data.data);
     } finally {
       setLoading(false);
     }
   };
 
+  const fetchCourses = async () => {
+    const res = await getCourses();
+    if (res?.data?.success) setCourses(res.data.data);
+  };
+
   /* ================= SUBMIT ================= */
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      const res = editClass
-        ? await updateClass(editClass._id, form)
-        : await createClass(form);
 
-      if (res.data.success) {
-        editClass
-          ? setClasses((prev) =>
-              prev.map((c) => (c._id === editClass._id ? res.data.data : c))
+    const payload = {
+      ...form,
+      instructorId: user._id,
+      price: Number(form.price),
+      maxStudents: Number(form.maxStudents),
+    };
+
+    const res = editClass
+      ? await updateClass(editClass._id, payload)
+      : await createClass(payload);
+
+    if (res?.data?.success) {
+      editClass
+        ? setClasses((prev) =>
+            prev.map((c) =>
+              c._id === editClass._id ? res.data.data : c
             )
-          : setClasses((prev) => [res.data.data, ...prev]);
+          )
+        : setClasses((prev) => [res.data.data, ...prev]);
 
-        closeModal();
-      }
-    } catch (err) {
-      alert(err.response?.data?.message || "Failed to save class");
-    }
-  };
-
-  /* ================= DELETE ================= */
-  const handleDelete = async (id) => {
-    if (!window.confirm("Delete this class?")) return;
-    try {
-      await deleteClass(id);
-      setClasses((prev) => prev.filter((c) => c._id !== id));
-    } catch (err) {
-      alert("Unauthorized or failed to delete");
+      closeModal();
     }
   };
 
@@ -96,20 +99,24 @@ const Classes = () => {
   const openEdit = (item) => {
     setEditClass(item);
     setForm({
-      courseId: item.courseId,
+      courseId: item.courseId?._id || item.courseId,
       title: item.title,
       description: item.description,
       price: item.price,
       startDate: item.startDate?.slice(0, 10),
       endDate: item.endDate?.slice(0, 10),
       maxStudents: item.maxStudents,
+      meetingLink: item.meetingLink || "",
+      schedule:
+        item.schedule?.length > 0
+          ? item.schedule
+          : [{ day: "Mon", startTime: "", endTime: "" }],
     });
     setShowModal(true);
   };
 
   const closeModal = () => {
     setShowModal(false);
-    setEditClass(null);
     resetForm();
   };
 
@@ -122,12 +129,28 @@ const Classes = () => {
       startDate: "",
       endDate: "",
       maxStudents: 50,
+      meetingLink: "",
+      schedule: [{ day: "Mon", startTime: "", endTime: "" }],
+    });
+  };
+
+  /* ================= SCHEDULE ================= */
+  const updateSchedule = (index, key, value) => {
+    const updated = [...form.schedule];
+    updated[index][key] = value;
+    setForm({ ...form, schedule: updated });
+  };
+
+  const addSchedule = () => {
+    setForm({
+      ...form,
+      schedule: [...form.schedule, { day: "Mon", startTime: "", endTime: "" }],
     });
   };
 
   /* ================= UI ================= */
   return (
-    <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-8">
+    <div className="max-w-7xl mx-auto p-6 space-y-8">
       {/* HEADER */}
       <div className="flex justify-between items-center bg-white p-6 rounded-3xl border shadow-sm">
         <div>
@@ -136,73 +159,67 @@ const Classes = () => {
         </div>
         <button
           onClick={openCreate}
-          className="flex items-center gap-2 bg-[#0852A1] text-white px-6 py-3 rounded-2xl font-bold hover:bg-blue-700"
+          className="flex items-center gap-2 bg-[#0852A1] text-white px-6 py-3 rounded-2xl font-bold"
         >
-          <Plus size={20} /> Create Class
+          <Plus size={18} /> Create Class
         </button>
       </div>
 
-      {/* LOADING */}
-      {loading && (
-        <div className="flex justify-center py-20 text-gray-400">
+      {/* LIST */}
+      {loading ? (
+        <div className="flex justify-center py-20">
           <Loader2 className="animate-spin" size={36} />
         </div>
-      )}
-
-      {/* ERROR */}
-      {error && (
-        <div className="bg-red-50 text-red-600 p-6 rounded-xl">{error}</div>
-      )}
-
-      {/* GRID */}
-      {!loading && !error && (
+      ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {classes.map((item) => (
             <div
               key={item._id}
-              className="bg-white rounded-3xl border p-6 shadow-sm hover:shadow-lg transition"
+              className="bg-white rounded-3xl border p-6 shadow-sm"
             >
-              <div className="flex justify-between mb-4">
+              <div className="flex justify-between mb-3">
                 <span className="text-xs font-bold bg-blue-50 text-blue-600 px-3 py-1 rounded-full">
                   {item.status}
                 </span>
                 <div className="flex gap-2">
-                  <button
+                  <Edit3
+                    size={16}
+                    className="cursor-pointer text-blue-600"
                     onClick={() => openEdit(item)}
-                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
-                  >
-                    <Edit3 size={16} />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(item._id)}
-                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
-                  >
-                    <Trash2 size={16} />
-                  </button>
+                  />
+                  <Trash2
+                    size={16}
+                    className="cursor-pointer text-red-600"
+                    onClick={() => deleteClass(item._id)}
+                  />
                 </div>
               </div>
 
-              <h3 className="text-xl font-bold mb-4">{item.title}</h3>
+              <h3 className="text-xl font-bold mb-3">{item.title}</h3>
 
-              <div className="space-y-2 text-sm text-gray-500 mb-6">
+              <div className="space-y-2 text-sm text-gray-500">
                 <div className="flex items-center gap-2">
-                  <Users size={16} /> Max {item.maxStudents}
+                  <Users size={14} /> Max {item.maxStudents}
                 </div>
                 <div className="flex items-center gap-2">
-                  <Calendar size={16} />
+                  <Calendar size={14} />
                   {new Date(item.startDate).toLocaleDateString()}
                 </div>
-                <div className="flex items-center gap-2 text-lg font-black text-[#0852A1]">
-                  <IndianRupee size={18} /> {item.price}
+                <div className="flex items-center gap-2 font-black text-[#0852A1]">
+                  <IndianRupee size={14} /> {item.price}
                 </div>
               </div>
 
-              <button
-                onClick={() => navigate(`/classes/${item._id}`)}
-                className="w-full py-3 bg-gray-50 hover:bg-[#0852A1] hover:text-white rounded-2xl font-bold transition"
-              >
-                View Details
-              </button>
+              {item.meetingLink && (
+                <a
+                  href={item.meetingLink}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="block mt-4 text-center py-3 bg-green-600 text-white rounded-2xl font-bold"
+                >
+                  Join Live Class
+                </a>
+              )}
             </div>
           ))}
         </div>
@@ -210,20 +227,33 @@ const Classes = () => {
 
       {/* MODAL */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div
-            className="absolute inset-0 bg-black/60"
-            onClick={closeModal}
-          />
-          <div className="relative bg-white rounded-[2rem] w-full max-w-lg p-6">
-            <div className="flex justify-between mb-6">
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-xl rounded-3xl p-6 overflow-y-auto max-h-[90vh]">
+            <div className="flex justify-between mb-4">
               <h3 className="text-xl font-bold">
                 {editClass ? "Edit Class" : "Create Class"}
               </h3>
-              <X className="cursor-pointer" onClick={closeModal} />
+              <X onClick={closeModal} className="cursor-pointer" />
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* COURSE */}
+              <select
+                required
+                value={form.courseId}
+                onChange={(e) =>
+                  setForm({ ...form, courseId: e.target.value })
+                }
+                className="w-full border rounded-xl px-4 py-3"
+              >
+                <option value="">Select Course</option>
+                {courses.map((c) => (
+                  <option key={c._id} value={c._id}>
+                    {c.title}
+                  </option>
+                ))}
+              </select>
+
               <input
                 required
                 placeholder="Class Title"
@@ -243,6 +273,17 @@ const Classes = () => {
                 className="w-full border rounded-xl px-4 py-3"
               />
 
+              <input
+                type="url"
+                placeholder="Meeting Link"
+                value={form.meetingLink}
+                onChange={(e) =>
+                  setForm({ ...form, meetingLink: e.target.value })
+                }
+                className="w-full border rounded-xl px-4 py-3"
+              />
+
+              {/* DATES */}
               <div className="grid grid-cols-2 gap-4">
                 <input
                   type="date"
@@ -264,6 +305,48 @@ const Classes = () => {
                 />
               </div>
 
+              {/* SCHEDULE */}
+              {form.schedule.map((s, i) => (
+                <div key={i} className="grid grid-cols-3 gap-2">
+                  <select
+                    value={s.day}
+                    onChange={(e) =>
+                      updateSchedule(i, "day", e.target.value)
+                    }
+                    className="border rounded-xl px-3 py-2"
+                  >
+                    {DAYS.map((d) => (
+                      <option key={d}>{d}</option>
+                    ))}
+                  </select>
+                  <input
+                    type="time"
+                    value={s.startTime}
+                    onChange={(e) =>
+                      updateSchedule(i, "startTime", e.target.value)
+                    }
+                    className="border rounded-xl px-3 py-2"
+                  />
+                  <input
+                    type="time"
+                    value={s.endTime}
+                    onChange={(e) =>
+                      updateSchedule(i, "endTime", e.target.value)
+                    }
+                    className="border rounded-xl px-3 py-2"
+                  />
+                </div>
+              ))}
+
+              <button
+                type="button"
+                onClick={addSchedule}
+                className="text-blue-600 font-bold text-sm"
+              >
+                + Add Schedule
+              </button>
+
+              {/* PRICE */}
               <div className="grid grid-cols-2 gap-4">
                 <input
                   type="number"
@@ -287,7 +370,7 @@ const Classes = () => {
 
               <button
                 type="submit"
-                className="w-full bg-[#0852A1] text-white py-4 rounded-2xl font-bold hover:bg-blue-700"
+                className="w-full bg-[#0852A1] text-white py-4 rounded-2xl font-bold"
               >
                 {editClass ? "Update Class" : "Create Class"}
               </button>
@@ -298,7 +381,5 @@ const Classes = () => {
     </div>
   );
 };
-
-
 
 export default Classes;

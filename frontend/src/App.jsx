@@ -32,6 +32,7 @@ import TutorLayout from "./tutor/pages/TutorLayout";
 import StudentLayout from "./student/StudentLayout";
 import StudentDashboard from "./student/pages/Dashboard";
 import MyCourses from "./student/pages/MyCourses";
+import ClassDeatail from "./student/pages/ClassDeatail";
 import CourseDetails from "./student/pages/CourseDetails";
 import StudentProfile from "./student/pages/Profile";
 import StudentSettings from "./student/pages/Settings";
@@ -79,6 +80,7 @@ const App = () => {
           <Route index element={<TutorDashboard />} />
           <Route path="dashboard" element={<TutorDashboard />} />
           <Route path="classes" element={<Classes />} />
+          <Route path="classes/:id" element={<ClassDeatail />} />
           <Route path="settings" element={<Settings />} />
           <Route path="courses" element={<Courses />} />
         </Route>

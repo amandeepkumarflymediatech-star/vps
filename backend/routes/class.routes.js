@@ -15,13 +15,13 @@ const router = express.Router();
 router.post("/", auth, role("ADMIN", "TUTOR"), createClass);
 
 // READ
-router.get("/", auth, getAllClasses);
-router.get("/:id", auth, getClassById);
+router.get("/", auth, role("ADMIN", "TUTOR"), getAllClasses);
+router.get("/:id", auth, role("ADMIN", "TUTOR"), getClassById);
 
 // UPDATE
 router.put("/:id", auth, role("ADMIN", "TUTOR"), updateClass);
 
 // DELETE
-router.delete("/:id", auth, role("ADMIN"), deleteClass);
+router.delete("/:id", auth, role("ADMIN", "TUTOR"), deleteClass);
 
 export default router;

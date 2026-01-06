@@ -48,12 +48,15 @@ const classSchema = new mongoose.Schema(
           required: true,
         },
         startTime: { type: String, required: true }, // "18:00"
-        endTime: { type: String, required: true },   // "19:00"
+        endTime: { type: String, required: true }, // "19:00"
       },
     ],
 
     meetingLink: {
       type: String,
+      required: function () {
+        return this.status === "ONGOING";
+      },
     },
 
     maxStudents: {

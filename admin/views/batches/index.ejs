@@ -1,4 +1,7 @@
  
+<%- include('../layouts/header') %> 
+<%- include('../layouts/sidebar') %>
+
 
 <h2>My Classes</h2>
 <a href="/admin/classes/create" class="btn">+ Create Class</a>
@@ -13,16 +16,20 @@
     <th>Actions</th>
   </tr>
 
-  <% classes.forEach(c => { %>
+  <% data.forEach(c => { %>
     <tr>
       <td><%= c.title %></td>
-      <td><%= c.courseId?.title %></td>
-      <td><%= c.instructorId?.name %></td>
+    <td><%= (c.courseId && c.courseId.title) || '—' %></td>
+    <td><%= (c.instructorId && c.instructorId.name) || '—' %></td>
       <td>₹<%= c.price %></td>
       <td><%= c.status %></td>
       <td>
         <a href="/admin/classes/edit/<%= c._id %>">Edit</a>
-        <form action="/admin/classes/delete/<%= c._id %>" method="POST" style="display:inline">
+      <form
+        action="/admin/classes/delete/<%= c._id %>"
+        method="POST"
+        style="display: inline"
+      >
           <button onclick="return confirm('Delete class?')">Delete</button>
         </form>
       </td>
@@ -30,3 +37,5 @@
   <% }) %>
 </table>
  
+
+<%- include('../layouts/footer') %>

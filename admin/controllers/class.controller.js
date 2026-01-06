@@ -5,15 +5,16 @@ const User = require("../models//userModel");
 // LIST CLASSES
 exports.renderClasses = async (req, res) => {
   try {
-    const classes = await Class.find({ isDeleted: false })
-      .populate("courseId", "title")
-      .populate("instructorId", "name")
-      .sort({ createdAt: -1 });
-    console.log(classes, "ss");
+    const data = await Class.find({})
+      .populate({ path: "courseId", select: "title", strictPopulate: false })
+      .populate({
+        path: "instructorId",
+        select: "name email",
+        strictPopulate: false,
+      });
 
-    res.render("classes/index", {
-      title: "Manage Classes",
-      classes,
+    res.render("batches/index", {
+      data: data,
     });
   } catch (error) {
     console.log(error);
@@ -23,13 +24,13 @@ exports.renderClasses = async (req, res) => {
 
 // CREATE FORM
 exports.renderCreateClass = async (req, res) => {
-  const courses = await Course.find();
+  const data = await Course.find();
   const instructors = await User.find({ role: "TUTOR" });
 
-  res.render("classes/create", {
+  res.render("batches/create", {
     title: "Create Class",
-    courses,
-    instructors,
+    data: data,
+    tutors: instructors,
   });
 };
 
@@ -37,7 +38,7 @@ exports.renderCreateClass = async (req, res) => {
 exports.createClass = async (req, res) => {
   try {
     await Class.create(req.body);
-    res.redirect("/admin/classes");
+    res.redirect("/admin/classes", {});
   } catch (err) {
     res.send(err.message);
   }
@@ -45,15 +46,24 @@ exports.createClass = async (req, res) => {
 
 // EDIT FORM
 exports.renderEditClass = async (req, res) => {
-  const classData = await Class.findById(req.params.id);
-  const courses = await Course.find();
+  // Populate the related course and instructor for the edit form
+  const classData = await Class.findById(req.params.id)
+    .populate({ path: "courseId", select: "title", strictPopulate: false })
+    .populate({
+      path: "instructorId",
+      select: "name email",
+      strictPopulate: false,
+    })
+    .lean();
+
+  const data = await Course.find();
   const instructors = await User.find({ role: "TUTOR" });
 
-  res.render("classes/edit", {
+  res.render("batches/edit", {
     title: "Edit Class",
-    classData,
-    courses,
-    instructors,
+    classdata: classData,
+    data: data,
+    tutors: instructors,
   });
 };
 
