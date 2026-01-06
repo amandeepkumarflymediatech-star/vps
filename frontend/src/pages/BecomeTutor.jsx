@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion"; // Optional: For smooth animations
 import { CheckCircle, Globe, DollarSign, Clock, BookOpen, Star } from "lucide-react"; // Icons
-import { applyTutorApi } from "../api/tutorApi";
-import { role } from "../../../backend/middlewares/role.middleware";
+import { applyTutorApi } from "../api/tutorApi"; 
 import tutorHeroImg from "../assets/tutor-teaching.jpg"; // Path apne folder ke hisaab se check kar lein
 
 const BecomeTutor = () => {
