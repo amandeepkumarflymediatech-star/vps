@@ -1,5 +1,5 @@
 import { Routes, Route } from "react-router-dom";
-
+import { Toaster } from "react-hot-toast";
 import MainLayout from "./components/MainLayout";
 import AuthLayout from "./components/AuthLayout";
 import ScrollToTop from "./common/ScrollToTop";
@@ -38,7 +38,7 @@ const App = () => {
   return (
     <>
       <ScrollToTop />
-
+      <Toaster position="top-right" reverseOrder={false} />
       <Routes>
         {/* 🌐 PUBLIC ROUTES */}
         <Route element={<MainLayout />}>
@@ -73,7 +73,7 @@ const App = () => {
           <Route path="classes" element={<Classes />} />
           <Route path="settings" element={<Settings />} />
           <Route path="courses" element={<Courses />} />
-        </Route>      
+        </Route>
       </Routes>
     </>
   );

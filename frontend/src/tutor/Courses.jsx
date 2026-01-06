@@ -8,6 +8,7 @@ import {
   Image as ImageIcon,
   Loader2,
 } from "lucide-react";
+import toast from "react-hot-toast";
 import {
   getCourses,
   createCourse,
@@ -23,13 +24,14 @@ const Courses = () => {
   const [previewImage, setPreviewImage] = useState("");
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploading, setUploading] = useState(false);
+
   /* ================= FETCH COURSES ================= */
   const fetchCourses = async () => {
     try {
       const res = await getCourses();
       setCourses(res.data);
     } catch (err) {
-      console.error("Failed to fetch courses:", err);
+      toast.error("Failed to load courses");
     }
   };
 
@@ -43,7 +45,7 @@ const Courses = () => {
     if (!file) return;
 
     if (file.size > 2 * 1024 * 1024) {
-      alert("Image must be under 2MB");
+      toast.error("Image must be under 2MB");
       return;
     }
 
@@ -77,14 +79,16 @@ const Courses = () => {
         setCourses((prev) =>
           prev.map((c) => (c._id === editCourse._id ? res.data : c))
         );
+        toast.success("Course updated successfully");
       } else {
         const res = await createCourse(formData);
         setCourses((prev) => [res.data, ...prev]);
+        toast.success("Course created successfully");
       }
+
       handleCloseModal();
     } catch (err) {
-      console.error("Submit error:", err.response?.data);
-      alert(err.response?.data?.message || "Error occurred");
+      toast.error(err.response?.data?.message || "Something went wrong");
     } finally {
       setUploading(false);
     }
@@ -101,11 +105,13 @@ const Courses = () => {
   /* ================= DELETE ================= */
   const handleDelete = async (id) => {
     if (!confirm("Are you sure you want to delete this course?")) return;
+
     try {
       await deleteCourse(id);
       setCourses((prev) => prev.filter((c) => c._id !== id));
+      toast.success("Course deleted");
     } catch (err) {
-      console.error(err);
+      toast.error("Failed to delete course");
     }
   };
 
@@ -128,60 +134,56 @@ const Courses = () => {
 
       {/* COURSE GRID */}
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {courses.map((item) => {
-          console.log("Rendering course item:", item);
-          return (
-            <div
-              key={item._id}
-              className="bg-white rounded-xl overflow-hidden border shadow-sm"
-            >
-              <div className="h-40 bg-gray-200">
-                {item.image ? (
-                  <img
-                    src={item.image}
-                    className="w-full h-full object-cover"
-                    alt=""
-                  />
-                ) : (
-                  <div className="flex h-full items-center justify-center text-gray-400">
-                    <ImageIcon size={36} />
-                  </div>
-                )}
-              </div>
+        {courses.map((item) => (
+          <div
+            key={item._id}
+            className="bg-white rounded-xl overflow-hidden border shadow-sm"
+          >
+            <div className="h-40 bg-gray-200">
+              {item.image ? (
+                <img
+                  src={item.image}
+                  className="w-full h-full object-cover"
+                  alt=""
+                />
+              ) : (
+                <div className="flex h-full items-center justify-center text-gray-400">
+                  <ImageIcon size={36} />
+                </div>
+              )}
+            </div>
 
-              <div className="p-4">
-                <h3 className="font-semibold text-lg">{item.title}</h3>
-                <p className="text-sm text-gray-500 line-clamp-2">
-                  {item.description}
-                </p>
+            <div className="p-4">
+              <h3 className="font-semibold text-lg">{item.title}</h3>
+              <p className="text-sm text-gray-500 line-clamp-2">
+                {item.description}
+              </p>
 
-                <div className="flex justify-between items-center mt-4">
-                  <span className="font-bold text-blue-600">₹{item.price}</span>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => {
-                        setEditCourse(item);
-                        setPreviewImage(
-                          item.image ? imagepath + item.image : ""
-                        );
-                        setShowModal(true);
-                      }}
-                      className="text-blue-600"
-                    >
-                      <Edit size={18} />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(item._id)}
-                      className="text-red-600"
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </div>
+              <div className="flex justify-between items-center mt-4">
+                <span className="font-bold text-blue-600">₹{item.price}</span>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      setEditCourse(item);
+                      setPreviewImage(item.image || "");
+                      setSelectedFile(null);
+                      setShowModal(true);
+                    }}
+                    className="text-blue-600"
+                  >
+                    <Edit size={18} />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(item._id)}
+                    className="text-red-600"
+                  >
+                    <Trash2 size={18} />
+                  </button>
                 </div>
               </div>
             </div>
-          );
-        })}
+          </div>
+        ))}
       </div>
 
       {/* MODAL */}
@@ -197,7 +199,11 @@ const Courses = () => {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            <form
+              key={editCourse?._id || "create"}
+              onSubmit={handleSubmit}
+              className="p-6 space-y-4"
+            >
               {/* IMAGE */}
               <div className="relative h-36 border-2 border-dashed rounded-lg overflow-hidden">
                 {previewImage ? (
