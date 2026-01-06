@@ -89,13 +89,13 @@ const App = () => {
 
         {/* 🎓 STUDENT DASHBOARD */}
         <Route
-          path="/student"
-          element={
-            <ProtectedRoute role="STUDENT">
-              <StudentLayout />
-            </ProtectedRoute>
-          }
-        >
+  path="/student"
+  element={
+    <ProtectedRoute role="STUDENT">
+      <StudentLayout />
+    </ProtectedRoute>
+  }
+>
           <Route index element={<StudentDashboard />} />
           <Route path="dashboard" element={<StudentDashboard />} />
           <Route path="courses" element={<MyCourses />} />
