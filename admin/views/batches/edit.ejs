@@ -42,14 +42,12 @@
       </p>
     </div>
 
-    <!-- ================= FORM CARD ================= -->
-    <div class="bg-white rounded-2xl shadow border p-4 sm:p-6 md:p-8">
+  <!-- Form Card -->
+  <div class="max-w-2xl bg-white rounded-2xl shadow border p-6 sm:p-8">
+    
+  <h2>Edit Class</h2>
 
-      <form
-        method="POST"
-        action="/tutor/classes/<%= classdata._id %>"
-        class="space-y-5"
-      >
+  <form method="POST" action="/admin/classes/edit/<%= classdata._id %>" class="space-y-4">
 
         <!-- COURSE -->
         <div>
@@ -201,29 +199,16 @@
           </select>
         </div>
 
-        <!-- INSTRUCTOR -->
-        <div>
-          <label class="block text-sm font-semibold mb-1">Instructor</label>
-          <input
-            disabled
-            value="<%= classdata.instructorId.name %> (<%= classdata.instructorId.email %>)"
-            class="w-full border rounded-lg px-3 py-2 bg-gray-100"
-          />
-        </div>
+    <!-- INSTRUCTOR (READ ONLY) -->
+    <label>Instructor</label>
+    <input
+      value="<%= classdata.tutorId.name %> (<%= classdata.tutorId.email %>)"
+      disabled
+    />
 
-        <!-- SUBMIT -->
-        <div class="pt-4">
-          <button
-            type="submit"
-            class="bg-blue-600 text-white px-6 py-2 rounded-lg
-                   font-semibold hover:bg-blue-700 transition"
-          >
-            Update Class
-          </button>
-        </div>
-
-      </form>
-    </div>
+    <button type="submit">Update Class</button>
+  </form>
+  </div>
 
   </div>
 </main>
