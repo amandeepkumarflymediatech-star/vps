@@ -145,7 +145,7 @@ router.post(
     course.tutorId = req.body.tutorId || null;
     course.organizationId = req.body.organizationId || null;
     course.price = Number(req.body.price);
-    course.published = req.body.published === "true";
+    course.published = req.body.published === "on";
 
     if (req.file) {
       course.image = req.file.path;

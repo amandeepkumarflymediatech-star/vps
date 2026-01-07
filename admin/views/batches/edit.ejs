@@ -1,12 +1,10 @@
 <%- include('../layouts/header') %>
 <%- include('../layouts/sidebar') %>
 
-<!-- MAIN CONTENT -->
 <main
   class="bg-gray-50 min-h-screen px-3 sm:px-4 md:px-6 py-6
          w-full md:ml-64 transition-all duration-300"
 >
-
   <div class="w-full max-w-4xl mx-auto">
 
     <!-- ================= MOBILE HEADER ================= -->
@@ -19,7 +17,7 @@
         ☰
       </button>
 
-      <h1 class="text-lg font-semibold text-gray-800">
+      <h1 class="text-lg font-bold text-gray-800">
         Edit Class
       </h1>
 
@@ -42,12 +40,13 @@
       </p>
     </div>
 
-  <!-- Form Card -->
-  <div class="max-w-2xl bg-white rounded-2xl shadow border p-6 sm:p-8">
-    
-  <h2>Edit Class</h2>
-
-  <form method="POST" action="/admin/classes/edit/<%= classdata._id %>" class="space-y-4">
+    <!-- ================= FORM CARD ================= -->
+    <div class="bg-white rounded-2xl shadow border p-5 sm:p-8">
+      <form
+        method="POST"
+        action="/admin/classes/edit/<%= classdata._id %>"
+        class="space-y-5"
+      >
 
         <!-- COURSE -->
         <div>
@@ -55,7 +54,7 @@
           <select
             name="courseId"
             required
-            class="w-full border rounded-lg px-3 py-2"
+            class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
           >
             <% data.forEach(c => { %>
               <option
@@ -76,7 +75,7 @@
             name="title"
             value="<%= classdata.title %>"
             required
-            class="w-full border rounded-lg px-3 py-2"
+            class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
@@ -86,7 +85,7 @@
           <textarea
             name="description"
             rows="3"
-            class="w-full border rounded-lg px-3 py-2"
+            class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
           ><%= classdata.description %></textarea>
         </div>
 
@@ -96,12 +95,12 @@
           <input
             name="meetingLink"
             value="<%= classdata.meetingLink %>"
-            class="w-full border rounded-lg px-3 py-2"
+            class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
         <!-- DATES -->
-        <div class="grid sm:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label class="block text-sm font-semibold mb-1">Start Date</label>
             <input
@@ -160,7 +159,7 @@
         </div>
 
         <!-- PRICE & MAX STUDENTS -->
-        <div class="grid sm:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label class="block text-sm font-semibold mb-1">Price</label>
             <input
@@ -172,9 +171,7 @@
           </div>
 
           <div>
-            <label class="block text-sm font-semibold mb-1">
-              Max Students
-            </label>
+            <label class="block text-sm font-semibold mb-1">Max Students</label>
             <input
               type="number"
               name="maxStudents"
@@ -199,21 +196,29 @@
           </select>
         </div>
 
-    <!-- INSTRUCTOR (READ ONLY) -->
-    <label>Instructor</label>
-    <input
-      value="<%= classdata.tutorId.name %> (<%= classdata.tutorId.email %>)"
-      disabled
-    />
+        <!-- INSTRUCTOR -->
+        <div>
+          <label class="block text-sm font-semibold mb-1">Instructor</label>
+          <input
+            value="<%= classdata.tutorId.name %> (<%= classdata.tutorId.email %>)"
+            disabled
+            class="w-full bg-gray-100 border rounded-lg px-3 py-2 text-gray-600"
+          />
+        </div>
 
-    <button type="submit">Update Class</button>
-  </form>
-  </div>
-
+        <!-- SUBMIT -->
+        <button
+          type="submit"
+          class="w-full sm:w-auto bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600
+                 text-white px-6 py-3 rounded-xl font-bold shadow hover:opacity-90 transition"
+        >
+          Update Class
+        </button>
+      </form>
+    </div>
   </div>
 </main>
 
-<!-- ================= SIDEBAR TOGGLE SCRIPT ================= -->
 <script>
   const menuBtn = document.getElementById("menuBtn");
   const sidebar = document.querySelector(".sidebar");

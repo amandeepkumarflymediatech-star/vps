@@ -20,7 +20,8 @@ import { getCourses } from "../api/course.api";
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 const Classes = () => {
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  
+const user = JSON.parse(localStorage.getItem("user") || "{}");
 
   const [classes, setClasses] = useState([]);
   const [courses, setCourses] = useState([]);
@@ -43,8 +44,12 @@ const Classes = () => {
   /* ================= FETCH ================= */
   useEffect(() => {
     fetchClasses();
-    fetchCourses();
   }, []);
+  useEffect(() => {
+    fetchCourses();
+  }, [showModal]);
+
+  
 
   const fetchClasses = async () => {
     try {
@@ -378,8 +383,12 @@ const Classes = () => {
           </div>
         </div>
       )}
+
+
     </div>
   );
+
+  
 };
 
 export default Classes;

@@ -21,24 +21,14 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gray-50 flex w-full">
       {/* Sidebar - Overlay logic usually handled inside Sidebar component */}
       <Sidebar open={sidebarOpen} setOpen={setSidebarOpen} />
 
       {/* Main Container */}
-      <div className="flex-1 md:ml-64 flex flex-col min-h-screen">
+      <div className="flex-1  flex flex-col min-h-screen">
         
-        {/* Top Header */}
-        <div className="flex items-center md:block">
-           {/* Mobile Menu Trigger (Only visible on mobile) */}
-           <button 
-             onClick={() => setSidebarOpen(true)}
-             className="ml-4 md:hidden p-2 rounded-lg bg-[#0852A1] text-white"
-           >
-             <Menu size={20} />
-           </button>
-           <Header />
-        </div>
+      
 
         {/* Dashboard Content Area */}
         <main className="p-4 md:p-8 space-y-8 flex-1">
@@ -83,8 +73,7 @@ const Dashboard = () => {
           </div>
         </main>
 
-        {/* Footer */}
-        <Footer />
+      
       </div>
     </div>
   );

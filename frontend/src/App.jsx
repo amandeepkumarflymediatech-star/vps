@@ -91,9 +91,7 @@ const App = () => {
         <Route
   path="/student"
   element={
-    <ProtectedRoute role="STUDENT">
       <StudentLayout />
-    </ProtectedRoute>
   }
 >
           <Route index element={<StudentDashboard />} />
