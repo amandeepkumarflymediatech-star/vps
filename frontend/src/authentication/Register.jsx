@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { FiEye, FiEyeOff } from "react-icons/fi";
+import toast from "react-hot-toast";
 import { registerUser } from "@/api/auth.api";
  
 const Register = () => {
@@ -31,7 +32,7 @@ const Register = () => {
         state: { email: form.email },
       });
     } catch (err) {
-      alert(err.response?.data?.message || "Registration failed");
+      toast.error(err.response?.data?.message || "Registration failed");
     } finally {
       setLoading(false);
     }

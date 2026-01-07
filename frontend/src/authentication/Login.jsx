@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import toast from "react-hot-toast";
 import { loginUser } from "@/api/auth.api";
 
 const Login = () => {
@@ -26,8 +27,7 @@ const Login = () => {
 
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data.user));
-
-      console.log("Login response:", res.data);
+ 
       if (!res.data?.token) {
         throw new Error("Token not received");
       }
@@ -43,8 +43,6 @@ const Login = () => {
         navigate("/register-otp", { state: { email } });
         return;
       }
-
-      alert(err.response?.data?.message || "Login failed");
     } finally {
       setLoading(false);
     }
