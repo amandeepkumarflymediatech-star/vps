@@ -19,6 +19,7 @@ export const auth = (req, res, next) => {
   }
 };
 
+
 // middleware/role.middleware.js
 export const role = (...roles) => {
   return (req, res, next) => {
