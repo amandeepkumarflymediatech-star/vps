@@ -65,7 +65,7 @@ app.use("/admin/courses", require("./routes/courseRoutes"));
 app.use("/admin/classes", require("./routes/class.routes"));
 app.use("/admin/", require("./routes/admin.routes"));
 // Dashboard route (simple authentication check)
-app.get("/admin", (req, res) => {
+app.get("/", (req, res) => {
   if (!req.user) {
     // If not authenticated, redirect to admin login
     return res.redirect("/admin/login");
