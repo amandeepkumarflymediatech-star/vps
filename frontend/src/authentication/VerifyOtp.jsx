@@ -94,7 +94,7 @@ const VerifyOtp = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-[#1e293b] text-white py-2 rounded-lg"
+            className="w-full bg-[#0852A1] text-white py-2 rounded-lg"
           >
             {loading ? "Verifying..." : "Verify OTP"}
           </button>

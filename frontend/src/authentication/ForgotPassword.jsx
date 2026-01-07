@@ -47,12 +47,12 @@ const ForgotPassword = () => {
         <h1 className="text-4xl font-semibold leading-tight">
           Secure access to <br /> your account
         </h1>
-        <p className="text-neutral-400 mt-4 max-w-md">
+        <p className="text-neutral-400 mt-4 max-w-md text-white">
           Reset your password securely using a one-time verification code sent
           directly to your registered email address.
         </p>
  
-        <div className="mt-10 space-y-4 text-sm text-neutral-300">
+        <div className="mt-10 space-y-4 text-sm text-neutral-300 text-white">
           <div>✔ Encrypted verification</div>
           <div>✔ No password stored</div>
           <div>✔ Secure OTP validation</div>
@@ -107,7 +107,7 @@ const ForgotPassword = () => {
               disabled={loading}
               className="w-full h-12 rounded-md text-sm font-semibold
                          bg-[#0852A1] text-white
-                         hover:bg-[#0f172a] transition
+                         hover:bg-[#387DC6] transition
                          disabled:opacity-60 disabled:cursor-pointer"
             >
               {loading ? "Sending OTP..." : "Send verification code"}

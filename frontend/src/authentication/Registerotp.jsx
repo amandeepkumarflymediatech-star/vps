@@ -70,16 +70,16 @@ const RegisterOtp = () => {
     <div className="min-h-screen grid lg:grid-cols-2 bg-neutral-50">
  
       {/* LEFT INFO PANEL */}
-      <div className="hidden lg:flex flex-col justify-center px-16 bg-[#1e293b] text-white">
+      <div className="hidden lg:flex flex-col justify-center px-16 bg-[#0852A1] text-white">
         <h1 className="text-4xl font-semibold leading-tight">
           Verify your email
         </h1>
-        <p className="mt-4 text-neutral-400 max-w-md">
+        <p className="mt-4 text-neutral-400 max-w-md text-white">
           We’ve sent a one-time verification code to your email address.
           Enter the code below to complete your registration securely.
         </p>
  
-        <div className="mt-10 space-y-3 text-sm text-neutral-300">
+        <div className="mt-10 space-y-3 text-sm text-neutral-300 text-white">
           <div>✔ One-time secure verification</div>
           <div>✔ No password shared</div>
           <div>✔ Fast account activation</div>
@@ -136,8 +136,8 @@ const RegisterOtp = () => {
               type="submit"
               disabled={loading}
               className="w-full h-12 rounded-md
-                       bg-[#1e293b] text-white text-sm font-semibold
-                         hover:bg-[#0f172a] transition
+                       bg-[#0852A1] text-white text-sm font-semibold
+                         hover:bg-[#387DC6] transition
                          disabled:opacity-60 cursor-pointer"
             >
               {loading ? "Verifying..." : "Verify code"}

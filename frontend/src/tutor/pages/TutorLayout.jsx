@@ -1,6 +1,8 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { LayoutDashboard, BookOpen, Settings, LogOut, Menu, GraduationCap, X } from "lucide-react";
 import { useState } from "react";
+import { Link } from "react-router-dom";
+
 
 const TutorLayout = () => {
   const navigate = useNavigate();
@@ -35,12 +37,26 @@ const TutorLayout = () => {
         md:translate-x-0 flex flex-col
       `}>
         {/* Logo & Close Button (Mobile) */}
-        <div className="p-6 flex justify-between items-center border-b border-white/10">
-          <img src="/logo.png" alt="Logo" className="w-32" />
-          <button className="md:hidden" onClick={() => setSidebarOpen(false)}>
-            <X size={24} />
-          </button>
-        </div>
+<div className="p-6 flex justify-between items-center border-b border-white/10">
+  <Link
+    to="/"
+    onClick={() => setSidebarOpen(false)}
+    className="flex items-center"
+  >
+    <img
+      src="/logo.png"
+      alt="Logo"
+      className="w-32 cursor-pointer hover:opacity-90 transition"
+    />
+  </Link>
+
+  <button
+    className="md:hidden"
+    onClick={() => setSidebarOpen(false)}
+  >
+    <X size={24} />
+  </button>
+</div>
 
         {/* Navigation Links */}
         <nav className="flex-1 p-4 space-y-2 mt-4">
