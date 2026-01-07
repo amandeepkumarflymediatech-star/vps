@@ -6,8 +6,7 @@ import User from "../models/user.js";
 /**
  * Helper: validate ObjectId
  */
-const isValidObjectId = (id) =>
-  mongoose.Types.ObjectId.isValid(id);
+const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
 /**
  * CREATE CLASS
@@ -17,91 +16,75 @@ export const createClass = async (req, res) => {
     const {
       title,
       courseId,
-      instructorId,
-      meetLink,
-      startTime,
-      endTime,
-      status,
+      tutorId,
+      meetingLink,
+      startDate,
+      endDate,
+      schedule,
+      status = "UPCOMING",
+      maxStudents,
+      price,
     } = req.body;
 
-    // Required fields
-    if (
-      !title ||
-      !courseId ||
-      !instructorId ||
-      !meetLink ||
-      !startTime ||
-      !endTime
-    ) {
+    // REQUIRED FIELDS
+    if (!title || !courseId || !tutorId || !startDate || !endDate) {
       return res.status(400).json({
-        message: "All required fields must be provided",
+        message: "Missing required fields",
+      });
+    }
+
+    if (!Array.isArray(schedule) || schedule.length === 0) {
+      return res.status(400).json({
+        message: "Schedule is required",
       });
     }
 
     // ObjectId validation
-    if (!isValidObjectId(courseId) || !isValidObjectId(instructorId)) {
+    if (!isValidObjectId(courseId) || !isValidObjectId(tutorId)) {
       return res.status(400).json({
-        message: "Invalid courseId or instructorId",
+        message: "Invalid courseId or tutorId",
       });
     }
 
-    // Date validation
-    if (new Date(startTime) >= new Date(endTime)) {
-      return res.status(400).json({
-        message: "End time must be after start time",
-      });
-    }
-
-    if (new Date(startTime) < new Date()) {
-      return res.status(400).json({
-        message: "Class start time must be in the future",
-      });
-    }
-
-    // Course existence
+    // Course check
     const course = await Course.findById(courseId);
     if (!course) {
       return res.status(404).json({ message: "Course not found" });
     }
 
-    // Instructor existence
-    const instructor = await User.findById(instructorId);
-    if (!instructor || instructor.role !== "INSTRUCTOR") {
-      return res.status(400).json({
-        message: "Invalid instructor",
-      });
+    // Tutor check (ADMIN or TUTOR)
+    const tutor = await User.findById(tutorId);
+    if (!tutor || !["ADMIN", "TUTOR"].includes(tutor.role)) {
+      return res.status(400).json({ message: "Invalid tutor" });
     }
 
-    // Meeting link uniqueness
-    const linkExists = await Class.findOne({ meetLink });
-    if (linkExists) {
-      return res.status(409).json({
-        message: "Meeting link already in use",
-      });
+    // Validate schedule times
+    for (const slot of schedule) {
+      if (!slot.day || !slot.startTime || !slot.endTime) {
+        return res.status(400).json({
+          message: "Invalid schedule format",
+        });
+      }
+
+      if (slot.startTime >= slot.endTime) {
+        return res.status(400).json({
+          message: "Schedule endTime must be after startTime",
+        });
+      }
     }
 
-    // Time clash validation
-    const clash = await Class.findOne({
-      instructorId,
-      status: { $in: ["SCHEDULED", "ONGOING"] },
-      startTime: { $lt: endTime },
-      endTime: { $gt: startTime },
-    });
-
-    if (clash) {
-      return res.status(409).json({
-        message: "Instructor already has a class in this time slot",
-      });
-    }
-
+    // Create class
     const newClass = await Class.create({
       title,
       courseId,
-      instructorId,
-      meetLink,
-      startTime,
-      endTime,
+      tutorId,
+      meetingLink,
+      startDate,
+      endDate,
+      schedule,
       status,
+      maxStudents,
+      price,
     });
 
     res.status(201).json({
@@ -119,7 +102,7 @@ export const createClass = async (req, res) => {
  */
 export const getAllClasses = async (req, res) => {
   try {
-    const { courseId, instructorId, status } = req.query;
+    const { courseId, tutorId, status } = req.query;
     const filter = {};
 
     if (courseId) {
@@ -129,11 +112,11 @@ export const getAllClasses = async (req, res) => {
       filter.courseId = courseId;
     }
 
-    if (instructorId) {
-      if (!isValidObjectId(instructorId)) {
-        return res.status(400).json({ message: "Invalid instructorId" });
+    if (tutorId) {
+      if (!isValidObjectId(tutorId)) {
+        return res.status(400).json({ message: "Invalid tutorId" });
       }
-      filter.instructorId = instructorId;
+      filter.tutorId = tutorId;
     }
 
     if (status) {
@@ -142,7 +125,7 @@ export const getAllClasses = async (req, res) => {
 
     const classes = await Class.find(filter)
       .populate("courseId", "title")
-      .populate("instructorId", "name email")
+      .populate("tutorId", "name email")
       .sort({ createdAt: -1 });
 
     res.json({
@@ -167,8 +150,7 @@ export const getClassById = async (req, res) => {
 
     const classData = await Class.findById(id)
       .populate("courseId", "title")
-      .populate("instructorId", "name email");
-
+      .populate("tutorId", "name email");
     if (!classData) {
       return res.status(404).json({ message: "Class not found" });
     }
@@ -188,7 +170,9 @@ export const getClassById = async (req, res) => {
 export const updateClass = async (req, res) => {
   try {
     const { id } = req.params;
+    const updates = req.body;
 
+    // Validate class id
     if (!isValidObjectId(id)) {
       return res.status(400).json({ message: "Invalid class id" });
     }
@@ -198,54 +182,98 @@ export const updateClass = async (req, res) => {
       return res.status(404).json({ message: "Class not found" });
     }
 
-    const updatedData = req.body;
+    /* ================= OBJECT ID VALIDATION ================= */
+    if (updates.courseId && !isValidObjectId(updates.courseId)) {
+      return res.status(400).json({ message: "Invalid courseId" });
+    }
 
-    // Date logic
-    const start = updatedData.startTime || existingClass.startTime;
-    const end = updatedData.endTime || existingClass.endTime;
+    if (updates.tutorId && !isValidObjectId(updates.tutorId)) {
+      return res.status(400).json({ message: "Invalid tutorId" });
+    }
 
-    if (new Date(start) >= new Date(end)) {
+    /* ================= COURSE CHECK ================= */
+    if (updates.courseId) {
+      const course = await Course.findById(updates.courseId);
+      if (!course) {
+        return res.status(404).json({ message: "Course not found" });
+      }
+    }
+
+    /* ================= TUTOR CHECK ================= */
+    if (updates.tutorId) {
+      const tutor = await User.findById(updates.tutorId);
+      if (!tutor || !["ADMIN", "TUTOR"].includes(tutor.role)) {
+        return res.status(400).json({ message: "Invalid tutor" });
+      }
+    }
+
+    /* ================= SCHEDULE VALIDATION ================= */
+    const schedule = updates.schedule || existingClass.schedule;
+
+    if (!Array.isArray(schedule) || schedule.length === 0) {
       return res.status(400).json({
-        message: "End time must be after start time",
+        message: "Schedule is required",
       });
     }
 
-    // Status transition
-    if (updatedData.status) {
-      const allowed = {
-        SCHEDULED: ["ONGOING", "CANCELLED"],
-        ONGOING: ["COMPLETED"],
-        COMPLETED: [],
-        CANCELLED: [],
-      };
-
-      if (!allowed[existingClass.status].includes(updatedData.status)) {
+    for (const slot of schedule) {
+      if (!slot.day || !slot.startTime || !slot.endTime) {
         return res.status(400).json({
-          message: `Cannot change status from ${existingClass.status} to ${updatedData.status}`,
+          message: "Invalid schedule format",
+        });
+      }
+
+      if (slot.startTime >= slot.endTime) {
+        return res.status(400).json({
+          message: "Schedule endTime must be after startTime",
         });
       }
     }
 
-    // Clash check (exclude current class)
-    const clash = await Class.findOne({
-      _id: { $ne: id },
-      instructorId:
-        updatedData.instructorId || existingClass.instructorId,
-      startTime: { $lt: end },
-      endTime: { $gt: start },
-    });
+    /* ================= STATUS TRANSITION ================= */
+    /* ================= STATUS TRANSITION ================= */
+    if (updates.status) {
+      const allowedTransitions = {
+        UPCOMING: ["ONGOING"],
+        ONGOING: ["COMPLETED"],
+        COMPLETED: [],
+      };
 
-    if (clash) {
-      return res.status(409).json({
-        message: "Instructor already has a class at this time",
-      });
+      if (!allowedTransitions[existingClass.status]?.includes(updates.status)) {
+        return res.status(400).json({
+          message: `Cannot change status from ${existingClass.status} to ${updates.status}`,
+        });
+      }
     }
 
-    const updatedClass = await Class.findByIdAndUpdate(
-      id,
-      updatedData,
-      { new: true }
-    );
+    /* ================= TIME CLASH CHECK ================= */
+    // Only check if tutorId or schedule is changed
+    if (updates.tutorId || updates.schedule) {
+      const tutorId = updates.tutorId || existingClass.tutorId;
+
+      const clash = await Class.findOne({
+        _id: { $ne: id },
+        tutorId,
+        status: { $in: ["UPCOMING", "ONGOING"] },
+        schedule: {
+          $elemMatch: {
+            day: { $in: schedule.map((s) => s.day) },
+          },
+        },
+      });
+
+      if (clash) {
+        return res.status(409).json({
+          message: "Tutor already has a class in this schedule",
+        });
+      }
+    }
+
+    /* ================= UPDATE ================= */
+    const updatedClass = await Class.findByIdAndUpdate(id, updates, {
+      new: true,
+      runValidators: true,
+    });
 
     res.json({
       success: true,

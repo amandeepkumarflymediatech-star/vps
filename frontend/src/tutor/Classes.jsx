@@ -14,6 +14,7 @@ import {
   createClass,
   updateClass,
   deleteClass,
+  getClassById,
 } from "../api/classes.api";
 import { getCourses } from "../api/course.api";
 
@@ -21,7 +22,7 @@ const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 const Classes = () => {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
-
+  console.log(user, "user");
   const [classes, setClasses] = useState([]);
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -58,16 +59,20 @@ const Classes = () => {
 
   const fetchCourses = async () => {
     const res = await getCourses();
-    if (res?.data?.success) setCourses(res.data.data);
+    if (res?.data) setCourses(res.data);
   };
 
   /* ================= SUBMIT ================= */
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    if (!user?.id) {
+      console.error("User not found in localStorage");
+      return;
+    }
     const payload = {
       ...form,
-      tutorId: user._id,
+      tutorId: user.id,
       price: Number(form.price),
       maxStudents: Number(form.maxStudents),
     };
@@ -75,20 +80,29 @@ const Classes = () => {
     const res = editClass
       ? await updateClass(editClass._id, payload)
       : await createClass(payload);
-
     if (res?.data?.success) {
-      editClass
-        ? setClasses((prev) =>
-            prev.map((c) =>
-              c._id === editClass._id ? res.data.data : c
-            )
-          )
-        : setClasses((prev) => [res.data.data, ...prev]);
+      const updatedClass = res.data.data;
+
+      if (editClass) {
+        setClasses((prev) =>
+          prev.map((c) => (c._id === updatedClass._id ? updatedClass : c))
+        );
+      } else {
+        setClasses((prev) => [updatedClass, ...prev]);
+      }
 
       closeModal();
     }
   };
 
+  /* ================= DELETE ================= */
+
+  const handleDelete = async (id) => {
+    const res = await deleteClass(id);
+    if (res?.data?.success) {
+      setClasses((prev) => prev.filter((c) => c._id !== id));
+    }
+  };
   /* ================= HELPERS ================= */
   const openCreate = () => {
     resetForm();
@@ -96,23 +110,27 @@ const Classes = () => {
     setShowModal(true);
   };
 
-  const openEdit = (item) => {
-    setEditClass(item);
-    setForm({
-      courseId: item.courseId?._id || item.courseId,
-      title: item.title,
-      description: item.description,
-      price: item.price,
-      startDate: item.startDate?.slice(0, 10),
-      endDate: item.endDate?.slice(0, 10),
-      maxStudents: item.maxStudents,
-      meetingLink: item.meetingLink || "",
-      schedule:
-        item.schedule?.length > 0
-          ? item.schedule
-          : [{ day: "Mon", startTime: "", endTime: "" }],
-    });
-    setShowModal(true);
+  const openEdit = async (data) => {
+    setEditClass(data);
+    const res = await getClassById(data._id);
+    if (res?.data?.success) {
+      let item = res.data.data;
+      setForm({
+        courseId: item.courseId?._id || item.courseId,
+        title: item.title,
+        description: item.description,
+        price: item.price,
+        startDate: item.startDate?.slice(0, 10),
+        endDate: item.endDate?.slice(0, 10),
+        maxStudents: item.maxStudents,
+        meetingLink: item.meetingLink || "",
+        schedule:
+          item.schedule?.length > 0
+            ? item.schedule
+            : [{ day: "Mon", startTime: "", endTime: "" }],
+      });
+      setShowModal(true);
+    }
   };
 
   const closeModal = () => {
@@ -190,7 +208,7 @@ const Classes = () => {
                   <Trash2
                     size={16}
                     className="cursor-pointer text-red-600"
-                    onClick={() => deleteClass(item._id)}
+                    onClick={() => handleDelete(item._id)}
                   />
                 </div>
               </div>
@@ -241,9 +259,7 @@ const Classes = () => {
               <select
                 required
                 value={form.courseId}
-                onChange={(e) =>
-                  setForm({ ...form, courseId: e.target.value })
-                }
+                onChange={(e) => setForm({ ...form, courseId: e.target.value })}
                 className="w-full border rounded-xl px-4 py-3"
               >
                 <option value="">Select Course</option>
@@ -258,9 +274,7 @@ const Classes = () => {
                 required
                 placeholder="Class Title"
                 value={form.title}
-                onChange={(e) =>
-                  setForm({ ...form, title: e.target.value })
-                }
+                onChange={(e) => setForm({ ...form, title: e.target.value })}
                 className="w-full border rounded-xl px-4 py-3"
               />
 
@@ -310,9 +324,7 @@ const Classes = () => {
                 <div key={i} className="grid grid-cols-3 gap-2">
                   <select
                     value={s.day}
-                    onChange={(e) =>
-                      updateSchedule(i, "day", e.target.value)
-                    }
+                    onChange={(e) => updateSchedule(i, "day", e.target.value)}
                     className="border rounded-xl px-3 py-2"
                   >
                     {DAYS.map((d) => (
@@ -352,9 +364,7 @@ const Classes = () => {
                   type="number"
                   placeholder="Price"
                   value={form.price}
-                  onChange={(e) =>
-                    setForm({ ...form, price: e.target.value })
-                  }
+                  onChange={(e) => setForm({ ...form, price: e.target.value })}
                   className="border rounded-xl px-4 py-3"
                 />
                 <input
