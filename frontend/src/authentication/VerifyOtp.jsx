@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import toast from "react-hot-toast";
 import { verifyOtp, resendOtp } from "@/api/otp.api";
 
 const VerifyOtp = () => {
@@ -60,9 +61,9 @@ const VerifyOtp = () => {
   const handleResend = async () => {
     try {
       await resendOtp({ email });
-      alert("OTP resent successfully");
+      toast.success("OTP resent successfully");
     } catch (err) {
-      alert(err?.response?.data?.message || "Failed to resend OTP");
+      toast.error(err?.response?.data?.message || "Failed to resend OTP");
     }
   };
 

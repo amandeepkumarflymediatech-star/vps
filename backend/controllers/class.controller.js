@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import Class from "../models/class.js";
 import Course from "../models/course.js";
-import User from "../models/user.js";
+import User from "../models/User.js";
 
 /**
  * Helper: validate ObjectId
