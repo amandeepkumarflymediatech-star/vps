@@ -20,6 +20,7 @@ const TutorLogin = () => {
     try {
       const res = await tutorLogin({ email, password, role: "TUTOR" });
       localStorage.setItem("tutorToken", res.data.token);
+      localStorage.setItem("user", JSON.stringify(res.data.user));
       navigate("/tutor/dashboard");
     } catch (err) {
       setError(err.response?.data?.message || "Login failed");
