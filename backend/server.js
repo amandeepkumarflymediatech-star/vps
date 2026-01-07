@@ -7,8 +7,8 @@ import path from "path"; // 1. Path import karein
 import { fileURLToPath } from "url"; // ES Modules mein __dirname ke liye
 import connectDB from "./config/db.js";
 import authRoutes from "./routes/auth.routes.js";
-import tutorRoutes from "./routes/tutor.routes.js"; 
-import adminRoutes from "./routes/admin.routes.js"; 
+import tutorRoutes from "./routes/tutor.routes.js";
+import adminRoutes from "./routes/admin.routes.js";
 import studentRoutes from "./routes/student.routes.js";
 import courseRoutes from "./routes/course.routes.js";
 import classRoutes from "./routes/class.routes.js";
@@ -34,6 +34,11 @@ app.use(
   })
 );
 
+app.use((req, res, next) => {
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+  next();
+});
+
 /* ================= MIDDLEWARE ================= */
 app.use(cookieParser());
 app.use(express.json({ limit: "10mb" })); // Limit thodi kam kar sakte hain
@@ -42,7 +47,6 @@ app.use(express.urlencoded({ limit: "10mb", extended: true }));
 // 2. Uploads folder ko STATIC banayein (Taki image URL kaam kare)
 // Ab image ka link hoga: http://localhost:8000/uploads/filename.png
 app.use("/uploads", express.static("public/uploads"));
-
 
 /* ================= ROUTES ================= */
 app.get("/", (req, res) => {
