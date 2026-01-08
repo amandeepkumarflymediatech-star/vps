@@ -33,7 +33,7 @@ const Login = () => {
       }
 
       setTimeout(() => {
-        navigate("/");
+        navigate("/student/dashboard");
       }, 100);
     } catch (err) {
       if (
