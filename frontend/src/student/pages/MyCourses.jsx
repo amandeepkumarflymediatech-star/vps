@@ -1,5 +1,8 @@
-import React, { useState } from 'react';
-import { PlayCircle, CheckCircle, Clock, BookOpen, Search, Filter } from 'lucide-react';
+"use client";
+
+import React, { useState, useEffect } from "react";
+import Link from "next/link";
+import { PlayCircle } from "lucide-react";
 
 const MyCourses = () => {
   const [courses, setCourses] = useState([]);
@@ -123,24 +126,21 @@ const MyCourses = () => {
           ))}
         </div>
       ) : (
-       // Inside your empty state JSX:
-<div className="flex flex-col items-center justify-center py-20 px-4 text-center bg-white rounded-[2rem] border-2 border-dashed border-gray-100">
-  <div className="w-20 h-20 bg-blue-50 rounded-3xl flex items-center justify-center mb-6">
-    <Layout className="text-[#0852A1]" size={40} />
-  </div>
-  <h3 className="text-2xl font-black text-gray-900 mb-2">
-    No Courses Yet
-  </h3>
-  <p className="text-gray-500 max-w-xs mx-auto mb-8">
-    You haven't enrolled in any courses yet. Start your journey by exploring our catalog.
-  </p>
-  <Link
-    to="/tutors"
-    className="bg-[#0852A1] text-white px-8 py-3 rounded-2xl font-bold hover:shadow-lg hover:shadow-blue-200 transition-all active:scale-95 inline-block text-center"
-  >
-    Browse Courses
-  </Link>
-</div>
+        <div className="flex flex-col items-center justify-center py-20 px-4 text-center bg-white rounded-[2rem] border-2 border-dashed border-gray-100">
+          <div className="w-20 h-20 bg-blue-50 rounded-3xl flex items-center justify-center mb-6">
+            <span className="text-[#0852A1] text-4xl font-black">📚</span>
+          </div>
+          <h3 className="text-2xl font-black text-gray-900 mb-2">No Courses Yet</h3>
+          <p className="text-gray-500 max-w-xs mx-auto mb-8">
+            You haven't enrolled in any courses yet. Start your journey by exploring our catalog.
+          </p>
+          <Link
+            href="/tutors"
+            className="bg-[#0852A1] text-white px-8 py-3 rounded-2xl font-bold hover:shadow-lg hover:shadow-blue-200 transition-all active:scale-95 inline-block text-center"
+          >
+            Browse Courses
+          </Link>
+        </div>
       )}
     </div>
   );

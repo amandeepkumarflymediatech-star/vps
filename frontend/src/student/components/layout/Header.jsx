@@ -1,16 +1,39 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Search, Bell, Menu, HelpCircle, ChevronDown } from "lucide-react";
+import { useRouter } from "next/navigation";
+import {
+  Search,
+  Bell,
+  Menu,
+  HelpCircle,
+  ChevronDown,
+  LogOut,
+} from "lucide-react";
 
-const Header = ({ setSidebarOpen }) => {
+const Header = ({ setSidebarOpen, onSearch }) => {
+  const router = useRouter();
   const [user, setUser] = useState(null);
+  const [notifications, setNotifications] = useState(0);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     const raw = localStorage.getItem("user");
     setUser(raw ? JSON.parse(raw) : null);
+
+    // Placeholder: in future, fetch real notifications count from API
+    setNotifications(0);
   }, []);
+
+  const handleLogout = () => {
+    if (typeof window === "undefined") return;
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setIsProfileOpen(false);
+    router.push("/login");
+  };
+
   return (
     <header className="sticky top-0 z-40 w-full bg-white/90 backdrop-blur border-b border-gray-100">
       <div className="mx-auto max-w-[1600px] px-3 sm:px-5 lg:px-8">
@@ -40,7 +63,7 @@ const Header = ({ setSidebarOpen }) => {
           </div>
 
           {/* RIGHT SECTION */}
-          <div className="flex items-center gap-2 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-4 relative">
             <div className="hidden sm:flex items-center gap-1 sm:gap-2 pr-3 border-r border-gray-100">
               <button className="p-2 rounded-xl hover:bg-blue-50 hover:text-[#0852A1] transition">
                 <HelpCircle size={20} />
@@ -55,7 +78,10 @@ const Header = ({ setSidebarOpen }) => {
             </div>
 
             {/* PROFILE */}
-            <div className="flex items-center gap-2 cursor-pointer group">
+            <div
+              className="flex items-center gap-2 cursor-pointer group"
+              onClick={() => setIsProfileOpen((prev) => !prev)}
+            >
               <div className="hidden sm:block text-right">
                 <p className="text-sm font-semibold text-gray-800 group-hover:text-[#0852A1]">
                   {user?.name || "Student"}

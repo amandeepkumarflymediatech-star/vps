@@ -6,6 +6,11 @@ import { BookOpen, Clock, Trophy, Star } from "lucide-react";
 const Dashboard = () => {
   const [user, setUser] = useState(null);
 
+  // Temporary hard-coded stats; later can be fetched from API
+  const userStats = {
+    weeklyProgress: 60,
+  };
+
   useEffect(() => {
     if (typeof window === "undefined") return;
     const raw = localStorage.getItem("user");
@@ -36,7 +41,7 @@ const Dashboard = () => {
 
           {/* Stats Grid */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-            {statsConfig.map((s, i) => (
+            {stats.map((s, i) => (
               <div
                 key={i}
                 className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 hover:shadow-md transition-all group active:scale-95"
@@ -63,7 +68,6 @@ const Dashboard = () => {
                 </div>
                 {/* Placeholder for real chart */}
                 <div className="h-48 w-full bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-400">
-                   <Layout size={32} className="mb-2 opacity-20" />
                    <p className="text-sm font-medium">Chart data will appear here</p>
                 </div>
              </div>
