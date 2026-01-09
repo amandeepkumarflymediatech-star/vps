@@ -49,7 +49,7 @@ const Classes = () => {
   }, []);
 
   useEffect(() => {
-    if (user?.id) {
+    if (user?.id || user?._id) {
       fetchClasses();
       fetchCourses();
     }
@@ -79,32 +79,47 @@ const Classes = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!user?.id) {
-      console.error("User not found in localStorage");
+
+    const tutorId = user?.id || user?._id;
+    if (!tutorId) {
+      console.error("Tutor ID not found in user object from localStorage", user);
       return;
     }
+
     const payload = {
       ...form,
-      tutorId: user.id,
+      tutorId,
       price: Number(form.price),
       maxStudents: Number(form.maxStudents),
     };
 
-    const res = editClass
-      ? await updateClass(editClass._id, payload)
-      : await createClass(payload);
-    if (res?.data?.success) {
-      const updatedClass = res.data.data;
+    console.log("Submitting class payload", payload);
 
-      if (editClass) {
-        setClasses((prev) =>
-          prev.map((c) => (c._id === updatedClass._id ? updatedClass : c))
-        );
-      } else {
-        setClasses((prev) => [updatedClass, ...prev]);
+    try {
+      const res = editClass
+        ? await updateClass(editClass._id, payload)
+        : await createClass(payload);
+
+      if (res?.data?.success) {
+        const updatedClass = res.data.data;
+
+        if (editClass) {
+          setClasses((prev) =>
+            prev.map((c) => (c._id === updatedClass._id ? updatedClass : c))
+          );
+        } else {
+          setClasses((prev) => [updatedClass, ...prev]);
+        }
+
+        closeModal();
       }
-
-      closeModal();
+    } catch (error) {
+      // Errors (including 409) are already handled by axios interceptor with toasts.
+      console.warn("Failed to save class", {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.response?.data?.message || error.message,
+      });
     }
   };
 

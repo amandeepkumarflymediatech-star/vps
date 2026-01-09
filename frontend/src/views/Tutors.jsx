@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Search, Star, Calendar, Clock, Award, ShieldCheck, MapPin } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion"; // Suggesting framer-motion for smooth UI
@@ -23,7 +23,14 @@ const tutorsData = [
 
 const Tutors = () => {
   const [search, setSearch] = useState("");
-  const isLoggedIn = !!localStorage.getItem("token");
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem("token");
+      setIsLoggedIn(!!token);
+    }
+  }, []);
 
   const filteredTutors = tutorsData.filter(
     (tutor) =>

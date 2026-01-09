@@ -21,21 +21,38 @@ API.interceptors.request.use((req) => {
 API.interceptors.response.use(
   (res) => res,
   (error) => {
-    const message =
-      error.response?.data?.message || error.message || "Something went wrong";
+    const status = error.response?.status;
+    const backendMessage = error.response?.data?.message;
+    const fallbackMessage = error.message || "Something went wrong";
 
     // Network / no response
     if (!error.response) {
       toast.error("Network error. Please check your connection.");
-    } else if (error.response.status === 401) {
+    } else if (status === 401) {
       // Unauthorized — clear auth and redirect
       localStorage.removeItem("token");
       localStorage.removeItem("user");
-      toast.error(message || "Session expired. Please login again.");
+      toast.error(backendMessage || "Session expired. Please login again.");
       window.location.href = "/login";
+    } else if (status === 409) {
+      // Conflict – server rejected the data (e.g. duplicate or invalid business state)
+      toast.error(
+        backendMessage ||
+          "Could not save changes (409 Conflict). Please check your inputs or existing classes."
+      );
     } else {
-      toast.error(message);
+      toast.error(backendMessage || fallbackMessage);
     }
+
+    if (process.env.NODE_ENV !== "production") {
+      console.warn("API error", {
+        url: error.config?.url,
+        method: error.config?.method,
+        status,
+        data: error.response?.data,
+      });
+    }
+
     return Promise.reject(error);
   }
 );

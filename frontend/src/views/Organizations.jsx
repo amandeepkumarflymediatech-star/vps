@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import {
@@ -66,9 +67,15 @@ const steps = [
 
 const Organizations = () => {
   const router = useRouter();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // 1. Check if user is logged in (Assuming token-based auth)
-  const isLoggedIn = !!localStorage.getItem("token");
+  // 1. Check if user is logged in (Assuming token-based auth) - only in browser
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem("token");
+      setIsLoggedIn(!!token);
+    }
+  }, []);
 
   // 2. Navigation Handler
   const handleDemoClick = () => {
