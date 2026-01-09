@@ -1,154 +1,408 @@
-import React, { useState } from 'react';
-import Link from "next/link";
-import { PlayCircle, CheckCircle, Clock, BookOpen, Search, Filter } from 'lucide-react';
+// "use client";
 
-const MyCourses = () => {
-  const [courses, setCourses] = useState([]);
-  const [filter, setFilter] = useState("all");
-  const [isLoading, setIsLoading] = useState(true);
+// import React, { useEffect, useState } from "react";
+// import { useRouter } from "next/navigation";
+// import {
+//   Video,
+//   Bell,
+//   ChevronLeft,
+//   ChevronRight,
+// } from "lucide-react";
+
+// /* ---------------- CONSTANTS ---------------- */
+
+// // Session tabs
+// const TABS = ["Upcoming", "Completed", "Cancelled", "Missed", "Pending"];
+
+// // Total pages (API se aayega later)
+// const TOTAL_PAGES = 10;
+
+// const MySessions = () => {
+//   const router = useRouter();
+
+//   /* ---------------- STATE ---------------- */
+
+//   const [activeTab, setActiveTab] = useState("Upcoming");
+//   const [sessions, setSessions] = useState([]);
+//   const [tutors, setTutors] = useState([]);
+//   const [page, setPage] = useState(1);
+
+//   /* ---------------- EFFECTS ---------------- */
+
+//   useEffect(() => {
+//     fetchSessions(activeTab);
+//     fetchTutors();
+//   }, [activeTab, page]);
+
+//   /* ---------------- DATA FETCHING ---------------- */
+
+//   const fetchSessions = async (status) => {
+//     const data = {
+//       Upcoming: [],
+//       Completed: [],
+//       Cancelled: [],
+//       Missed: [],
+//       Pending: [],
+//     };
+//     setSessions(data[status]);
+//   };
+
+//   const fetchTutors = async () => {
+//     setTutors([
+//       {
+//         id: 1,
+//         name: "Radhika Mehta",
+//         rating: 4.8,
+//         sessions: 539,
+//         time: "04:00 PM Jan 9th",
+//         img: "https://i.pravatar.cc/150?u=radhika",
+//       },
+//       {
+//         id: 2,
+//         name: "Bela",
+//         rating: 4.9,
+//         sessions: 722,
+//         time: "05:00 PM Jan 9th",
+//         img: "https://i.pravatar.cc/150?u=bela",
+//       },
+//       {
+//         id: 3,
+//         name: "Aisha",
+//         rating: 4.8,
+//         sessions: 4139,
+//         time: "06:00 PM Jan 9th",
+//         img: "https://i.pravatar.cc/150?u=aisha",
+//       },
+//     ]);
+//   };
+
+//   /* ---------------- HANDLERS ---------------- */
+
+//   // Book now → redirect to TutorDetailsView
+//   const handleBookNow = (tutorId) => {
+//     // router.push(`/TutorDetailsView?id=${tutorId}`);
+//     router.push("/student/TutorDetailsView");
+//   };
+
+//   /* ---------------- UI ---------------- */
+
+//   return (
+//     <div className="bg-white w-full p-4 md:p-10 text-gray-800">
+
+//       {/* ---------- NOTIFICATION ---------- */}
+//       {/* <div className="flex justify-end mb-4">
+//         <button className="flex items-center gap-2 bg-yellow-100 px-4 py-2 rounded-lg text-sm font-semibold">
+//           <Bell size={18} /> Notifications
+//         </button>
+//       </div> */}
+
+//       {/* ---------- HEADER + TABS ---------- */}
+//       <div className="flex flex-col md:flex-row justify-between mb-8 gap-4">
+//         <div>
+//           <h1 className="text-xl font-bold">My Sessions</h1>
+//           <p className="text-gray-500 text-sm">View your sessions</p>
+//         </div>
+
+//         <div className="flex bg-gray-50 border rounded-lg p-1">
+//           {TABS.map((tab) => (
+//             <button
+//               key={tab}
+//               onClick={() => setActiveTab(tab)}
+//               className={`px-4 py-1.5 rounded-md text-sm transition
+//                 ${
+//                   activeTab === tab
+//                     ? "bg-white text-[#6335F8] shadow font-semibold"
+//                     : "text-gray-500"
+//                 }`}
+//             >
+//               {tab}
+//             </button>
+//           ))}
+//         </div>
+//       </div>
+
+//       {/* ---------- EMPTY SESSION STATE ---------- */}
+//       {sessions.length === 0 && (
+//         <div className="rounded-3xl border bg-purple-50 py-16 flex flex-col items-center mb-12">
+//           <div className="text-5xl mb-4">🙄</div>
+//           <h3 className="text-lg font-bold mb-6">
+//             You have no {activeTab} sessions
+//           </h3>
+//           <button
+
+
+//   onClick={() => router.push("/student/myClass")}
+//   className="bg-[#6335F8] text-white px-6 py-2.5 rounded-full flex items-center gap-2"
+// >
+//   Schedule a tutor <Video size={18} />
+// </button>
+//         </div>
+//       )}
+
+//       {/* ---------- BOOK A TRIAL (ROW + SCROLL) ---------- */}
+//       <h2 className="text-lg font-bold mb-4">Book a trial</h2>
+
+//       <div className="flex gap-4 overflow-x-auto pb-4 mb-12">
+//         {tutors.map((tutor) => (
+//           <div
+//             key={tutor.id}
+//             className="min-w-[260px] border rounded-2xl p-4 hover:shadow transition flex-shrink-0"
+//           >
+//             <div className="flex gap-3 mb-4">
+//               <img
+//                 src={tutor.img}
+//                 alt={tutor.name}
+//                 className="w-12 h-12 rounded-lg object-cover"
+//               />
+//               <div>
+//                 <h4 className="font-bold text-sm">{tutor.name}</h4>
+//                 <p className="text-xs text-gray-500">
+//                   ★ {tutor.rating} ({tutor.sessions}+ sessions)
+//                 </p>
+//               </div>
+//             </div>
+
+//             <p className="text-xs text-gray-400 uppercase mb-1">
+//               Next availability
+//             </p>
+//             <p className="font-bold text-sm mb-4">{tutor.time}</p>
+
+//             <button
+//               onClick={() => handleBookNow(tutor.id)}
+//               className="w-full py-2 rounded-xl bg-purple-50 text-[#6335F8] font-bold
+//                          hover:bg-[#6335F8] hover:text-white transition"
+//             >
+//               Book now
+//             </button>
+//           </div>
+//         ))}
+//       </div>
+
+//       {/* ---------- PAGINATION (NUMBERS) ---------- */}
+//       <div className="flex justify-center items-center gap-2 mt-10">
+
+//         <button
+//           disabled={page === 1}
+//           onClick={() => setPage(page - 1)}
+//           className="px-3 py-1 border rounded disabled:opacity-40"
+//         >
+//           <ChevronLeft size={16} />
+//         </button>
+
+//         {Array.from({ length: TOTAL_PAGES }).map((_, i) => {
+//           const pageNumber = i + 1;
+//           return (
+//             <button
+//               key={pageNumber}
+//               onClick={() => setPage(pageNumber)}
+//               className={`px-3 py-1 rounded font-semibold text-sm
+//                 ${
+//                   page === pageNumber
+//                     ? "bg-[#6335F8] text-white"
+//                     : "border text-gray-600 hover:bg-gray-100"
+//                 }`}
+//             >
+//               {pageNumber}
+//             </button>
+//           );
+//         })}
+
+//         <button
+//           disabled={page === TOTAL_PAGES}
+//           onClick={() => setPage(page + 1)}
+//           className="px-3 py-1 border rounded disabled:opacity-40"
+//         >
+//           <ChevronRight size={16} />
+//         </button>
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default MySessions;
+
+
+
+"use client";
+
+import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import {
+  Video,
+  Calendar,
+  ChevronLeft,
+  ChevronRight,
+  Star,
+  Clock,
+  LayoutGrid,
+} from "lucide-react";
+
+const TABS = ["Upcoming", "Completed", "Cancelled", "Missed", "Pending"];
+const TOTAL_PAGES = 5;
+
+const MySessions = () => {
+  const router = useRouter();
+  const [activeTab, setActiveTab] = useState("Upcoming");
+  const [sessions, setSessions] = useState([]);
+  const [page, setPage] = useState(1);
+  const [tutors, setTutors] = useState([]);
 
   useEffect(() => {
-    const fetchCourses = async () => {
-      setIsLoading(true);
-      try {
-        // Replace with your API call
-        // const response = await fetch('/api/student/my-courses');
-        // const data = await response.json();
-        // setCourses(data);
-
-        // Mock empty state for demo
-        setCourses([]);
-      } catch (error) {
-        console.error("Error fetching courses:", error);
-        setCourses([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchCourses();
-  }, []);
-
-  const filteredCourses =
-    filter === "all" ? courses : courses.filter((c) => c.status === filter);
+    // Mocking an empty state for demonstration as per your logic
+    setSessions([]); 
+    
+    setTutors([
+      { id: 1, name: "Radhika Mehta", rating: 4.8, sessions: 539, time: "04:00 PM Jan 9th", img: "https://i.pravatar.cc/150?u=radhika" },
+      { id: 2, name: "Bela Singh", rating: 4.9, sessions: 722, time: "05:00 PM Jan 9th", img: "https://i.pravatar.cc/150?u=bela" },
+      { id: 3, name: "Aisha Khan", rating: 4.8, sessions: 4139, time: "06:00 PM Jan 9th", img: "https://i.pravatar.cc/150?u=aisha" },
+      { id: 4, name: "Gaurav Pro", rating: 4.7, sessions: 1200, time: "07:30 PM Jan 10th", img: "https://i.pravatar.cc/150?u=gaurav" },
+    ]);
+  }, [activeTab]);
 
   return (
-    <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-8 animate-in fade-in duration-500">
-      {/* HEADER */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+    <div className="max-w-7xl mx-auto p-6 md:p-10 bg-[#FBFCFF] min-h-screen">
+      
+      {/* ---------- HEADER SECTION ---------- */}
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 gap-6">
         <div>
-          <h1 className="text-2xl md:text-3xl font-black text-gray-900">
-            My Learning Journey
-          </h1>
-          <p className="text-gray-500 mt-1">
-            Pick up where you left off and reach your goals.
-          </p>
+          <h1 className="text-3xl font-black text-gray-900 tracking-tight">My Sessions</h1>
+          <p className="text-gray-500 font-medium mt-1">Manage your learning journey and schedule</p>
         </div>
 
-        {/* FILTER TABS */}
-        <div className="flex bg-gray-100 p-1 rounded-2xl w-full md:w-auto">
-          {["all", "ongoing", "completed"].map((type) => (
+        <div className="flex bg-gray-100/80 p-1.5 rounded-2xl backdrop-blur-sm border border-gray-100 overflow-x-auto max-w-full">
+          {TABS.map((tab) => (
             <button
-              key={type}
-              onClick={() => setFilter(type)}
-              className={`flex-1 md:flex-none px-6 py-2 rounded-xl text-sm font-bold capitalize transition-all ${
-                filter === type
-                  ? "bg-white text-[#0852A1] shadow-sm"
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-6 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${
+                activeTab === tab
+                  ? "bg-white text-[#6335F8] shadow-sm"
                   : "text-gray-500 hover:text-gray-700"
               }`}
             >
-              {type}
+              {tab}
             </button>
           ))}
         </div>
       </div>
 
-      {/* COURSES GRID / EMPTY STATE */}
-      {isLoading ? (
-        // LOADING SHIMMER
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {[1, 2, 3].map((n) => (
-            <div
-              key={n}
-              className="h-80 bg-gray-100 animate-pulse rounded-3xl"
-            />
-          ))}
-        </div>
-      ) : filteredCourses.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-          {filteredCourses.map((course) => (
-            <div
-              key={course.id}
-              className="group bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col"
+      {/* ---------- MAIN CONTENT AREA ---------- */}
+      <div className="grid grid-cols-1 gap-10">
+        
+        {/* EMPTY STATE REDESIGN */}
+        {sessions.length === 0 && (
+          <div className="relative overflow-hidden rounded-[2.5rem] border-2 border-dashed border-purple-100 bg-white p-12 md:p-20 flex flex-col items-center text-center">
+            <div className="absolute top-0 right-0 -mr-10 -mt-10 w-40 h-40 bg-purple-50 rounded-full blur-3xl opacity-50"></div>
+            <div className="w-20 h-20 bg-purple-50 rounded-3xl flex items-center justify-center mb-6">
+              <Calendar size={40} className="text-[#6335F8]" />
+            </div>
+            <h3 className="text-2xl font-black text-gray-900 mb-2">
+              No {activeTab} sessions yet
+            </h3>
+            <p className="text-gray-500 max-w-xs mb-8 font-medium">
+              It looks like you haven't scheduled any lessons in this category. Start your journey today!
+            </p>
+            <button
+              onClick={() => router.push("/student/myClass")}
+              className="bg-[#6335F8] text-white px-8 py-4 rounded-2xl font-bold flex items-center gap-3 shadow-lg shadow-[#6335F8]/30 hover:scale-105 transition-transform"
             >
-              {/* IMAGE & STATUS */}
-              <div className="relative h-48 overflow-hidden">
-                <img
-                  src={course.image}
-                  alt={course.title}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute top-4 left-4">
-                  <span className="bg-[#0852A1] text-white px-3 py-1 rounded-full text-[10px] font-black uppercase shadow-lg">
-                    {course.status}
-                  </span>
-                </div>
-              </div>
+              Find a Tutor <Video size={20} />
+            </button>
+          </div>
+        )}
 
-              {/* CONTENT */}
-              <div className="p-6 flex-1 flex flex-col">
-                <h3 className="text-lg font-bold text-gray-800 line-clamp-2">
-                  {course.title}
-                </h3>
-                <p className="text-sm text-gray-400 mt-2 font-medium">
-                  By {course.instructor}
-                </p>
-                {/* PROGRESS */}
-                <div className="mt-6 space-y-2">
-                  <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-[#0852A1]"
-                      style={{ width: `${course.progress}%` }}
+        {/* ---------- RECOMMENDATIONS / BOOK A TRIAL ---------- */}
+        <div>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-black text-gray-900 flex items-center gap-2">
+              <LayoutGrid size={20} className="text-[#6335F8]" />
+              Book a Trial Session
+            </h2>
+            <button className="text-sm font-bold text-[#6335F8] hover:underline">View All</button>
+          </div>
+
+          <div className="flex gap-6 overflow-x-auto pb-6 no-scrollbar">
+            {tutors.map((tutor) => (
+              <div
+                key={tutor.id}
+                className="min-w-[280px] group bg-white border border-gray-100 rounded-[2rem] p-6 hover:shadow-xl hover:shadow-[#6335F8]/5 transition-all duration-300"
+              >
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="relative">
+                    <img
+                      src={tutor.img}
+                      alt={tutor.name}
+                      className="w-16 h-16 rounded-2xl object-cover ring-4 ring-gray-50 group-hover:ring-purple-50 transition-all"
                     />
+                    <div className="absolute -top-2 -right-2 bg-yellow-400 text-white p-1 rounded-lg border-2 border-white">
+                      <Star size={12} className="fill-current" />
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-black text-gray-900">{tutor.name}</h4>
+                    <p className="text-xs font-bold text-gray-400">
+                      {tutor.sessions}+ Sessions
+                    </p>
                   </div>
                 </div>
-                <Link href={`/student/courses/${course.id}`}>
-                  <button
-                    className={`p-3 rounded-xl transition-all ${
-                      course.status === 'completed'
-                        ? 'bg-green-50 text-green-600 hover:bg-green-600 hover:text-white'
-                        : 'bg-blue-50 text-[#0852A1] hover:bg-[#0852A1] hover:text-white'
-                    }`}
-                  >
-                    <PlayCircle size={20} fill="currentColor" fillOpacity={0.1} />
-                  </button>
-                </Link>
+
+                <div className="bg-gray-50 rounded-2xl p-4 mb-6">
+                  <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1 flex items-center gap-1">
+                    <Clock size={10} /> Next Available
+                  </p>
+                  <p className="font-bold text-sm text-gray-800">{tutor.time}</p>
+                </div>
+
+                <button
+                  onClick={() => router.push("/student/TutorDetailsView")}
+                  className="w-full py-3.5 rounded-xl bg-purple-50 text-[#6335F8] font-black text-sm hover:bg-[#6335F8] hover:text-white transition-all shadow-sm group-hover:shadow-md"
+                >
+                  Book Now
+                </button>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      ) : (
-       // Inside your empty state JSX:
-<div className="flex flex-col items-center justify-center py-20 px-4 text-center bg-white rounded-[2rem] border-2 border-dashed border-gray-100">
-  <div className="w-20 h-20 bg-blue-50 rounded-3xl flex items-center justify-center mb-6">
-    <Layout className="text-[#0852A1]" size={40} />
-  </div>
-  <h3 className="text-2xl font-black text-gray-900 mb-2">
-    No Courses Yet
-  </h3>
-  <p className="text-gray-500 max-w-xs mx-auto mb-8">
-    You haven't enrolled in any courses yet. Start your journey by exploring our catalog.
-  </p>
-  <Link
-    to="/tutors"
-    className="bg-[#0852A1] text-white px-8 py-3 rounded-2xl font-bold hover:shadow-lg hover:shadow-blue-200 transition-all active:scale-95 inline-block text-center"
-  >
-    Browse Courses
-  </Link>
-</div>
-      )}
+      </div>
+
+      {/* ---------- MODERN PAGINATION ---------- */}
+      <div className="flex flex-col items-center gap-4 mt-16">
+        <div className="flex items-center bg-white p-2 rounded-2xl border border-gray-100 shadow-sm">
+          <button
+            disabled={page === 1}
+            onClick={() => setPage(page - 1)}
+            className="p-2 text-gray-400 hover:text-[#6335F8] disabled:opacity-20 transition-colors"
+          >
+            <ChevronLeft size={24} />
+          </button>
+
+          <div className="flex items-center gap-1 mx-2">
+            {[1, 2, 3, "...", TOTAL_PAGES].map((item, i) => (
+              <button
+                key={i}
+                onClick={() => typeof item === 'number' && setPage(item)}
+                className={`w-10 h-10 rounded-xl text-sm font-black transition-all ${
+                  page === item
+                    ? "bg-[#6335F8] text-white shadow-lg shadow-[#6335F8]/20"
+                    : "text-gray-400 hover:bg-gray-50 hover:text-gray-600"
+                }`}
+              >
+                {item}
+              </button>
+            ))}
+          </div>
+
+          <button
+            disabled={page === TOTAL_PAGES}
+            onClick={() => setPage(page + 1)}
+            className="p-2 text-gray-400 hover:text-[#6335F8] disabled:opacity-20 transition-colors"
+          >
+            <ChevronRight size={24} />
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
 
-export default MyCourses;
+export default MySessions;

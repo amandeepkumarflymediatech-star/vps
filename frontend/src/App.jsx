@@ -37,6 +37,7 @@ import CourseDetails from "./student/pages/CourseDetails";
 import StudentProfile from "./student/pages/Profile";
 import StudentSettings from "./student/pages/Settings";
 
+
 /* ================= DASHBOARD ================= */
 import DashboardRedirect from "./views/DashboardRedirect";
 
