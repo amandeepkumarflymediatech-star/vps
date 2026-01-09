@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
-import { PlayCircle, Layout } from "lucide-react";
-import { Link } from "react-router-dom"; // ✅ React Router Link
+import React, { useState } from 'react';
+import Link from "next/link";
+import { PlayCircle, CheckCircle, Clock, BookOpen, Search, Filter } from 'lucide-react';
 
 const MyCourses = () => {
   const [courses, setCourses] = useState([]);
@@ -112,6 +112,17 @@ const MyCourses = () => {
                     />
                   </div>
                 </div>
+                <Link href={`/student/courses/${course.id}`}>
+                  <button
+                    className={`p-3 rounded-xl transition-all ${
+                      course.status === 'completed'
+                        ? 'bg-green-50 text-green-600 hover:bg-green-600 hover:text-white'
+                        : 'bg-blue-50 text-[#0852A1] hover:bg-[#0852A1] hover:text-white'
+                    }`}
+                  >
+                    <PlayCircle size={20} fill="currentColor" fillOpacity={0.1} />
+                  </button>
+                </Link>
               </div>
             </div>
           ))}

@@ -1,67 +1,33 @@
-import { useState, useEffect } from "react";
-import Sidebar from "../components/layout/Sidebar";
-// import Footer from "../components/layout/Footer"; // Add back if needed
-import {
-  BookOpen,
-  Clock,
-  Trophy,
-  Star,
-  Layout
-} from "lucide-react";
+"use client";
+
+import { useEffect, useState } from "react";
+import { BookOpen, Clock, Trophy, Star } from "lucide-react";
 
 const Dashboard = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  
-  // 1. DYNAMIC USER DATA
-  const user = JSON.parse(localStorage.getItem("user")) || {};
-  
-  // 2. DYNAMIC STATS STATE (Initialize with 0 or null)
-  const [userStats, setUserStats] = useState({
-    completedCourses: "0",
-    learningHours: "0h",
-    points: "0",
-    streak: "0 Days",
-    weeklyProgress: 0
-  });
+  const [user, setUser] = useState(null);
 
-  // 3. FETCH DATA (Simulated API call)
   useEffect(() => {
-    // In a real app: const data = await api.getDashboardStats(user.id);
-    // For now, setting some dynamic-looking data
-    const timer = setTimeout(() => {
-      setUserStats({
-        completedCourses: "12",
-        learningHours: "128h",
-        points: "2,450",
-        streak: "8 Days",
-        weeklyProgress: 85
-      });
-    }, 500);
-
-    return () => clearTimeout(timer);
+    if (typeof window === "undefined") return;
+    const raw = localStorage.getItem("user");
+    setUser(raw ? JSON.parse(raw) : null);
   }, []);
 
-  const statsConfig = [
-    { label: "Completed", value: userStats.completedCourses, icon: <BookOpen />, bg: "bg-blue-50 text-blue-600" },
-    { label: "Hours", value: userStats.learningHours, icon: <Clock />, bg: "bg-orange-50 text-orange-600" },
-    { label: "Points", value: userStats.points, icon: <Trophy />, bg: "bg-yellow-50 text-yellow-600" },
-    { label: "Streak", value: userStats.streak, icon: <Star />, bg: "bg-purple-50 text-purple-600" },
+  const stats = [
+    { label: "Completed", value: "12", icon: <BookOpen />, bg: "bg-blue-50 text-blue-600" },
+    { label: "Hours", value: "128h", icon: <Clock />, bg: "bg-orange-50 text-orange-600" },
+    { label: "Points", value: "2,450", icon: <Trophy />, bg: "bg-yellow-50 text-yellow-600" },
+    { label: "Streak", value: "8 Days", icon: <Star />, bg: "bg-purple-50 text-purple-600" },
   ];
 
   return (
     <div className="min-h-screen bg-gray-50 flex w-full">
-      <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
-
+      {/* StudentLayout wraps this with sidebar/header/footer; this is just inner content */}
       <div className="flex-1 flex flex-col min-h-screen">
-        {/* Pass sidebar controls to Header */}
-
-
         <main className="p-4 md:p-8 space-y-8 flex-1">
           {/* Welcome Section */}
           <div className="animate-in fade-in slide-in-from-left duration-700">
             <h1 className="text-3xl font-black text-slate-900 tracking-tight">
-              {/* REAL-TIME NAME */}
-              Welcome, {user?.name?.split(' ')[0] || "Student"} 👋
+              Welcome, {user?.name || "Student"} 👋
             </h1>
             <p className="text-slate-500 mt-1 font-medium">
               You've reached <b className="text-[#0852A1] font-black">{userStats.weeklyProgress}%</b> of your weekly goal. Keep it up!

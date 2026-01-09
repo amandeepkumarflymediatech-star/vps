@@ -1,21 +1,22 @@
-import React, { useState, useEffect } from "react";
-import { Search, Bell, Menu, HelpCircle, ChevronDown, LogOut } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+"use client";
 
-const Header = ({ setSidebarOpen, notifications = 0, onSearch }) => {
-  const navigate = useNavigate();
-  
-  // 1. Get user from localStorage exactly like your Sidebar does
-  const user = JSON.parse(localStorage.getItem("user")) || {};
+import React, { useEffect, useState } from "react";
+import {
+  Search,
+  Bell,
+  Menu,
+  HelpCircle,
+  ChevronDown,
+} from "lucide-react";
 
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
+const Header = ({ setSidebarOpen }) => {
+  const [user, setUser] = useState(null);
 
-  // 2. Logout function
-  const handleLogout = () => {
-    localStorage.clear();
-    navigate("/login");
-  };
-
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const raw = localStorage.getItem("user");
+    setUser(raw ? JSON.parse(raw) : null);
+  }, []);
   return (
     <header className="sticky top-0 z-40 w-full bg-white/90 backdrop-blur border-b border-gray-100">
       <div className="mx-auto max-w-[1600px] px-3 sm:px-5 lg:px-8">
@@ -57,21 +58,16 @@ const Header = ({ setSidebarOpen, notifications = 0, onSearch }) => {
               </button>
             </div>
 
-            {/* PROFILE DROPDOWN */}
-            <div className="relative">
-              <div 
-                onClick={() => setIsProfileOpen(!isProfileOpen)}
-                className="flex items-center gap-2 cursor-pointer group"
-              >
-                <div className="hidden sm:block text-right">
-                  {/* REAL-TIME NAME FROM LOCALSTORAGE */}
-                  <p className="text-sm font-semibold text-gray-800 group-hover:text-[#0852A1]">
-                    {user?.name || "Student"}
-                  </p>
-                  <p className="text-[10px] uppercase font-bold text-blue-600">
-                    {user?.role || "STUDENT"}
-                  </p>
-                </div>
+            {/* PROFILE */}
+            <div className="flex items-center gap-2 cursor-pointer group">
+              <div className="hidden sm:block text-right">
+                <p className="text-sm font-semibold text-gray-800 group-hover:text-[#0852A1]">
+                  {user?.name || "Student"}
+                </p>
+                <p className="text-[10px] uppercase font-bold text-blue-600">
+                  {user?.role || "STUDENT"}
+                </p>
+              </div>
 
                 <div className="relative">
                   <img
@@ -117,7 +113,6 @@ const Header = ({ setSidebarOpen, notifications = 0, onSearch }) => {
             />
           </div>
         </div>
-      </div>
     </header>
   );
 };

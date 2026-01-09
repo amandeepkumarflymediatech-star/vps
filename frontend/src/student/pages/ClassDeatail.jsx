@@ -1,9 +1,7 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
 import { getClassById } from "../../api/classes.api";
 
-export default function ClassDetail() {
-  const { id } = useParams();
+export default function ClassDetail({ id }) {
   const [classData, setClassData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
