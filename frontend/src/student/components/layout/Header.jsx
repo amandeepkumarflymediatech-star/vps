@@ -7,21 +7,35 @@ import {
   Menu,
   HelpCircle,
   ChevronDown,
+  LogOut,
 } from "lucide-react";
 
-const Header = ({ setSidebarOpen }) => {
+const Header = ({ setSidebarOpen, onSearch }) => {
   const [user, setUser] = useState(null);
+  const [notifications, setNotifications] = useState(0);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     const raw = localStorage.getItem("user");
     setUser(raw ? JSON.parse(raw) : null);
+
+    // TODO: integrate real notifications count from API if available
+    setNotifications(0);
   }, []);
+
+  const handleLogout = () => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      window.location.href = "/login";
+    }
+  };
+
   return (
     <header className="sticky top-0 z-40 w-full bg-white/90 backdrop-blur border-b border-gray-100">
       <div className="mx-auto max-w-[1600px] px-3 sm:px-5 lg:px-8">
         <div className="flex h-14 sm:h-16 md:h-20 items-center justify-between gap-3">
-          
           {/* LEFT SECTION */}
           <div className="flex items-center gap-2 sm:gap-3 flex-1">
             <button
@@ -32,7 +46,10 @@ const Header = ({ setSidebarOpen }) => {
             </button>
 
             <div className="hidden lg:flex relative w-full max-w-md">
-              <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+              <Search
+                size={18}
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+              />
               <input
                 type="text"
                 placeholder="Search courses..."
@@ -59,7 +76,10 @@ const Header = ({ setSidebarOpen }) => {
             </div>
 
             {/* PROFILE */}
-            <div className="flex items-center gap-2 cursor-pointer group">
+            <div
+              className="flex items-center gap-2 cursor-pointer group relative"
+              onClick={() => setIsProfileOpen((prev) => !prev)}
+            >
               <div className="hidden sm:block text-right">
                 <p className="text-sm font-semibold text-gray-800 group-hover:text-[#0852A1]">
                   {user?.name || "Student"}
@@ -69,24 +89,25 @@ const Header = ({ setSidebarOpen }) => {
                 </p>
               </div>
 
-                <div className="relative">
-                  <img
-                    src={user?.avatar || "https://i.pravatar.cc/150?u=guest"}
-                    alt="Profile"
-                    className="w-9 h-9 sm:w-10 sm:h-10 md:w-11 md:h-11 rounded-xl object-cover border-2 border-transparent
+              <div className="relative">
+                <img
+                  src={user?.avatar || "https://i.pravatar.cc/150?u=guest"}
+                  alt="Profile"
+                  className="w-9 h-9 sm:w-10 sm:h-10 md:w-11 md:h-11 rounded-xl object-cover border-2 border-transparent
                     group-hover:border-[#0852A1] transition"
-                  />
-                </div>
-
-                <ChevronDown
-                  size={16}
-                  className={`hidden md:block text-gray-400 transition-transform ${isProfileOpen ? 'rotate-180' : ''}`}
                 />
               </div>
 
+              <ChevronDown
+                size={16}
+                className={`hidden md:block text-gray-400 transition-transform ${
+                  isProfileOpen ? "rotate-180" : ""
+                }`}
+              />
+
               {/* DROPDOWN MENU */}
               {isProfileOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-gray-100 p-2 z-50">
+                <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-2xl shadow-xl border border-gray-100 p-2 z-50">
                   <button
                     onClick={handleLogout}
                     className="w-full flex items-center gap-2 px-4 py-3 rounded-xl text-red-600 hover:bg-red-50 transition-colors text-xs font-bold"
@@ -103,7 +124,10 @@ const Header = ({ setSidebarOpen }) => {
         {/* MOBILE SEARCH */}
         <div className="lg:hidden pb-3">
           <div className="relative">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <Search
+              size={16}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            />
             <input
               type="text"
               placeholder="Search..."
@@ -113,6 +137,7 @@ const Header = ({ setSidebarOpen }) => {
             />
           </div>
         </div>
+      </div>
     </header>
   );
 };

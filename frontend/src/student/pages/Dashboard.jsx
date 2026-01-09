@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { BookOpen, Clock, Trophy, Star } from "lucide-react";
+import { BookOpen, Clock, Trophy, Star, LayoutDashboard } from "lucide-react";
 
 const Dashboard = () => {
   const [user, setUser] = useState(null);
@@ -12,7 +12,12 @@ const Dashboard = () => {
     setUser(raw ? JSON.parse(raw) : null);
   }, []);
 
-  const stats = [
+  // Placeholder user stats until wired up to real backend data
+  const userStats = {
+    weeklyProgress: 72,
+  };
+
+  const statsConfig = [
     { label: "Completed", value: "12", icon: <BookOpen />, bg: "bg-blue-50 text-blue-600" },
     { label: "Hours", value: "128h", icon: <Clock />, bg: "bg-orange-50 text-orange-600" },
     { label: "Points", value: "2,450", icon: <Trophy />, bg: "bg-yellow-50 text-yellow-600" },
@@ -63,7 +68,7 @@ const Dashboard = () => {
                 </div>
                 {/* Placeholder for real chart */}
                 <div className="h-48 w-full bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-400">
-                   <Layout size={32} className="mb-2 opacity-20" />
+                   <LayoutDashboard size={32} className="mb-2 opacity-20" />
                    <p className="text-sm font-medium">Chart data will appear here</p>
                 </div>
              </div>
