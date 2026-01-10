@@ -162,47 +162,36 @@ router.get("/:id", auth, role("ADMIN"), async (req, res) => {
 /* =========================================================
    DELETE USER (ADMIN)
 ========================================================= */
+
+
+
 router.delete("/delete/:id", auth, role("ADMIN"), async (req, res) => {
   const { id } = req.params;
+
+  console.log("DELETE USER ID:", id);
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return res.status(400).json({ message: "Invalid user ID" });
   }
 
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
   try {
-    // 1️⃣ Check user exists
-    const user = await User.findById(id).session(session);
+    const user = await User.findById(id);
     if (!user) {
-      await session.abortTransaction();
       return res.status(404).json({ message: "User not found" });
     }
 
-    // 2️⃣ Delete all classes linked to user
-    await Class.deleteMany({ tutorId: id }).session(session);
+    await User.findByIdAndDelete(id);
 
-    // 3️⃣ Delete all courses linked to user
-    await Course.deleteMany({ tutorId: id }).session(session);
-
-    // 4️⃣ Delete user
-    await User.findByIdAndDelete(id).session(session);
-
-    await session.commitTransaction();
-    session.endSession();
-
-    res.json({
+    return res.json({
       success: true,
-      message: "User and all related data deleted successfully",
+      message: "User deleted successfully",
     });
   } catch (err) {
-    await session.abortTransaction();
-    session.endSession();
-    console.error(err);
-    res.status(500).json({ message: "Delete failed" });
+    console.error("❌ DELETE USER ERROR:", err); // 🔥 THIS LINE
+    return res.status(500).json({ message: "Delete failed" });
   }
 });
+
 
 /* =========================================================
    TOGGLE USER STATUS (ADMIN)
