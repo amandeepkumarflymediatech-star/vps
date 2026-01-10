@@ -123,6 +123,16 @@ const TutorLayout = ({ children }) => {
           </Link>
 
           <Link
+            href="/tutor/packages"
+            onClick={() => setSidebarOpen(false)}
+            className={
+              pathname.startsWith("/tutor/packages") ? activeLink : normalLink
+            }
+          >
+            <BookOpen size={20} /> Packages
+          </Link>
+
+          <Link
             href="/tutor/classes"
             onClick={() => setSidebarOpen(false)}
             className={

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
   Search,
   Heart,
@@ -11,15 +12,19 @@ import {
   ArrowRight,
   Filter,
   CheckCircle2,
-  SlidersHorizontal
+  SlidersHorizontal,
 } from "lucide-react";
+import { getTutors } from "@/api/tutorApi";
 
 const AllTutors = () => {
+  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [favorites, setFavorites] = useState([]);
   const [activeCategory, setActiveCategory] = useState("All");
   const [tutors, setTutors] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const tutorsPerPage = 6;
   const brandColor = "#6335F8";
@@ -35,19 +40,31 @@ const AllTutors = () => {
   ];
 
   useEffect(() => {
-    const mockTutors = Array.from({ length: 20 }).map((_, i) => ({
-      id: i + 1,
-      name: `Tutor ${i + 1}`,
-      // Assigning your specific categories to mock data
-      subject: categories[(i % (categories.length - 1)) + 1],
-      rating: (4 + Math.random()).toFixed(1),
-      reviews: Math.floor(Math.random() * 200) + 10,
-      price: Math.floor(Math.random() * 50) + 20,
-      image: `https://i.pravatar.cc/150?img=${i + 10}`,
-      bio: "Master your communication skills with personalized lessons tailored to your professional goals.",
-      isFeatured: i < 3 // First 3 are featured
-    }));
-    setTutors(mockTutors);
+    const fetchTutors = async () => {
+      try {
+        const res = await getTutors();
+        const apiTutors = (res.data?.data || []).map((t, index) => ({
+          id: t._id || index,
+          name: t.name,
+          subject: categories[(index % (categories.length - 1)) + 1],
+          rating: (4 + Math.random()).toFixed(1),
+          reviews: Math.floor(Math.random() * 200) + 10,
+          price: Math.floor(Math.random() * 50) + 20,
+          image: `https://i.pravatar.cc/150?u=${t.email}`,
+          bio:
+            "Master your communication skills with personalized lessons tailored to your professional goals.",
+          isFeatured: index < 3,
+        }));
+        setTutors(apiTutors);
+      } catch (err) {
+        console.error(err);
+        setError("Failed to load tutors");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTutors();
   }, []);
 
   // Filter Logic: Search + Category
@@ -68,6 +85,31 @@ const AllTutors = () => {
       prev.includes(id) ? prev.filter((f) => f !== id) : [...prev, id]
     );
   };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64 text-gray-500 text-sm">
+        Loading tutors...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6 text-red-500 text-sm font-medium">
+        {error}
+      </div>
+    );
+  }
+
+  if (!tutors.length) {
+    return (
+      <div className="p-6">
+        <h1 className="text-2xl font-black mb-2">Tutors</h1>
+        <p className="text-gray-500 text-sm">No tutors available yet.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 p-4 md:p-8 bg-[#FDFDFF]">
@@ -180,7 +222,10 @@ const AllTutors = () => {
                 </div>
               </div>
 
-              <button className="w-full flex items-center justify-center gap-3 py-4 bg-[#6335F8] text-white rounded-[1.25rem] font-black text-sm transition-all hover:bg-[#4f27d4] hover:gap-5 shadow-lg shadow-[#6335F8]/20 active:scale-95">
+              <button
+                onClick={() => router.push(`/student/tutor/${tutor.id}`)}
+                className="w-full flex items-center justify-center gap-3 py-4 bg-[#6335F8] text-white rounded-[1.25rem] font-black text-sm transition-all hover:bg-[#4f27d4] hover:gap-5 shadow-lg shadow-[#6335F8]/20 active:scale-95"
+              >
                 Book Trial Lesson <ArrowRight size={18} />
               </button>
             </div>
