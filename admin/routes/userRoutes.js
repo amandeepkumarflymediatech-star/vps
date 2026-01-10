@@ -335,7 +335,7 @@ router.post("/setup-password", async (req, res) => {
 
   await user.save();
 
-  res.redirect(`${process.env.FRONTEND_URL}/login`);
+  res.redirect(`${process.env.FRONTEND_URL}/tutor/login`);
 });
 
 module.exports = router;
