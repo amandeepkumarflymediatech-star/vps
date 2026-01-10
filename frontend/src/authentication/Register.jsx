@@ -152,7 +152,7 @@ const Register = () => {
                 Password
               </label>
               <div className="relative">
-                <input
+                
                   type={showPassword ? "text" : "password"}
                   name="password"
                   required
@@ -163,7 +163,7 @@ const Register = () => {
                              border border-neutral-300 rounded-md
                              focus:outline-none focus:ring-2 focus:ring-neutral-900
                              focus:border-neutral-900"
-                />
+               
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
