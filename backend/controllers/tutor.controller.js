@@ -2,6 +2,53 @@ import TutorApplication from "../models/TutorApplication.js";
 import Class from "../models/class.js";
 import Batch from "../models/batch.js";
 import User from "../models/User.js";
+import mongoose from "mongoose";
+
+const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
+
+export const listTutors = async (req, res) => {
+  try {
+    const { organizationId } = req.query;
+    const filter = { role: "TUTOR", status: "ACTIVE" };
+
+    if (organizationId) {
+      filter.organizationId = organizationId;
+    }
+
+    const tutors = await User.find(filter)
+      .select("name email phone organizationId createdAt")
+      .sort({ createdAt: -1 });
+
+    res.json({ success: true, data: tutors });
+  } catch (error) {
+    console.error("listTutors error", error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getTutorById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!isValidObjectId(id)) {
+      return res.status(400).json({ message: "Invalid tutor id" });
+    }
+
+    const tutor = await User.findOne({
+      _id: id,
+      role: "TUTOR",
+    }).select("name email phone organizationId status isVerified createdAt");
+
+    if (!tutor) {
+      return res.status(404).json({ message: "Tutor not found" });
+    }
+
+    res.json({ success: true, data: tutor });
+  } catch (error) {
+    console.error("getTutorById error", error);
+    res.status(500).json({ message: error.message });
+  }
+};
 
 export const applyTutor = async (req, res) => {
   try {

@@ -236,6 +236,7 @@ import {
   Clock,
   LayoutGrid,
 } from "lucide-react";
+import { getTutors } from "@/api/tutorApi";
 
 const TABS = ["Upcoming", "Completed", "Cancelled", "Missed", "Pending"];
 const TOTAL_PAGES = 5;
@@ -246,18 +247,36 @@ const MySessions = () => {
   const [sessions, setSessions] = useState([]);
   const [page, setPage] = useState(1);
   const [tutors, setTutors] = useState([]);
+  const [loadingTutors, setLoadingTutors] = useState(true);
+  const [tutorError, setTutorError] = useState(null);
 
   useEffect(() => {
-    // Mocking an empty state for demonstration as per your logic
-    setSessions([]); 
-    
-    setTutors([
-      { id: 1, name: "Radhika Mehta", rating: 4.8, sessions: 539, time: "04:00 PM Jan 9th", img: "https://i.pravatar.cc/150?u=radhika" },
-      { id: 2, name: "Bela Singh", rating: 4.9, sessions: 722, time: "05:00 PM Jan 9th", img: "https://i.pravatar.cc/150?u=bela" },
-      { id: 3, name: "Aisha Khan", rating: 4.8, sessions: 4139, time: "06:00 PM Jan 9th", img: "https://i.pravatar.cc/150?u=aisha" },
-      { id: 4, name: "Gaurav Pro", rating: 4.7, sessions: 1200, time: "07:30 PM Jan 10th", img: "https://i.pravatar.cc/150?u=gaurav" },
-    ]);
+    // keep sessions empty for now
+    setSessions([]);
   }, [activeTab]);
+
+  useEffect(() => {
+    const fetchTutors = async () => {
+      try {
+        const res = await getTutors();
+        const apiTutors = (res.data?.data || []).slice(0, 8).map((t, index) => ({
+          id: t._id || index,
+          name: t.name,
+          sessions: Math.floor(Math.random() * 1000) + 100,
+          time: "Today, 07:00 PM", // placeholder next-availability text
+          img: `https://i.pravatar.cc/150?u=${t.email}`,
+        }));
+        setTutors(apiTutors);
+      } catch (err) {
+        console.error(err);
+      setTutorError("Failed to load tutors");
+      } finally {
+        setLoadingTutors(false);
+      }
+    };
+
+    fetchTutors();
+  }, []);
 
   return (
     <div className="max-w-7xl mx-auto p-6 md:p-10 bg-[#FBFCFF] min-h-screen">
@@ -354,7 +373,7 @@ const MySessions = () => {
                 </div>
 
                 <button
-                  onClick={() => router.push("/student/TutorDetailsView")}
+                  onClick={() => router.push(`/student/tutor/${tutor.id}`)}
                   className="w-full py-3.5 rounded-xl bg-purple-50 text-[#6335F8] font-black text-sm hover:bg-[#6335F8] hover:text-white transition-all shadow-sm group-hover:shadow-md"
                 >
                   Book Now

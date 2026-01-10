@@ -13,59 +13,70 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import Link from "next/link";
+import { getTutorById } from "@/api/tutorApi";
+ 
 
-/* ---------------- MOCK API DATA ---------------- */
-const MOCK_TUTORS = [
-  {
-    id: "1",
-    name: "Dr. Sarah Jenkins",
-    subject: "Advanced Mathematics",
-    rating: 4.9,
-    reviews: 128,
-    experience: "10+ Years",
-    bio: "Dedicated mathematics educator specializing in calculus and linear algebra. Passionate about making complex concepts accessible to every student.",
-    email: "sarah.j@example.com",
-    education: "Ph.D. in Mathematics, Stanford University",
-    specialties: ["Calculus", "Linear Algebra", "SAT Math", "Statistics"],
-    availability: "Today",
-    responseTime: "< 2 hours",
-  },
-  {
-    id: "2",
-    name: "Rahul Mehta",
-    subject: "Physics",
-    rating: 4.7,
-    reviews: 94,
-    experience: "7+ Years",
-    bio: "Physics tutor with strong fundamentals and real-world examples to simplify learning.",
-    email: "rahul.m@example.com",
-    education: "M.Sc Physics, IIT Delhi",
-    specialties: ["Mechanics", "Electromagnetism", "JEE Physics"],
-    availability: "Tomorrow",
-    responseTime: "< 3 hours",
-  },
-];
+const TutorDetailsView = ({ id: propId }) => {
+  const params = useParams();
+  const routeId = params?.id;
+  const id = propId || routeId;
 
-const TutorDetailsView = () => {
-  const { id } = useParams();
   const [tutor, setTutor] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    setLoading(true);
+    if (!id) return;
 
-    // 🔁 Replace this with real API later
-    setTimeout(() => {
-      const foundTutor = MOCK_TUTORS.find((t) => t.id === id);
-      setTutor(foundTutor || null);
-      setLoading(false);
-    }, 600);
+    const fetchTutor = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const res = await getTutorById(id);
+        const t = res.data?.data;
+        if (!t) {
+          setTutor(null);
+        } else {
+          // Map API tutor to view model (fill in some placeholder fields)
+          setTutor({
+            id: t._id,
+            name: t.name,
+            subject: "Spoken English & Communication", // placeholder
+            rating: 4.8,
+            reviews: 120,
+            experience: "5+ Years",
+            bio:
+              "Passionate English tutor focused on helping students gain real-world speaking confidence.",
+            email: t.email,
+            education: "Certified English Trainer",
+            specialties: ["Spoken English", "Grammar", "Interview Prep"],
+            availability: "Today",
+            responseTime: "< 2 hours",
+          });
+        }
+      } catch (err) {
+        console.error(err);
+        setError("Failed to load tutor details");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTutor();
   }, [id]);
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-20 text-red-500 text-sm font-medium">
+        {error}
       </div>
     );
   }

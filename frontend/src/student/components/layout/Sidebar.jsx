@@ -44,6 +44,11 @@ const StudentSidebar = ({ sidebarOpen, setSidebarOpen }) => {
       icon: <BookOpen size={18} />,
     },
     {
+      name: "Packages",
+      path: "/student/packages",
+      icon: <BookOpen size={18} />,
+    },
+    {
       name: "Book a Trial",
       path: "/student/myClass",
       icon: <Home size={18} />,
