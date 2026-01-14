@@ -210,7 +210,7 @@ const Home = () => {
   };
 
   return (
-    <div className="w-full overflow-hidden">
+    <div className="w-full overflow-hidden ">
 
       {/* ================= HERO SECTION ================= */}
       <section
@@ -219,12 +219,13 @@ const Home = () => {
           backgroundImage: `url(${heroBg.src})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
+          
         }}
       >
         {/* Overlay */}
-        <div className="absolute inset-0 bg-black/40"></div>
+        <div className="absolute inset-0 bg-black/10"></div>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full ">
 
           <motion.div
             variants={fadeUp}
