@@ -9,7 +9,7 @@ export default function UpiContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const amount = searchParams.get("amount") || "0";
+  const amount = searchParams.get("amount") || "1";
   const plan = searchParams.get("plan") || "Session Activation";
   const tutorId = searchParams.get("tutorId");
 
