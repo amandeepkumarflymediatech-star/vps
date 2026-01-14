@@ -109,10 +109,14 @@ export default function RootLayout({ children }) {
         />
       </head>
 
-<body className="antialiased overflow-x-hidden">
         <PixelTracker />
-        <AppShell>{children}</AppShell>
-      </body>
+        <AppShell>
+          <body className="antialiased overflow-x-hidden">
+
+          {children}
+                </body>
+
+          </AppShell>
     </html>
   );
 }

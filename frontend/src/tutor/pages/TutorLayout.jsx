@@ -112,7 +112,7 @@ const TutorLayout = ({ children }) => {
             <LayoutDashboard size={20} /> Dashboard
           </Link>
 
-          <Link
+          {/* <Link
             href="/tutor/courses"
             onClick={() => setSidebarOpen(false)}
             className={
@@ -120,7 +120,7 @@ const TutorLayout = ({ children }) => {
             }
           >
             <GraduationCap size={20} /> Courses
-          </Link>
+          </Link> */}
 
           <Link
             href="/tutor/packages"
