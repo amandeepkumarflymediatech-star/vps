@@ -1,12 +1,10 @@
 import { Suspense } from "react";
-import UpiPaymentClient from "../../../src/views/UpiPaymentClient";
+import UpiContent from "./UpiContent";
 
-export const dynamic = "force-dynamic"; // ensures SSR (not static)
-
-export default function Page() {
+export default function UpiPaymentPage() {
   return (
-    <Suspense fallback={<div className="p-10 text-center">Loading payment…</div>}>
-      <UpiPaymentClient />
+    <Suspense fallback={<div>Loading UPI Gateway...</div>}>
+      <UpiContent />
     </Suspense>
   );
 }
