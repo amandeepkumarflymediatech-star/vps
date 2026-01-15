@@ -163,7 +163,7 @@ const BookSession = () => {
 
   return (
 
-    <div className="space-y-6 p-4 sm:p-6 bg-white relative overflow-x-hidden  h-screen">
+    <div className="space-y-6 p-4 sm:p-6 bg-white relative   h-screen">
   <Toaster />
 
   {/* HEADER */}
@@ -217,7 +217,7 @@ const BookSession = () => {
 </div>
 
   {/* SEARCH */}
-  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+  {/* <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 mb-4">
     <input
       placeholder="Tutor name"
       value={searchName}
@@ -245,14 +245,56 @@ const BookSession = () => {
     >
       <Search size={16} /> Search
     </button>
+  </div> */}
+
+
+  <div className="flex flex-nowrap gap-2 mb-4 md:grid md:grid-cols-4 md:gap-3">
+  {/* Tutor name */}
+  <input
+    placeholder="Tutor name"
+    value={searchName}
+    onChange={(e) => setSearchName(e.target.value)}
+    className="border rounded-lg px-3 py-2 text-sm w-full md:text-base"
+  />
+
+  {/* Time select */}
+  <div className="flex items-center gap-2 border rounded-lg px-3 py-2 text-sm w-full md:text-base">
+    <Clock size={16} />
+    <select
+      value={selectedTime}
+      onChange={(e) => setSelectedTime(e.target.value)}
+      className="bg-transparent w-full outline-none text-sm md:text-base"
+    >
+      <option value="">All Times</option>
+      {timeWindows.map((t, i) => (
+        <option key={i}>{t}</option>
+      ))}
+    </select>
   </div>
+
+  {/* Search button */}
+  <button
+    onClick={() => setApplyFilter(true)}
+    className="bg-[#6335F8] text-white rounded-lg flex items-center justify-center gap-2 px-4 py-2 md:py-3 whitespace-nowrap"
+  >
+    <Search size={16} /> Search
+  </button>
+</div>
+
 
   {/* TUTORS */}
   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
     {filteredTutors.length === 0 ? (
-      <div className="col-span-full text-center text-gray-500 text-sm sm:text-base">
+      <div className="col-span-full">
+  <div className="flex items-center justify-center min-h-[60vh]">
+    <div className="text-center bg-white p-10 rounded-2xl border border-gray-200 mb-50 sm:mb-0">
+      <p className="text-gray-900 font-bold text-base sm:text-lg">
         No tutors available for this day. Please select another day.
-      </div>
+      </p>
+    </div>
+  </div>
+</div>
+
     ) : (
       filteredTutors.map((tutor) => (
         <div

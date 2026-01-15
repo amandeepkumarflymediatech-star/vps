@@ -90,7 +90,7 @@ const StudentSidebar = () => {
         {/* ---------- HEADER ---------- */}
         <div className="flex items-center justify-between p-6 flex-shrink-0">
           <Link
-            href="/student/dashboard"
+            href="/"
             className="flex items-center gap-3"
             onClick={() => setSidebarOpen(false)}
           >

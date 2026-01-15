@@ -18,36 +18,19 @@ const Home = () => {
     setIsLoggedIn(!!localStorage.getItem("token"));
   }, []);
 
-  const handleBookNow = () => {
-    // 🚫 Not logged in → register
+  const handleActivate = () => {
+    // 🚫 Not logged in → Register
     if (!isLoggedIn) {
       router.push("/register");
       return;
     }
 
-    // ✅ Logged in → UPI payment
-    const upiId = "nshpental-1@okaxis"; // 🔴 replace with real UPI ID
-    const name = "The English Raj";
-    const amount = "499"; // can be dynamic
-    const note = "Session Activation";
-
-    const upiUrl = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(
-      name
-    )}&am=${amount}&cu=INR&tn=${encodeURIComponent(note)}`;
-
-    // 📱 Mobile → open UPI app
-    if (/Android|iPhone|iPad/i.test(navigator.userAgent)) {
-      window.location.href = upiUrl;
-    } 
-    // 💻 Desktop → QR page
-    else {
-      router.push("/payment/upi");
-    }
+    // ✅ Logged in → pricing / next step page
+    router.push("/CoursesPricing"); // change if needed
   };
 
   return (
-    <div className="w-full overflow-hidden ">
-
+    <div className="w-full overflow-hidden">
       {/* ================= HERO SECTION ================= */}
       <section
         className="relative min-h-screen flex items-center"
@@ -55,14 +38,11 @@ const Home = () => {
           backgroundImage: `url(${heroBg.src})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
-          
         }}
       >
-        {/* Overlay */}
         <div className="absolute inset-0 bg-black/10"></div>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full ">
-
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
           <motion.div
             variants={fadeUp}
             initial="hidden"
@@ -114,8 +94,7 @@ const Home = () => {
                 <span
                   key={index}
                   className="px-2 py-1.5 sm:px-3 sm:py-2
-                             text-xs sm:text-sm
-                             rounded-full
+                             text-xs sm:text-sm rounded-full
                              bg-blue-100 text-[#0852A1] font-medium"
                 >
                   {skill}
@@ -127,7 +106,7 @@ const Home = () => {
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={handleBookNow}
+              onClick={handleActivate}
               className="mt-8 w-full sm:w-auto
                          bg-[#0852A1] hover:bg-[#063F7C]
                          text-white px-8 py-3
