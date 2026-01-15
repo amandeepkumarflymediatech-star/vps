@@ -147,7 +147,7 @@ const BookSession = () => {
   if (loading) {
     return ( 
       
-      <div className="flex items-center justify-center min-h-[60vh]">
+      <div className="flex items-center justify-center min-h-[60vh]  h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
       </div>
     );
@@ -163,7 +163,7 @@ const BookSession = () => {
 
   return (
 
-    <div className="space-y-6 p-4 sm:p-6 bg-white relative overflow-x-hidden">
+    <div className="space-y-6 p-4 sm:p-6 bg-white relative overflow-x-hidden  h-screen">
   <Toaster />
 
   {/* HEADER */}
