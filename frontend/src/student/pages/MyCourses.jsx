@@ -230,7 +230,7 @@ const ITEMS_PER_PAGE = 6;
 
 // Mapping lesson packages to amount
 const LESSON_PACKAGES = {
-  "8 Lessons": 2830,
+  "8 Lessons": 1,
   "12 Lessons": 3530,
   "16 Lessons": 4720,
 };

@@ -6,7 +6,7 @@
 // const pricingPlans = [
 //   {
 //     lessons: "8 Lessons",
-//     price: 2830,
+//     price: 1,
 //     badge: false,
 //     features: [
 //       "1-on-1 live sessions",
@@ -150,7 +150,7 @@ import { useRouter } from "next/navigation";
 const pricingPlans = [
   {
     lessons: "8 Lessons",
-    price: 2830,
+    price: 1,
     badge: false,
     features: [
       "1-on-1 live sessions",
