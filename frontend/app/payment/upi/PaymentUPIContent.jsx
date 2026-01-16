@@ -14,16 +14,12 @@ export default function PaymentUPIContent() {
   const lessons = searchParams.get("lessons");
   const tutorId = searchParams.get("tutorId");
 
-  const [isMobile, setIsMobile] = useState(false);
   const [ready, setReady] = useState(false);
-  const [paymentInitiated, setPaymentInitiated] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [uploaded, setUploaded] = useState(false);
 
   useEffect(() => {
-    setIsMobile(/Android|iPhone|iPad/i.test(navigator.userAgent));
-
     if (!amount || !lessons) {
       router.replace("/courses-pricing");
       return;
@@ -33,65 +29,25 @@ export default function PaymentUPIContent() {
 
   if (!ready) return null;
 
-  /* =====================
-     ✅ UPI CONFIG
-  ====================== */
-
-  const upiId = "singh.param1102-1@oksbi";
-  const merchantName = "The English Raj";
   const planName = `${lessons} Lessons Package`;
   const amountFormatted = Number(amount).toFixed(2);
 
-  const baseUpi =
-    `upi://pay` +
-    `?pa=${upiId}` +
-    `&pn=${encodeURIComponent(merchantName)}` +
-    `&am=${amountFormatted}` +
-    `&cu=INR` +
-    `&tn=${encodeURIComponent(planName)}`;
-
-  // App-specific intent URLs
-  const upiApps = [
-    {
-      name: "Google Pay",
-      url: `intent://pay?${baseUpi.split("?")[1]}#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`,
-    },
-    {
-      name: "PhonePe",
-      url: `intent://pay?${baseUpi.split("?")[1]}#Intent;scheme=upi;package=com.phonepe.app;end`,
-    },
-    {
-      name: "Paytm",
-      url: `intent://pay?${baseUpi.split("?")[1]}#Intent;scheme=upi;package=net.one97.paytm;end`,
-    },
-    {
-      name: "Any UPI App",
-      url: baseUpi,
-    },
-  ];
-
-  const openUpiApp = (url) => {
-    if (!isMobile) {
-      alert("Please scan QR using your mobile UPI app.");
-      return;
-    }
-    setPaymentInitiated(true);
-    setTimeout(() => {
-      window.location.href = url;
-    }, 400);
-  };
-
   /* =====================
-     📤 PROOF UPLOAD
+     📤 UPLOAD PAYMENT PROOF
   ====================== */
 
   const handleUploadProof = async () => {
-    if (!selectedFile) return;
+    if (!selectedFile) {
+      alert("Please upload payment screenshot");
+      return;
+    }
 
     setUploading(true);
+
     try {
       const token = localStorage.getItem("token");
 
+      // 1️⃣ Log payment as PENDING
       const logRes = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/payment/upi/log`,
         {
@@ -112,6 +68,11 @@ export default function PaymentUPIContent() {
       const logData = await logRes.json();
       const paymentId = logData.payment?._id;
 
+      if (!paymentId) {
+        throw new Error("Payment logging failed");
+      }
+
+      // 2️⃣ Upload screenshot
       const formData = new FormData();
       formData.append("paymentImage", selectedFile);
       formData.append("paymentId", paymentId);
@@ -120,15 +81,22 @@ export default function PaymentUPIContent() {
         `${process.env.NEXT_PUBLIC_API_URL}/api/payment/upload-proof`,
         {
           method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
           body: formData,
         }
       );
 
       setUploaded(true);
-      setTimeout(() => router.push("/student/dashboard"), 2000);
+
+      // Redirect after short delay
+      setTimeout(() => {
+        router.push("/student/dashboard");
+      }, 2000);
     } catch (err) {
-      alert("Upload failed. Try again.");
+      console.error(err);
+      alert("Failed to submit payment proof. Please try again.");
     } finally {
       setUploading(false);
     }
@@ -146,58 +114,56 @@ export default function PaymentUPIContent() {
         className="bg-white p-8 rounded-2xl shadow-xl text-center max-w-sm w-full"
       >
         <h1 className="text-xl font-bold">Scan & Pay</h1>
+
         <p className="mt-2 text-2xl font-extrabold text-[#0852A1]">
           ₹{amountFormatted}
         </p>
+
         <p className="text-sm text-gray-600">{planName}</p>
 
-        <div className="mt-5 flex justify-center">
-          <Image src="/upi-qr.png" width={200} height={200} alt="UPI QR" />
+        {/* QR CODE ONLY */}
+        <div className="mt-6 flex justify-center">
+          <Image
+            src="/upi-qr.png"
+            width={220}
+            height={220}
+            alt="UPI QR"
+            priority
+          />
         </div>
 
-        {!paymentInitiated ? (
-          <div className="mt-6 space-y-3">
-            {upiApps.map((app) => (
+        <p className="mt-3 text-xs text-gray-500">
+          Open any UPI app and scan this QR to complete payment.
+        </p>
+
+        {/* UPLOAD SECTION */}
+        <div className="mt-6">
+          {uploaded ? (
+            <>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setSelectedFile(e.target.files[0])}
+                className="w-full mb-4 border p-2 rounded"
+              />
+
               <button
-                key={app.name}
-                onClick={() => openUpiApp(app.url)}
-                className="w-full py-3 rounded-full font-semibold bg-[#0852A1]
-                           hover:bg-[#063c75] text-white transition"
+                onClick={handleUploadProof}
+                disabled={uploading || !selectedFile}
+                className="w-full py-3 rounded-full bg-green-600 text-white
+                           font-semibold disabled:opacity-50"
               >
-                Pay with {app.name}
+                <Upload size={16} className="inline mr-2" />
+                {uploading ? "Uploading..." : "Upload Payment Proof"}
               </button>
-            ))}
-            <p className="text-xs text-gray-500 mt-2">
-              If one app fails due to limit, try another UPI app.
-            </p>
-          </div>
-        ) : (
-          <div className="mt-6">
-            {!uploaded ? (
-              <>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => setSelectedFile(e.target.files[0])}
-                  className="w-full mb-4 border p-2 rounded"
-                />
-                <button
-                  onClick={handleUploadProof}
-                  disabled={uploading || !selectedFile}
-                  className="w-full py-3 rounded-full bg-green-600 text-white
-                             font-semibold disabled:opacity-50"
-                >
-                  {uploading ? "Uploading..." : "Upload Payment Proof"}
-                </button>
-              </>
-            ) : (
-              <div className="flex items-center justify-center gap-2 text-green-600 font-semibold">
-                <CheckCircle size={18} />
-                Proof uploaded. Redirecting...
-              </div>
-            )}
-          </div>
-        )}
+            </>
+          ) : (
+            <div className="flex items-center justify-center gap-2 text-green-600 font-semibold">
+              <CheckCircle size={18} />
+              Proof uploaded! Awaiting admin approval.
+            </div>
+          )}
+        </div>
       </motion.div>
     </div>
   );
