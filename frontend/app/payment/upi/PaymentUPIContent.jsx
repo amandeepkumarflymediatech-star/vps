@@ -37,7 +37,7 @@ export default function PaymentUPIContent() {
      ✅ UPI CONFIG
   ====================== */
 
-  const upiId = "nshpental-1@okaxis";
+  const upiId = "singh.param1102-1@oksbi";
   const merchantName = "The English Raj";
   const planName = `${lessons} Lessons Package`;
   const amountFormatted = Number(amount).toFixed(2);
