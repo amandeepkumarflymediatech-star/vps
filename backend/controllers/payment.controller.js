@@ -36,7 +36,7 @@ export const logUpiPayment = async (req, res) => {
     const { tutorId, amount, lessons, status } = req.body;
     console.log(req.body, req.user);
     const payment = await Payment.create({
-      user: req.user.id || req.user._id,
+      userId: req.user.id || req.user._id,
       tutor: tutorId,
       amount,
       lessons,

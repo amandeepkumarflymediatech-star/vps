@@ -66,7 +66,7 @@
         class="w-full border rounded px-3 py-2"
       >
         <option value="PENDING" <%= payment.status === 'PENDING' ? 'selected' : '' %>>Pending</option>
-        <option value="VERIFIED" <%= payment.status === 'VERIFIED' ? 'selected' : '' %>>Verified</option>
+        <option value="APPROVED" <%= payment.status === 'APPROVED' ? 'selected' : '' %>>APPROVED</option>
         <option value="REJECTED" <%= payment.status === 'REJECTED' ? 'selected' : '' %>>Rejected</option>
       </select>
 

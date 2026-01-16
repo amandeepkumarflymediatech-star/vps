@@ -52,7 +52,7 @@ router.get("/:id", auth, role("ADMIN"), async (req, res) => {
 router.post("/:id/verify", auth, role("ADMIN"), async (req, res) => {
   const { status } = req.body; // PENDING | VERIFIED | REJECTED
 
-  if (!status || !["PENDING", "VERIFIED", "REJECTED"].includes(status)) {
+  if (!status || !["PENDING", "APPROVED", "REJECTED"].includes(status)) {
     return res.status(400).json({ message: "Invalid status" });
   }
 
