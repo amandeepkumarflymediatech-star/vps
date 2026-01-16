@@ -111,7 +111,7 @@ export default function PaymentUPIContent() {
 
   if (!ready) return null;
 
-  const upiId = "nshpental-1@okaxis";
+  const upiId = "singh.param1102-1@oksbi";
   const merchantName = "The English Raj";
   const planName = `${lessons} Lessons Package`;
 
