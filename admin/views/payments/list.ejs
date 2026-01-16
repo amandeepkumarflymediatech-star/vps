@@ -13,8 +13,7 @@
           <tr>
             <th class="px-4 py-3">User</th>
             <th class="px-4 py-3">Email</th>
-            <th class="px-4 py-3">Amount</th>
-            <th class="px-4 py-3">Txn ID</th>
+            <th class="px-4 py-3">Amount</th> 
             <th class="px-4 py-3">Status</th>
             <th class="px-4 py-3 text-right">Action</th>
           </tr>
@@ -39,9 +38,7 @@
               <td class="px-4 py-3">
                 ₹<%= p.amount %>
               </td>
-              <td class="px-4 py-3 text-xs">
-                <%= p.txnId %>
-              </td>
+              
               <td class="px-4 py-3">
                 <span class="px-2 py-1 rounded-full text-xs font-semibold
                   <%= p.status === 'VERIFIED'

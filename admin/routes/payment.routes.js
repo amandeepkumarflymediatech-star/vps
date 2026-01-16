@@ -66,7 +66,7 @@ router.post("/:id/verify", auth, role("ADMIN"), async (req, res) => {
     await payment.save();
 
     // When verified, mark user.isPaymentDone = true and send activation email
-    if (status === "VERIFIED" && payment.userId) {
+    if (status === "APPROVED" && payment.userId) {
       const user = await User.findByIdAndUpdate(
         payment.userId,
         { $set: { isPaymentDone: true } },

@@ -5,11 +5,13 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { Upload, CheckCircle } from "lucide-react";
+import { useRef } from "react";
 
 export default function PaymentUPIContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  const clientPaymentId = useRef(crypto.randomUUID());
   const amount = searchParams.get("amount");
   const lessons = searchParams.get("lessons");
   const tutorId = searchParams.get("tutorId");
@@ -46,7 +48,6 @@ export default function PaymentUPIContent() {
 
     try {
       const token = localStorage.getItem("token");
-
       // 1️⃣ Log payment as PENDING
       const logRes = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/payment/upi/log`,
@@ -61,14 +62,14 @@ export default function PaymentUPIContent() {
             amount: Number(amountFormatted),
             lessons: Number(lessons),
             status: "PENDING",
+            clientPaymentId: clientPaymentId.current,
           }),
         }
-      ); 
+      );
       // If backend returns HTML or non-JSON (e.g. 404/HTML error page),
       // logRes.json() would normally throw "Unexpected token '<'".
       if (!logRes.ok) {
         const text = await logRes.text();
-        console.error("Failed to log UPI payment", logRes, text);
         throw new Error(
           `Failed to log payment (status ${logRes.status}). Check backend URL and auth.`,
         );

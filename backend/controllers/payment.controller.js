@@ -1,6 +1,6 @@
 import Payment from "../models/Payment.js";
 import { sendEmail } from "../config/mailer.js";
-
+import { v4 as uuidv4 } from "uuid";
 // Map lesson number to price
 const lessonPricing = {
   8: 1,
@@ -31,24 +31,46 @@ export const createUpiPayment = (req, res) => {
 
 // POST /api/payment/upi/log
 
+
+
+// POST /api/payment/upi/log
 export const logUpiPayment = async (req, res) => {
   try {
-    const { tutorId, amount, lessons, status } = req.body;
-    console.log(req.body, req.user);
-    const payment = await Payment.create({
-      userId: req.user.id || req.user._id,
-      tutor: tutorId,
-      amount,
-      lessons,
-      method: "UPI",
-      status: status || "PENDING",
-    });
+    const { tutorId, amount, lessons, status, clientPaymentId } = req.body;
 
+    const userId = req.user?.id || req.user?._id;
+    if (!userId) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    const paymentId = clientPaymentId || uuidv4(); 
+    const payment = await Payment.findOneAndUpdate(
+      { clientPaymentId: paymentId },
+      {
+        $setOnInsert: {
+          clientPaymentId: paymentId, // ✅ REQUIRED
+          userId,
+          tutorId,
+          amount,
+          lessons,
+          method: "UPI",
+          status: status || "PENDING",
+        },
+      },
+      {
+        upsert: true,
+        new: true,
+        setDefaultsOnInsert: true,
+      }
+    );
+    console.log("Logged payment:", payment);
     res.status(201).json({ success: true, payment });
   } catch (err) {
+    console.error("logUpiPayment error:", err);
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
 
 // Logs a payment attempt/result into the database
 // export const logUpiPayment = async (req, res) => {
