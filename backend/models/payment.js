@@ -2,36 +2,16 @@ import mongoose from "mongoose";
 
 const paymentSchema = new mongoose.Schema(
   {
-    userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
-    tutorId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-    },
-    amount: {
-      type: Number,
-      required: true,
-    },
+    user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    tutor: { type: mongoose.Schema.Types.ObjectId, ref: "Tutor" },
+    amount: Number,
+    lessons: Number,
+    method: { type: String, default: "UPI" },
+    proofImage: String,
     status: {
       type: String,
-      enum: ["PENDING", "SUCCESS", "FAILED"],
+      enum: ["PENDING", "UNDER_REVIEW", "APPROVED", "REJECTED"],
       default: "PENDING",
-    },
-    method: {
-      type: String,
-      default: "UPI",
-    },
-    lessons: {
-      type: Number,
-    },
-    txnId: {
-      type: String,
-    },
-    paymentImage: {
-      type: String, // URL or path to uploaded payment proof image
     },
   },
   { timestamps: true }

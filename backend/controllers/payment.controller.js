@@ -30,96 +30,116 @@ export const createUpiPayment = (req, res) => {
 };
 
 // POST /api/payment/upi/log
-// Logs a payment attempt/result into the database
+
 export const logUpiPayment = async (req, res) => {
   try {
-    const userId = req.user?.id || req.user?._id;
-    const { tutorId, amount, status, lessons, txnId } = req.body;
-
-    if (!userId) {
-      return res.status(401).json({ message: "Unauthorized: user not found" });
-    }
-
-    if (!amount) {
-      return res.status(400).json({ message: "Amount is required" });
-    }
-
-    const normalizedStatus =
-      status === "FAILED" || status === "failed"
-        ? "FAILED"
-        : status === "PENDING" || status === "pending"
-        ? "PENDING"
-        : "SUCCESS";
+    const { tutorId, amount, lessons, status } = req.body;
 
     const payment = await Payment.create({
-      userId,
-      tutorId,
+      user: req.user.id,
+      tutor: tutorId,
       amount,
       lessons,
-      txnId,
-      status: normalizedStatus,
+      method: "UPI",
+      status: status || "PENDING",
     });
 
-    return res.status(201).json({ payment });
+    res.json({ success: true, payment });
   } catch (err) {
-    console.error("logUpiPayment error:", err);
-    return res.status(500).json({ message: "Failed to log payment" });
+    res.status(500).json({ success: false, message: err.message });
   }
 };
+
+// Logs a payment attempt/result into the database
+// export const logUpiPayment = async (req, res) => {
+//   try {
+//     const userId = req.user?.id || req.user?._id;
+//     const { tutorId, amount, status, lessons, txnId } = req.body;
+
+//     if (!userId) {
+//       return res.status(401).json({ message: "Unauthorized: user not found" });
+//     }
+
+//     if (!amount) {
+//       return res.status(400).json({ message: "Amount is required" });
+//     }
+
+//     const normalizedStatus =
+//       status === "FAILED" || status === "failed"
+//         ? "FAILED"
+//         : status === "PENDING" || status === "pending"
+//         ? "PENDING"
+//         : "SUCCESS";
+
+//     const payment = await Payment.create({
+//       userId,
+//       tutorId,
+//       amount,
+//       lessons,
+//       txnId,
+//       status: normalizedStatus,
+//     });
+
+//     return res.status(201).json({ payment });
+//   } catch (err) {
+//     console.error("logUpiPayment error:", err);
+//     return res.status(500).json({ message: "Failed to log payment" });
+//   }
+// };
 
 // POST /api/payment/upload-proof
-export const uploadPaymentProof = async (req, res) => {
-  try {
-    const userId = req.user?.id || req.user?._id;
-    const { paymentId } = req.body;
+// export const uploadPaymentProof = async (req, res) => {
+//   try {
+//     const userId = req.user?.id || req.user?._id;
+//     const { paymentId } = req.body;
 
-    if (!userId) {
-      return res.status(401).json({ message: "Unauthorized: user not found" });
-    }
+//     if (!userId) {
+//       return res.status(401).json({ message: "Unauthorized: user not found" });
+//     }
 
-    if (!paymentId) {
-      return res.status(400).json({ message: "Payment ID is required" });
-    }
+//     if (!paymentId) {
+//       return res.status(400).json({ message: "Payment ID is required" });
+//     }
 
-    if (!req.file) {
-      return res.status(400).json({ message: "Payment image is required" });
-    }
+//     if (!req.file) {
+//       return res.status(400).json({ message: "Payment image is required" });
+//     }
 
-    // Update payment with image URL
-    const payment = await Payment.findOneAndUpdate(
-      { _id: paymentId, userId },
-      { paymentImage: req.file.path }, // Cloudinary URL
-      { new: true }
-    );
+//     // Update payment with image URL
+//     const payment = await Payment.findOneAndUpdate(
+//       { _id: paymentId, userId },
+//       { paymentImage: req.file.path }, // Cloudinary URL
+//       { new: true }
+//     );
 
-    if (!payment) {
-      return res.status(404).json({ message: "Payment not found" });
-    }
+//     if (!payment) {
+//       return res.status(404).json({ message: "Payment not found" });
+//     }
 
-    // Send notification email to admin
-    const adminEmail = process.env.ADMIN_EMAIL || "admin@yopmail.com";
-    await sendEmail(
-      adminEmail,
-      "New Payment Proof Uploaded",
-      `New payment proof uploaded by user ${userId}. Payment ID: ${paymentId}, Amount: ₹${payment.amount}`
-    );
+//     // Send notification email to admin
+//     const adminEmail = process.env.ADMIN_EMAIL || "admin@yopmail.com";
+//     await sendEmail(
+//       adminEmail,
+//       "New Payment Proof Uploaded",
+//       `New payment proof uploaded by user ${userId}. Payment ID: ${paymentId}, Amount: ₹${payment.amount}`
+//     );
 
-    return res.status(200).json({ 
-      message: "Payment proof uploaded successfully", 
-      payment 
-    });
-  } catch (err) {
-    console.error("uploadPaymentProof error:", err);
-    return res.status(500).json({ message: "Failed to upload payment proof" });
-  }
-};
+//     return res.status(200).json({
+//       message: "Payment proof uploaded successfully",
+//       payment
+//     });
+//   } catch (err) {
+//     console.error("uploadPaymentProof error:", err);
+//     return res.status(500).json({ message: "Failed to upload payment proof" });
+//   }
+// };
 
 // GET /api/payment/admin/all - Get all payments for admin
 export const getAllPayments = async (req, res) => {
   try {
     const payments = await Payment.find({})
-      .populate('userId', 'name email')
-      .populate('tutorId', 'name email')
+      .populate("userId", "name email")
+      .populate("tutorId", "name email")
       .sort({ createdAt: -1 });
 
     return res.status(200).json({ payments });
@@ -139,18 +159,41 @@ export const verifyPayment = async (req, res) => {
       paymentId,
       { status },
       { new: true }
-    ).populate('userId', 'name email');
+    ).populate("userId", "name email");
 
     if (!payment) {
       return res.status(404).json({ message: "Payment not found" });
     }
 
-    return res.status(200).json({ 
-      message: `Payment ${status.toLowerCase()} successfully`, 
-      payment 
+    return res.status(200).json({
+      message: `Payment ${status.toLowerCase()} successfully`,
+      payment,
     });
   } catch (err) {
     console.error("verifyPayment error:", err);
     return res.status(500).json({ message: "Failed to verify payment" });
+  }
+};
+
+export const uploadPaymentProof = async (req, res) => {
+  try {
+    const { paymentId } = req.body;
+
+    if (!req.file) {
+      return res.status(400).json({ message: "Image required" });
+    }
+
+    const payment = await Payment.findById(paymentId);
+    if (!payment) {
+      return res.status(404).json({ message: "Payment not found" });
+    }
+
+    payment.proofImage = req.file.path;
+    payment.status = "UNDER_REVIEW";
+    await payment.save();
+
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
   }
 };
