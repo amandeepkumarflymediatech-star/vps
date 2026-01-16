@@ -143,7 +143,7 @@ export default function PaymentUPIContent() {
         {/* QR CODE ONLY */}
         <div className="mt-6 flex justify-center">
           <Image
-            src="/upi-qr.png"
+            src="/upi-sc.jpeg"
             width={220}
             height={220}
             alt="UPI QR"
