@@ -2,7 +2,7 @@ export const createUpiPayment = async (lessons) => {
   const token = localStorage.getItem("token");
 
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/payment/upi`,
+    `${process.env.NEXT_PUBLIC_API_URL}/payment/upi`,
     {
       method: "POST",
       headers: {

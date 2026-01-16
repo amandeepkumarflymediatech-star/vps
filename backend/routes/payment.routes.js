@@ -19,10 +19,6 @@ router.post("/upi/log", paymentAuth, logUpiPayment);
 router.post(
   "/upload-proof",
   paymentAuth,
-  (req, res, next) => {
-    req.body.folder = "payments";
-    next();
-  },
   upload.single("paymentImage"),
   uploadPaymentProof
 );

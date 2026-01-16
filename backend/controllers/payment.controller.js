@@ -34,7 +34,7 @@ export const createUpiPayment = (req, res) => {
 export const logUpiPayment = async (req, res) => {
   try {
     const { tutorId, amount, lessons, status } = req.body;
-
+    console.log(req.body);
     const payment = await Payment.create({
       user: req.user.id,
       tutor: tutorId,
@@ -44,7 +44,7 @@ export const logUpiPayment = async (req, res) => {
       status: status || "PENDING",
     });
 
-    res.json({ success: true, payment });
+    res.status(201).json({ success: true, payment });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -192,7 +192,7 @@ export const uploadPaymentProof = async (req, res) => {
     payment.status = "UNDER_REVIEW";
     await payment.save();
 
-    res.json({ success: true });
+    res.status(201).json({ success: true });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

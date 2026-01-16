@@ -4,11 +4,13 @@ import cloudinary from "./index.js";
 
 const storage = new CloudinaryStorage({
   cloudinary,
-  params: async (req, file) => ({
-    folder: req.body.folder || "courses", // Allow dynamic folder
-    public_id: `${Date.now()}-${file.originalname.split(".")[0]}`,
+  params: {
+    folder: "courses",
     allowed_formats: ["jpg", "jpeg", "png", "webp"],
-  }),
+    transformation: [
+      { width: 800, height: 500, crop: "limit", quality: "auto" },
+    ],
+  },
 });
 
 export const upload = multer({ storage });

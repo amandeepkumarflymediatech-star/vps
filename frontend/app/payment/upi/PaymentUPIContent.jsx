@@ -49,7 +49,7 @@ export default function PaymentUPIContent() {
 
       // 1️⃣ Log payment as PENDING
       const logRes = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/payment/upi/log`,
+        `${process.env.NEXT_PUBLIC_API_URL}/payment/upi/log`,
         {
           method: "POST",
           headers: {
@@ -63,7 +63,16 @@ export default function PaymentUPIContent() {
             status: "PENDING",
           }),
         }
-      );
+      ); 
+      // If backend returns HTML or non-JSON (e.g. 404/HTML error page),
+      // logRes.json() would normally throw "Unexpected token '<'".
+      if (!logRes.ok) {
+        const text = await logRes.text();
+        console.error("Failed to log UPI payment", logRes.status, text);
+        throw new Error(
+          `Failed to log payment (status ${logRes.status}). Check backend URL and auth.`,
+        );
+      }
 
       const logData = await logRes.json();
       const paymentId = logData.payment?._id;
@@ -77,8 +86,8 @@ export default function PaymentUPIContent() {
       formData.append("paymentImage", selectedFile);
       formData.append("paymentId", paymentId);
 
-      await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/payment/upload-proof`,
+      const uploadRes = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/payment/upload-proof`,
         {
           method: "POST",
           headers: {
@@ -87,6 +96,15 @@ export default function PaymentUPIContent() {
           body: formData,
         }
       );
+      console.log(uploadRes)
+
+      if (!uploadRes.ok) {
+        const text = await uploadRes.text();
+        console.error("Failed to upload payment proof", uploadRes.status, text);
+        throw new Error(
+          `Failed to upload payment proof (status ${uploadRes.status}).`,
+        );
+      }
 
       setUploaded(true);
 
