@@ -2,7 +2,7 @@ import Payment from "../models/Payment.js";
 
 // Map lesson number to price
 const lessonPricing = {
-  8: 2830,
+  8: 1,
   12: 3530,
   16: 4720,
 };
