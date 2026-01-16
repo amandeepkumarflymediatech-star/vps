@@ -68,7 +68,7 @@ export default function PaymentUPIContent() {
       // logRes.json() would normally throw "Unexpected token '<'".
       if (!logRes.ok) {
         const text = await logRes.text();
-        console.error("Failed to log UPI payment", logRes.status, text);
+        console.error("Failed to log UPI payment", logRes, text);
         throw new Error(
           `Failed to log payment (status ${logRes.status}). Check backend URL and auth.`,
         );
