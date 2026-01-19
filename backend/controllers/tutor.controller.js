@@ -8,20 +8,38 @@ const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
 export const listTutors = async (req, res) => {
   try {
-    const { organizationId } = req.query;
-    const filter = { role: "TUTOR",isVerified:true, status: "ACTIVE" };
+    const { organizationId, page = 1, limit = 10 } = req.query;
+    const filter = { role: "TUTOR", isVerified: true, status: "ACTIVE" };
 
     if (organizationId) {
       filter.organizationId = organizationId;
     }
 
+    // Pagination Logic
+    const pageNum = parseInt(page, 10);
+    const limitNum = parseInt(limit, 10);
+    const skip = (pageNum - 1) * limitNum;
+
     const tutors = await User.find(filter)
       .select(
         "name email phone organizationId createdAt expertise experience availability responseTime rating reviewsCount"
       )
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limitNum);
 
-    res.json({ success: true, data: tutors });
+    const totalTutors = await User.countDocuments(filter);
+
+    res.json({
+      success: true,
+      data: tutors,
+      pagination: {
+        total: totalTutors,
+        page: pageNum,
+        limit: limitNum,
+        totalPages: Math.ceil(totalTutors / limitNum),
+      },
+    });
   } catch (error) {
     console.error("listTutors error", error);
     res.status(500).json({ message: error.message });
