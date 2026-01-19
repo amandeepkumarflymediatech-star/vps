@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getPackages } from "@/api/package.api";
 
-const CoursesPricing = () => {
+// Component that uses useSearchParams
+function CoursesPricingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const tutorId = searchParams.get("tutorId");
@@ -195,4 +196,15 @@ const CoursesPricing = () => {
   );
 };
 
-export default CoursesPricing;
+// Wrapper component with Suspense
+export default function CoursesPricing() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    }>
+      <CoursesPricingContent />
+    </Suspense>
+  );
+}
