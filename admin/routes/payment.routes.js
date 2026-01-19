@@ -105,9 +105,6 @@
 
 // module.exports = router;
 
-
-
-
 const express = require("express");
 const router = express.Router();
 
@@ -119,15 +116,25 @@ const sendMail = require("../utils/sendmail");
 // ================= LIST PAYMENTS =================
 router.get("/", auth, role("ADMIN"), async (req, res) => {
   try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = 10;
+    const skip = (page - 1) * limit;
+    const totalPayments = await Payment.countDocuments();
     const payments = await Payment.find()
       .populate("userId", "name email role")
       .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
       .lean();
 
-    res.render("payments/list", { payments });
+    return res.render("payments/list", {
+      payments,
+      currentPage: page,
+      totalPages: Math.ceil(totalPayments / limit),
+    });
   } catch (err) {
     console.error("Admin payments list error:", err);
-    res.status(500).render("layouts/error", {
+    return res.status(500).render("layouts/error", {
       message: "Failed to load payments",
       path: req.originalUrl,
     });
@@ -148,10 +155,10 @@ router.get("/:id", auth, role("ADMIN"), async (req, res) => {
       });
     }
 
-    res.render("payments/view", { payment });
+    return res.render("payments/view", { payment });
   } catch (err) {
     console.error("Admin payment view error:", err);
-    res.status(500).render("layouts/error", {
+    return res.status(500).render("layouts/error", {
       message: "Failed to load payment",
       path: req.originalUrl,
     });
@@ -188,31 +195,27 @@ router.post("/:id/verify", auth, role("ADMIN"), async (req, res) => {
         { $set: { isPaymentDone: true } },
         { new: true }
       );
-
       // 📧 Send activation email
       if (user?.email) {
-        try {
-          await sendMail({
-            to: user.email,
-            subject: "Payment Approved – Account Activated",
-            html: `
+        await sendMail({
+          to: user.email,
+          subject: "Payment Approved – Account Activated",
+          html: `
               <p>Hi ${user.name || "there"},</p>
               <p>Your payment has been <strong>approved</strong>.</p>
               <p>Your account is now active. You can start your classes.</p>
               <p>Thank you!</p>
             `,
-          });
-        } catch (mailErr) {
-          console.error("Activation email error:", mailErr);
-        }
+        });
       }
     }
 
     // 🔁 REDIRECT BACK TO PAYMENTS LIST
-    return res.redirect("/payments");
-
+    return res.status(200).json({
+      message: "Payment status update successfully",
+      path: "/admin/payments",
+    });
   } catch (err) {
-    console.error("Admin payment verify error:", err);
     return res.status(500).render("layouts/error", {
       message: "Payment update failed",
       path: req.originalUrl,
@@ -221,4 +224,3 @@ router.post("/:id/verify", auth, role("ADMIN"), async (req, res) => {
 });
 
 module.exports = router;
-

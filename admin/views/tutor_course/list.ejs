@@ -73,11 +73,12 @@
 
           <% courses.forEach(course => { %>
           <tr class="border-b hover:bg-gray-50 transition">
-            <td class="py-3 px-4">
+            <td class="py-3 px-4"  >
               <img
                 src="<%= course.image %>"
                 width="120"
                 class="rounded"
+                style="height: 100px;"
               />
             </td>
 
@@ -159,7 +160,7 @@
       <div class="bg-white border rounded-xl p-4 shadow-sm">
 
         <img
-          src="/uploads/courses/<%= course.image %>"
+          src="<%= course.image %>"
           class="w-full h-40 object-cover rounded mb-3"
         />
 
