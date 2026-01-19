@@ -9,7 +9,7 @@ const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 export const listTutors = async (req, res) => {
   try {
     const { organizationId } = req.query;
-    const filter = { role: "TUTOR",isVerified:true, status: "ACTIVE" };
+    const filter = { role: "TUTOR", isVerified: true, status: "ACTIVE" };
 
     if (organizationId) {
       filter.organizationId = organizationId;
@@ -131,4 +131,38 @@ export const createBatch = async (req, res) => {
     organizationId: req.user.organizationId,
   });
   res.json(batch);
+};
+
+export const updateProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const { avatar } = req.body;
+
+    // Build dynamic update object
+    const updates = {};
+    if (avatar) updates.avatar = avatar;
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { $set: updates },
+      { new: true, runValidators: true }
+    ).select("-password");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+      user,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Profile update failed",
+      error: error.message,
+    });
+  }
 };
