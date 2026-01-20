@@ -164,7 +164,7 @@ const Profile = () => {
 
           {/* Profile Info */}
           <div className="px-4 sm:px-6 md:px-8">
-            <div className="flex flex-col sm:flex-row items-center sm:items-end gap-4 sm:gap-6">
+            <div className="flex flex-col sm:flex-row items-center sm:items-end gap-4 sm:gap-6 mt-10">
               {/* Avatar */}
               <div className="relative group">
                 {previewUrl || user.avatar ? (
