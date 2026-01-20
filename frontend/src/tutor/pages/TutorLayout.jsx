@@ -8,6 +8,7 @@ import {
   GraduationCap,
   X,
   User,
+  Calendar,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -144,6 +145,16 @@ const TutorLayout = ({ children }) => {
             }
           >
             <User size={20} /> Profile
+          </Link>
+
+          <Link
+            href="/tutor/availability"
+            onClick={() => setSidebarOpen(false)}
+            className={
+              pathname.startsWith("/tutor/availability") ? activeLink : normalLink
+            }
+          >
+            <Calendar size={20} /> Availability
           </Link>
         </nav>
 

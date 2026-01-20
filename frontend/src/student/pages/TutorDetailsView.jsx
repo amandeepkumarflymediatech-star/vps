@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useParams } from "next/navigation";
 import {
   Mail,
@@ -15,6 +15,50 @@ import {
 import Link from "next/link";
 import { getTutorById } from "@/api/tutorApi";
 import { getStudentClasses } from "@/api/student.api";
+import { getAvailabilityByTutorId } from "@/api/tutorAvailability.api";
+
+// Helper: build next 7 days (today + 6)
+const buildDates = () => {
+  const names = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const result = [];
+  const today = new Date();
+
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(today);
+    d.setDate(today.getDate() + i);
+    result.push({
+      dateObj: d,
+      day: names[d.getDay()],
+      date: d.getDate(),
+    });
+  }
+
+  return result;
+};
+
+// Helper: check if a calendar date is within class start/end
+const isDateInClassRange = (cls, d) => {
+  if (!cls.startDate || !cls.endDate) return true;
+  const start = new Date(cls.startDate);
+  const end = new Date(cls.endDate);
+  const dayOnly = new Date(d);
+  start.setHours(0, 0, 0, 0);
+  end.setHours(0, 0, 0, 0);
+  dayOnly.setHours(0, 0, 0, 0);
+  return dayOnly >= start && dayOnly <= end;
+};
+
+// Helper: HH:MM (24h) -> h:MM AM/PM
+const formatTime = (time24) => {
+  if (!time24) return "";
+  const [hStr, mStr] = time24.split(":");
+  let h = parseInt(hStr || "0", 10);
+  const m = mStr || "00";
+  const suffix = h >= 12 ? "PM" : "AM";
+  h = h % 12;
+  if (h === 0) h = 12;
+  return `${h}:${m} ${suffix}`;
+};
 
 const TutorDetailsView = ({ id: propId }) => {
   const params = useParams();
@@ -22,8 +66,15 @@ const TutorDetailsView = ({ id: propId }) => {
   const id = propId || routeId;
 
   const [tutor, setTutor] = useState(null);
+  const [classes, setClasses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [activeTab, setActiveTab] = useState("about");
+  const [activeDateIndex, setActiveDateIndex] = useState(0);
+  const [selectedSlotKey, setSelectedSlotKey] = useState(null);
+  const [tutorAvailability, setTutorAvailability] = useState(null);
+
+  const dates = useMemo(buildDates, []);
 
   useEffect(() => {
     if (!id) return;
@@ -41,11 +92,12 @@ const TutorDetailsView = ({ id: propId }) => {
           let nextAvailability = t.availability || "Today";
           try {
             const classesRes = await getStudentClasses({ tutorId: t._id });
-            const classes = classesRes.data?.data || classesRes.data || [];
+            const cls = classesRes.data?.data || classesRes.data || [];
+            setClasses(Array.isArray(cls) ? cls : []);
 
-            if (Array.isArray(classes) && classes.length > 0) {
+            if (Array.isArray(cls) && cls.length > 0) {
               // pick earliest class by startDate, then earliest slot within that class
-              const sortedClasses = [...classes].sort(
+              const sortedClasses = [...cls].sort(
                 (a, b) => new Date(a.startDate) - new Date(b.startDate)
               );
               const firstClass = sortedClasses[0];
@@ -118,6 +170,9 @@ const TutorDetailsView = ({ id: propId }) => {
             joinedDate: t.createdAt
               ? new Date(t.createdAt).toLocaleDateString()
               : null,
+            joinedYear: t.createdAt
+              ? new Date(t.createdAt).getFullYear()
+              : "--",
           });
         }
       } catch (err) {
@@ -128,8 +183,70 @@ const TutorDetailsView = ({ id: propId }) => {
       }
     };
 
+    const fetchAvailability = async () => {
+      try {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const weekStartDate = today.toISOString().split("T")[0];
+
+        const res = await getAvailabilityByTutorId(id, weekStartDate);
+        if (res.data?.data) {
+          setTutorAvailability(res.data.data);
+        }
+      } catch (err) {
+        console.error("Failed to load tutor availability:", err);
+      }
+    };
+
     fetchTutor();
+    fetchAvailability();
   }, [id]);
+
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const now = new Date();
+  const currentHHMM = `${String(now.getHours()).padStart(2, "0")}:${String(
+    now.getMinutes()
+  ).padStart(2, "0")}`;
+
+  // Slots for selected date - now using tutor availability
+  const slotsForSelectedDay = useMemo(() => {
+    if (!dates[activeDateIndex] || !tutorAvailability) return [];
+
+    const d = dates[activeDateIndex].dateObj;
+    const dateStr = d.toISOString().slice(0, 10);
+    const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const dayName = dayNames[d.getDay()];
+
+    // Find the availability for this specific date
+    const dayAvailability = tutorAvailability.availability?.find(
+      (day) => {
+        const dayDate = new Date(day.date).toISOString().slice(0, 10);
+        return dayDate === dateStr;
+      }
+    );
+
+    if (!dayAvailability) return [];
+
+    const items = [];
+    const isToday = dateStr === todayStr;
+
+    // Get only available slots
+    dayAvailability.slots.forEach((slot, idx) => {
+      if (!slot.isAvailable) return; // Skip unavailable slots
+
+      const key = `${dateStr}-${slot.startTime}`;
+      const isPastToday = isToday && slot.endTime <= currentHHMM;
+
+      items.push({
+        key,
+        label: `${formatTime(slot.startTime)} - ${formatTime(slot.endTime)}`,
+        isPast: isPastToday,
+      });
+    });
+
+    // Sort by start time
+    return items.sort((a, b) => a.label.localeCompare(b.label));
+  }, [activeDateIndex, tutorAvailability, dates, currentHHMM, todayStr]);
 
   if (loading) {
     return (
@@ -154,145 +271,262 @@ const TutorDetailsView = ({ id: propId }) => {
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-4 md:p-8">
-      {/* Back */}
-      <Link
-        href="/student/allTutors"
-        className="flex items-center text-gray-500 hover:text-blue-600 mb-6 "
-      >
-        <ArrowLeft size={18} className="mr-2" /> Back to Tutors
-      </Link>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* LEFT CONTENT */}
-        <div className="lg:col-span-2 space-y-8">
-          {/* Profile Header */}
-          <div className="bg-white rounded-3xl p-8 border shadow-sm flex gap-6">
-            <div className="relative">
+    <div className="min-h-screen bg-[#F5F5FF] pb-16">
+      {/* Top gradient banner */}
+      <div className="bg-gradient-to-r from-indigo-500 via-blue-500 to-purple-500 text-white py-6 md:py-8 px-4 md:px-12">
+        <div className="max-w-6xl mx-auto">
+          {/* Tutor avatar + name */}
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 mb-6">
+            <div className="relative flex-shrink-0">
               {tutor.avatar ? (
                 <img
                   src={tutor.avatar.startsWith('http') ? tutor.avatar : `http://localhost:8000/${tutor.avatar}`}
                   alt={tutor.name}
-                  className="w-28 h-28 rounded-2xl object-cover"
+                  className="w-20 h-20 md:w-24 md:h-24 rounded-full object-cover border-4 border-white/20"
                 />
               ) : (
-                <div className="w-28 h-28 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-2xl flex items-center justify-center text-white text-4xl font-bold">
+                <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-white/20 flex items-center justify-center text-3xl md:text-4xl font-bold border-4 border-white/20">
                   {tutor.name.charAt(0)}
                 </div>
               )}
-              <div className="absolute -bottom-2 -right-2 bg-green-500 w-7 h-7 rounded-full border-4 border-white"></div>
             </div>
-
-            <div>
-              <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-3xl font-extrabold">{tutor.name}</h1>
-                {tutor.verified && (
-                  <span className="flex items-center bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm font-semibold">
-                    <ShieldCheck size={14} className="mr-1" /> Verified
-                  </span>
-                )}
-              </div>
-
-              <p className="text-lg text-blue-600 font-medium mb-1">
+            <div className="text-center sm:text-left flex-1">
+              <h1 className="text-2xl md:text-3xl font-bold mb-1">
+                {tutor.name}
+              </h1>
+              <p className="text-sm md:text-base opacity-80">
                 {tutor.subject}
               </p>
+            </div>
+          </div>
 
-              {tutor.joinedDate && (
-                <p className="text-xs text-gray-400 mb-2">
-                  Joined on {tutor.joinedDate}
-                </p>
-              )}
+          {/* Stats cards */}
+          <div className="flex flex-wrap justify-center sm:justify-start gap-3 md:gap-4 mb-6">
+            <div className="bg-white text-indigo-700 rounded-2xl px-4 py-2 md:px-6 md:py-3 text-center text-sm shadow-lg min-w-[120px] md:min-w-[130px]">
+              <div className="text-xl md:text-2xl font-bold">{tutor.joinedYear}</div>
+              <div className="opacity-70 text-xs md:text-sm">Tutor since</div>
+            </div>
+            <div className="bg-white text-indigo-700 rounded-2xl px-4 py-2 md:px-6 md:py-3 text-center text-sm shadow-lg min-w-[120px] md:min-w-[130px]">
+              <div className="text-xl md:text-2xl font-bold">{tutor.reviews}</div>
+              <div className="opacity-70 text-xs md:text-sm">Session taken</div>
+            </div>
+          </div>
 
-              <div className="flex flex-wrap gap-6 text-gray-600">
-                <div className="flex items-center">
-                  <Star
-                    size={18}
-                    className="text-yellow-400 fill-current mr-1"
-                  />
-                  <strong>{tutor.rating}</strong>
-                  <span className="ml-1">({tutor.reviews} reviews)</span>
+          {/* Tabs */}
+          <div className="flex border-b border-white/20 text-sm overflow-x-auto">
+            <button
+              onClick={() => setActiveTab("about")}
+              className={`px-4 md:px-6 pb-2 transition whitespace-nowrap ${activeTab === "about"
+                ? "font-semibold border-b-2 border-white"
+                : "text-white/80 hover:text-white"
+                }`}
+            >
+              About
+            </button>
+            <button
+              onClick={() => setActiveTab("booking")}
+              className={`px-4 md:px-6 pb-2 transition whitespace-nowrap ${activeTab === "booking"
+                ? "font-semibold border-b-2 border-white"
+                : "text-white/80 hover:text-white"
+                }`}
+            >
+              Book a Session
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Content area */}
+      <div className="max-w-6xl mx-auto mt-6 md:mt-8 px-4 md:px-8">
+        {/* Back */}
+        <Link
+          href="/student/allTutors"
+          className="flex items-center text-gray-500 hover:text-blue-600 mb-4 md:mb-6 text-sm"
+        >
+          <ArrowLeft size={18} className="mr-2" /> Back to Tutors
+        </Link>
+
+        {/* About Tab Content */}
+        {activeTab === "about" && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+            {/* LEFT CONTENT */}
+            <div className="lg:col-span-2 space-y-6 md:space-y-8">
+              {/* About */}
+              <div className="bg-white rounded-2xl md:rounded-3xl p-6 md:p-8 border shadow-sm">
+                <h2 className="text-lg md:text-xl font-bold mb-3 md:mb-4 flex items-center">
+                  <BookOpen size={20} className="mr-2 text-blue-600" />
+                  About Me
+                </h2>
+                <p className="text-sm md:text-base text-gray-600 leading-relaxed mb-4 md:mb-6">{tutor.bio}</p>
+
+                <h3 className="text-xs md:text-sm font-bold uppercase mb-2 md:mb-3 text-gray-700">
+                  Specialties
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {tutor.specialties.map((s, i) => (
+                    <span
+                      key={i}
+                      className="bg-gray-100 px-3 py-1.5 md:px-4 md:py-2 rounded-xl text-xs md:text-sm"
+                    >
+                      {s}
+                    </span>
+                  ))}
                 </div>
-                <div className="flex items-center">
-                  <Clock size={18} className="mr-1 text-gray-400" />
-                  {tutor.experience}
+              </div>
+
+              {/* Education */}
+              <div className="bg-white rounded-2xl md:rounded-3xl p-6 md:p-8 border shadow-sm">
+                <h2 className="text-lg md:text-xl font-bold mb-3 md:mb-4 flex items-center">
+                  <Award size={20} className="mr-2 text-blue-600" />
+                  Education
+                </h2>
+                <p className="text-sm md:text-base text-gray-700 font-medium">{tutor.education}</p>
+              </div>
+            </div>
+
+            {/* RIGHT SIDEBAR */}
+            <div className="lg:col-span-1">
+              <div className="bg-white rounded-2xl md:rounded-3xl p-5 md:p-6 border shadow-xl lg:sticky lg:top-8">
+                <div className="space-y-3 md:space-y-4 mb-4 md:mb-6">
+                  <div className="flex justify-between items-center p-3 md:p-4 bg-gray-50 rounded-xl md:rounded-2xl">
+                    <div className="flex items-center text-gray-600 text-xs md:text-sm">
+                      <Calendar size={16} className="mr-2" />
+                      Next Available
+                    </div>
+                    <span className="font-bold text-xs md:text-sm text-right">{tutor.availability}</span>
+                  </div>
+
+                  <div className="flex justify-between items-center p-3 md:p-4 bg-gray-50 rounded-xl md:rounded-2xl">
+                    <div className="flex items-center text-gray-600 text-xs md:text-sm">
+                      <Mail size={16} className="mr-2" />
+                      Response Time
+                    </div>
+                    <span className="font-bold text-xs md:text-sm">{tutor.responseTime}</span>
+                  </div>
+
+                  <div className="flex items-center gap-2 p-3 md:p-4 bg-gray-50 rounded-xl md:rounded-2xl">
+                    <Star size={16} className="text-yellow-400 fill-current" />
+                    <strong className="text-xs md:text-sm">{tutor.rating}</strong>
+                    <span className="text-gray-600 text-xs md:text-sm">({tutor.reviews} reviews)</span>
+                  </div>
+
+                  <div className="flex items-center gap-2 p-3 md:p-4 bg-gray-50 rounded-xl md:rounded-2xl">
+                    <Clock size={16} className="text-gray-400" />
+                    <span className="text-gray-600 text-xs md:text-sm">{tutor.experience}</span>
+                  </div>
+
+                  {tutor.verified && (
+                    <div className="flex items-center justify-center gap-2 p-3 md:p-4 bg-blue-50 rounded-xl md:rounded-2xl">
+                      <ShieldCheck size={16} className="text-blue-700" />
+                      <span className="text-blue-700 font-semibold text-xs md:text-sm">Verified Tutor</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="text-center text-gray-500 text-xs space-y-1 mt-2">
+                  <p>No payment required to contact the tutor</p>
+                  <p className="flex items-center justify-center gap-1 break-all">
+                    <Mail size={12} className="flex-shrink-0" /> {tutor.email}
+                  </p>
                 </div>
               </div>
             </div>
           </div>
+        )}
 
-          {/* About */}
-          <div className="bg-white rounded-3xl p-8 border shadow-sm">
-            <h2 className="text-xl font-bold mb-4 flex items-center">
-              <BookOpen size={22} className="mr-2 text-blue-600" />
-              About Me
-            </h2>
-            <p className="text-gray-600 leading-relaxed mb-6">{tutor.bio}</p>
+        {/* Book a Session Tab Content */}
+        {activeTab === "booking" && (
+          <div className="bg-white rounded-2xl md:rounded-3xl shadow-md p-5 md:p-8">
+            {/* Date strip */}
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-sm md:text-base font-semibold text-gray-800 flex items-center gap-2">
+                <Calendar size={18} className="text-purple-600" />
+                Choose your timing
+              </h2>
+            </div>
 
-            <h3 className="text-sm font-bold uppercase mb-3 text-gray-700">
-              Specialties
-            </h3>
-            <div className="flex flex-wrap gap-2">
-              {tutor.specialties.map((s, i) => (
-                <span
-                  key={i}
-                  className="bg-gray-100 px-4 py-2 rounded-xl text-sm"
+            <div className="flex gap-2 md:gap-3 overflow-x-auto pb-2 mb-6 -mx-1 px-1">
+              {dates.map((d, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setActiveDateIndex(idx)}
+                  className={`min-w-[60px] md:min-w-[70px] rounded-xl px-3 py-2 md:px-4 md:py-3 text-center font-semibold border transition flex-shrink-0
+                    ${activeDateIndex === idx
+                      ? "bg-[#6335F8] text-white border-transparent"
+                      : "bg-white text-[#6335F8] border-[#E0D7FF]"
+                    }`}
                 >
-                  {s}
-                </span>
+                  <div className="text-xs mb-1">{d.day}</div>
+                  <div className="text-base md:text-lg">{d.date}</div>
+                </button>
               ))}
             </div>
-          </div>
 
-          {/* Education */}
-          <div className="bg-white rounded-3xl p-8 border shadow-sm">
-            <h2 className="text-xl font-bold mb-4 flex items-center">
-              <Award size={22} className="mr-2 text-blue-600" />
-              Education
-            </h2>
-            <p className="text-gray-700 font-medium">{tutor.education}</p>
-          </div>
-        </div>
-
-        {/* RIGHT SIDEBAR (NO PRICE) */}
-        <div>
-          <div className="bg-white rounded-3xl p-6 border shadow-xl sticky top-8">
-            <div className="space-y-4 mb-6">
-              <div className="flex justify-between p-4 bg-gray-50 rounded-2xl">
-                <div className="flex items-center text-gray-600">
-                  <Calendar size={18} className="mr-2" />
-                  Next Available
-                </div>
-                <span className="font-bold">{tutor.availability}</span>
-              </div>
-
-              <div className="flex justify-between p-4 bg-gray-50 rounded-2xl">
-                <div className="flex items-center text-gray-600">
-                  <Mail size={18} className="mr-2" />
-                  Response Time
-                </div>
-                <span className="font-bold">{tutor.responseTime}</span>
-              </div>
+            {/* Time slots */}
+            <div className="mb-3 text-xs md:text-sm font-medium text-gray-700">
+              Choose your timing
             </div>
 
-            {/* <button className="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold hover:bg-blue-700 mb-4">
-              Book a Lesson
-            </button>
+            {slotsForSelectedDay.length === 0 ? (
+              <div className="text-gray-400 text-sm py-8 text-center">
+                No available slots for this day.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-3">
+                {slotsForSelectedDay.map((slot) => (
+                  <button
+                    key={slot.key}
+                    disabled={slot.isPast}
+                    onClick={() => setSelectedSlotKey(slot.key)}
+                    className={`flex items-center gap-2 px-3 py-2.5 md:px-4 md:py-3 rounded-xl md:rounded-2xl border text-xs md:text-sm
+                      ${slot.isPast
+                        ? "bg-gray-100 text-gray-300 cursor-not-allowed border-gray-200"
+                        : selectedSlotKey === slot.key
+                          ? "border-[#6335F8] bg-[#6335F8] text-white"
+                          : "bg-white hover:border-[#6335F8] text-gray-700"
+                      }`}
+                  >
+                    <span
+                      className={`w-3 h-3 rounded-full border flex-shrink-0
+                        ${slot.isPast
+                          ? "border-gray-300 bg-gray-200"
+                          : selectedSlotKey === slot.key
+                            ? "border-white bg-white"
+                            : "border-gray-400"
+                        }`}
+                    />
+                    {slot.label}
+                  </button>
+                ))}
+              </div>
+            )}
 
-            <button className="w-full border-2 border-blue-600 text-blue-600 py-4 rounded-2xl font-bold hover:bg-blue-50 mb-3">
-              Send Message
-            </button> */}
+            {/* Action */}
+            <div className="mt-6 md:mt-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="flex items-center justify-center sm:justify-start text-xs md:text-sm text-gray-500 gap-2">
+                <Star size={16} className="text-yellow-400 fill-yellow-400" />
+                <span>
+                  {tutor.rating} rating • {tutor.reviews} reviews
+                </span>
+              </div>
 
-            <div className="text-center text-gray-500 text-xs space-y-1 mt-2">
-              <p>No payment required to contact the tutor</p>
-              <p className="flex items-center justify-center gap-1">
-                <Mail size={12} /> {tutor.email}
-              </p>
+              <button
+                disabled={!selectedSlotKey}
+                className={`w-full sm:w-auto px-6 md:px-8 py-3 rounded-xl md:rounded-2xl font-semibold text-sm md:text-base shadow-md transition
+                  ${selectedSlotKey
+                    ? "bg-[#6335F8] text-white hover:bg-[#5128d8]"
+                    : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                  }`}
+              >
+                Continue to book
+              </button>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
 };
 
 export default TutorDetailsView;
+

@@ -10,7 +10,7 @@ const API = axios.create({
 
 // 🔐 Automatically attach token
 API.interceptors.request.use((req) => {
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem("token") || localStorage.getItem("tutorToken");
   if (token) {
     req.headers.Authorization = `Bearer ${token}`;
   }
@@ -38,7 +38,7 @@ API.interceptors.response.use(
       // Conflict – server rejected the data (e.g. duplicate or invalid business state)
       toast.error(
         backendMessage ||
-          "Could not save changes (409 Conflict). Please check your inputs or existing classes."
+        "Could not save changes (409 Conflict). Please check your inputs or existing classes."
       );
     } else {
       toast.error(backendMessage || fallbackMessage);
