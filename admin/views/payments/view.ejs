@@ -54,7 +54,7 @@
             <div>
               <span class="font-semibold">Status:</span>
               <span class="ml-2 font-semibold
-            <%= payment.status === 'APPROVED'
+            <%= payment.status === 'SUCCESS'
               ? 'text-green-600'
               : payment.status === 'REJECTED'
               ? 'text-red-600'
@@ -92,7 +92,7 @@
               <% } %>
 
                 <!-- ================= STATUS FORM ================= -->
-                <% if (payment.status !=='APPROVED' ) { %>
+                <% if (payment.status !=='SUCCESS' ) { %>
                   <form id="payment-status-form" action="/admin/payments/<%= payment._id %>/verify" method="POST"
                     class="mt-6 space-y-4">
                     <label class="block text-sm font-medium" for="status">
@@ -103,8 +103,8 @@
                       <option value="PENDING" <%=payment.status==='PENDING' ? 'selected' : '' %> >
                         Pending
                       </option>
-                      <option value="APPROVED" <%=payment.status==='APPROVED' ? 'selected' : '' %>>
-                        Approved
+                      <option value="SUCCESS" <%=payment.status==='SUCCESS' ? 'selected' : '' %>>
+                        SUCCESS
                       </option>
                       <option value="REJECTED" <%=payment.status==='REJECTED' ? 'selected' : '' %>>
                         Rejected

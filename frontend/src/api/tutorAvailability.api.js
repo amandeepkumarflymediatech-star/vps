@@ -2,11 +2,11 @@ import API from "./axios.instance";
 
 /**
  * Get tutor's availability for a specific week
- * @param {string} weekStartDate - Optional ISO date string for week start (Monday)
+ * @param {string} date - Optional ISO date string for week start (Monday)
  */
-export const getTutorAvailability = (weekStartDate) => {
-    const params = weekStartDate ? { weekStartDate } : {};
-    return API.get("/tutor/availability/my", { params });
+export const getTutorAvailability = (date) => {
+  const params = date ? date : {};
+  return API.get("/tutor/availability/my", { params });
 };
 
 /**
@@ -14,7 +14,7 @@ export const getTutorAvailability = (weekStartDate) => {
  * @param {object} data - { weekStartDate, availability }
  */
 export const saveTutorAvailability = (data) => {
-    return API.post("/tutor/availability", data);
+  return API.post("/tutor/availability", data);
 };
 
 /**
@@ -22,7 +22,7 @@ export const saveTutorAvailability = (data) => {
  * @param {string} id - Availability document ID
  */
 export const deleteTutorAvailability = (id) => {
-    return API.delete(`/tutor/availability/${id}`);
+  return API.delete(`/tutor/availability/${id}`);
 };
 
 /**
@@ -31,13 +31,13 @@ export const deleteTutorAvailability = (id) => {
  * @param {string} weekStartDate - Optional ISO date string for week start
  */
 export const getAvailabilityByTutorId = (tutorId, weekStartDate) => {
-    const params = weekStartDate ? { weekStartDate } : {};
-    return API.get(`/tutor/${tutorId}/availability`, { params });
+  const params = weekStartDate ? { weekStartDate } : {};
+  return API.get(`/tutor/${tutorId}/availability`, { params });
 };
 
 export default {
-    getTutorAvailability,
-    saveTutorAvailability,
-    deleteTutorAvailability,
-    getAvailabilityByTutorId,
+  getTutorAvailability,
+  saveTutorAvailability,
+  deleteTutorAvailability,
+  getAvailabilityByTutorId,
 };

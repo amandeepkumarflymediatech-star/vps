@@ -1,50 +1,29 @@
 import mongoose from "mongoose";
 
-const slotSchema = new mongoose.Schema({
-    startTime: {
-        type: String,
-        required: true,
-    },
-    endTime: {
-        type: String,
-        required: true,
-    },
-    isAvailable: {
-        type: Boolean,
-        default: true,
-    },
-});
-
-const dayAvailabilitySchema = new mongoose.Schema({
-    day: {
-        type: String,
-        required: true,
-        enum: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-    },
-    date: {
-        type: Date,
-        required: true,
-    },
-    slots: [slotSchema],
+const SlotSchema = new mongoose.Schema({
+  startTime: { type: String, required: true }, // "09:00"
+  endTime: { type: String, required: true }, // "10:00"
+  isAvailable: { type: Boolean, default: false },
+  isBooked: { type: Boolean, default: false },
 });
 
 const tutorAvailabilitySchema = new mongoose.Schema(
-    {
-        tutorId: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "User",
-            required: true,
-        },
-        weekStartDate: {
-            type: Date,
-            required: true,
-        },
-        availability: [dayAvailabilitySchema],
+  {
+    tutorId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
     },
-    { timestamps: true }
+    date: {
+      type: Date,
+      required: true,
+    },
+    availability: [SlotSchema],
+  },
+  { timestamps: true },
 );
 
-// Index for faster queries
-tutorAvailabilitySchema.index({ tutorId: 1, weekStartDate: 1 });
+// 🔒 Prevent duplicate rows for same tutor + same day
+tutorAvailabilitySchema.index({ tutorId: 1, date: 1 }, { unique: true });
 
 export default mongoose.model("TutorAvailability", tutorAvailabilitySchema);

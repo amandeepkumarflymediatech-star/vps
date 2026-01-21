@@ -169,7 +169,7 @@ router.get("/:id", auth, role("ADMIN"), async (req, res) => {
 router.post("/:id/verify", auth, role("ADMIN"), async (req, res) => {
   const { status } = req.body; // PENDING | APPROVED | REJECTED
 
-  if (!["PENDING", "APPROVED", "REJECTED"].includes(status)) {
+  if (!["PENDING", "SUCCESS", "REJECTED"].includes(status)) {
     return res.status(400).render("layouts/error", {
       message: "Invalid status",
       path: req.originalUrl,
@@ -188,8 +188,8 @@ router.post("/:id/verify", auth, role("ADMIN"), async (req, res) => {
     payment.status = status;
     await payment.save();
 
-    // ✅ APPROVED → activate user
-    if (status === "APPROVED" && payment.userId) {
+    // ✅ SUCCESS → activate user
+    if (status === "SUCCESS" && payment.userId) {
       const user = await User.findByIdAndUpdate(
         payment.userId,
         { $set: { isPaymentDone: true } },
@@ -199,10 +199,10 @@ router.post("/:id/verify", auth, role("ADMIN"), async (req, res) => {
       if (user?.email) {
         await sendMail({
           to: user.email,
-          subject: "Payment Approved – Account Activated",
+          subject: "Payment SUCCESS – Account Activated",
           html: `
               <p>Hi ${user.name || "there"},</p>
-              <p>Your payment has been <strong>approved</strong>.</p>
+              <p>Your payment has been <strong>SUCCESS</strong>.</p>
               <p>Your account is now active. You can start your classes.</p>
               <p>Thank you!</p>
             `,
