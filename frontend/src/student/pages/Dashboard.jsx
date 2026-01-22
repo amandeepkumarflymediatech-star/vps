@@ -10,7 +10,7 @@ import {
   CalendarDays,
   ArrowRight,
 } from "lucide-react";
-import { getStudentEnrollments } from "@/api/student.api";
+import { getEnrollmentsStudents } from "@/api/enrollments.api";
 import { useRouter } from "next/navigation";
 
 const Dashboard = () => {
@@ -31,7 +31,7 @@ const Dashboard = () => {
     const fetchEnrollments = async () => {
       try {
         setLoading(true);
-        const res = await getStudentEnrollments();
+        const res = await getEnrollmentsStudents();
         const data = res.data?.data || [];
         setEnrollments(Array.isArray(data) ? data : []);
       } catch (error) {

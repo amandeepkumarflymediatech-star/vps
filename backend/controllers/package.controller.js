@@ -96,10 +96,11 @@ export const getPackages = async (req, res) => {
     ]);
 
     /* ---------- POPULATE COURSES ---------- */
-    await CoursePackage.populate(packages, {
-      path: "courses",
-      select: "title price image",
-    });
+  //  let data= await CoursePackage.populate(packages, {
+  //     path: "courses",
+  //     select: "title price image",
+  //   });
+    console.log(packages)
     return res.json({
       success: true,
       data: packages,

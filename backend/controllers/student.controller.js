@@ -34,7 +34,7 @@ import mongoose from "mongoose";
 
 export const getClasses = async (req, res) => {
   try {
-    let { activeDate } = req.query; 
+    let { activeDate } = req.query;
 
     // fallback to today if activeDate not sent
     const baseDate = activeDate ? new Date(activeDate) : new Date();
@@ -50,7 +50,7 @@ export const getClasses = async (req, res) => {
       date: { $gte: startOfDay, $lt: endOfDay },
     })
       .populate("tutorId")
-      .lean(); 
+      .lean();
     return res.json({
       success: true,
       data: tutorSlots,
@@ -229,7 +229,7 @@ export const getMyEnrollments = async (req, res) => {
         $sort: { createdAt: 1 },
       },
     ]);
-
+    console.log(enrollments);
     res.json({ success: true, data: enrollments });
   } catch (error) {
     console.error("getMyEnrollments error", error);
