@@ -23,7 +23,7 @@ const tutorAvailabilitySchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-// 🔒 Prevent duplicate rows for same tutor + same day
+// 🔒 Prevent duplicate rows for same tutor + same day ;
+tutorAvailabilitySchema.index({ tutorId: 1, date: 1 });
 tutorAvailabilitySchema.index({ "availability._id": 1 });
-
 export default mongoose.model("TutorAvailability", tutorAvailabilitySchema);

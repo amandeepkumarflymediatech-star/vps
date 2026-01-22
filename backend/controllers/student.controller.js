@@ -196,6 +196,7 @@ export const getMyEnrollments = async (req, res) => {
           _id: 1,
           slot: 1,
           status: 1,
+          meetingLink: 1,
           paymentStatus: 1,
           createdAt: 1,
 
@@ -546,16 +547,241 @@ export const getMyEnrollments = async (req, res) => {
 //   }
 // };
 
+// export const getMyEnrollmentsStudent = async (req, res) => {
+//   try {
+//     const userId = new mongoose.Types.ObjectId(req.user.id);
+//     let statusFilter = req.query.status?.toUpperCase() || "UPCOMING";
+//     console.log(statusFilter);
+
+//     const now = new Date();
+
+//     const enrollments = await Enrollment.aggregate([
+//       // 1️⃣ Match user
+//       { $match: { userId } },
+
+//       // 2️⃣ Join student
+//       {
+//         $lookup: {
+//           from: "users",
+//           localField: "userId",
+//           foreignField: "_id",
+//           as: "student",
+//         },
+//       },
+//       { $unwind: "$student" },
+
+//       // 3️⃣ Join tutor
+//       {
+//         $lookup: {
+//           from: "users",
+//           localField: "tutorId",
+//           foreignField: "_id",
+//           as: "tutor",
+//         },
+//       },
+//       { $unwind: "$tutor" },
+
+//       // 4️⃣ Join payment
+//       {
+//         $lookup: {
+//           from: "payments",
+//           let: { userId: "$userId", tutorId: "$tutorId" },
+//           pipeline: [
+//             {
+//               $match: {
+//                 $expr: {
+//                   $and: [
+//                     { $eq: ["$userId", "$$userId"] },
+//                     { $eq: ["$tutorId", "$$tutorId"] },
+//                     { $eq: ["$status", "SUCCESS"] },
+//                   ],
+//                 },
+//               },
+//             },
+//             { $sort: { createdAt: -1 } },
+//             { $limit: 1 },
+//           ],
+//           as: "payment",
+//         },
+//       },
+//       { $unwind: { path: "$payment", preserveNullAndEmptyArrays: true } },
+
+//       // 5️⃣ Join package
+//       {
+//         $lookup: {
+//           from: "coursepackages",
+//           localField: "payment.packageId",
+//           foreignField: "_id",
+//           as: "package",
+//         },
+//       },
+//       { $unwind: { path: "$package", preserveNullAndEmptyArrays: true } },
+
+//       // 6️⃣ Compute sessionStart and sessionEnd datetimes
+//       {
+//         $addFields: {
+//           sessionStart: {
+//             $dateFromString: {
+//               dateString: {
+//                 $concat: [
+//                   { $dateToString: { format: "%Y-%m-%d", date: "$slot.date" } },
+//                   "T",
+//                   "$slot.startTime",
+//                   ":00.000Z",
+//                 ],
+//               },
+//             },
+//           },
+//           sessionEnd: {
+//             $dateFromString: {
+//               dateString: {
+//                 $concat: [
+//                   { $dateToString: { format: "%Y-%m-%d", date: "$slot.date" } },
+//                   "T",
+//                   "$slot.endTime",
+//                   ":00.000Z",
+//                 ],
+//               },
+//             },
+//           },
+//         },
+//       },
+
+//       // 7️⃣ Compute dynamic status based on time
+//       {
+//         $addFields: {
+//           computedStatus: {
+//             $switch: {
+//               branches: [
+//                 {
+//                   case: { $eq: ["$status", "CANCELLED"] },
+//                   then: "CANCELLED",
+//                 },
+//                 {
+//                   case: { $eq: ["$status", "COMPLETED"] },
+//                   then: "COMPLETED",
+//                 },
+//                 {
+//                   case: {
+//                     $and: [
+//                       { $eq: ["$status", "UPCOMING"] },
+//                       { $lt: ["$sessionEnd", now] },
+//                     ],
+//                   },
+//                   then: "MISSED",
+//                 },
+//                 {
+//                   case: {
+//                     $and: [
+//                       { $eq: ["$status", "UPCOMING"] },
+//                       { $gte: ["$sessionStart", now] },
+//                     ],
+//                   },
+//                   then: "UPCOMING",
+//                 },
+//                 {
+//                   case: {
+//                     $and: [
+//                       { $eq: ["$status", "UPCOMING"] },
+//                       { $lt: ["$sessionStart", now] },
+//                       { $gte: ["$sessionEnd", now] },
+//                     ],
+//                   },
+//                   then: "ONGOING",
+//                 },
+//               ],
+//               default: "PENDING",
+//             },
+//           },
+//         },
+//       },
+
+//       // 8️⃣ Filter according to requested tab
+//       {
+//         $match: (() => {
+//           switch (statusFilter) {
+//             case "UPCOMING":
+//               return { computedStatus: "UPCOMING" };
+//             case "COMPLETED":
+//               return { computedStatus: "COMPLETED" };
+//             case "MISSED":
+//               // For MISSED, we want either computedStatus = MISSED
+//               // or original status = UPCOMING but sessionEnd < now
+//               return {
+//                 $or: [
+//                   { computedStatus: "MISSED" },
+//                   {
+//                     $and: [
+//                       { status: "UPCOMING" },
+//                       { sessionEnd: { $lt: now } },
+//                     ],
+//                   },
+//                 ],
+//               };
+//             case "CANCELLED":
+//               return { computedStatus: "CANCELLED" };
+//             case "PENDING":
+//               return { computedStatus: "PENDING" };
+//             case "ONGOING":
+//               return { computedStatus: "ONGOING" };
+//             default:
+//               return {};
+//           }
+//         })(),
+//       },
+
+//       // 9️⃣ Project final response
+//       {
+//         $project: {
+//           _id: 1,
+//           slot: 1,
+//           status: 1,
+//           meetingLink: 1,
+//           computedStatus: 1,
+//           paymentStatus: 1,
+//           createdAt: 1,
+//           student: {
+//             _id: "$student._id",
+//             name: "$student.name",
+//             email: "$student.email",
+//           },
+//           tutor: {
+//             _id: "$tutor._id",
+//             name: "$tutor.name",
+//           },
+//           payment: {
+//             _id: "$payment._id",
+//             amount: "$payment.amount",
+//             method: "$payment.method",
+//             status: "$payment.status",
+//           },
+//           package: {
+//             _id: "$package._id",
+//             title: "$package.title",
+//             lessons: "$package.lessons",
+//           },
+//         },
+//       },
+
+//       // 10️⃣ Sort latest first
+//       { $sort: { createdAt: -1 } },
+//     ]);
+
+//     res.json({ success: true, data: enrollments });
+//   } catch (error) {
+//     console.error("getMyEnrollments error", error);
+//     res.status(500).json({ message: error.message });
+//   }
+// };
+
 export const getMyEnrollmentsStudent = async (req, res) => {
   try {
     const userId = new mongoose.Types.ObjectId(req.user.id);
-    let statusFilter = req.query.status?.toUpperCase() || "UPCOMING";
-    console.log(statusFilter);
-
+    const statusFilter = req.query.status?.toUpperCase() || "UPCOMING";
     const now = new Date();
 
     const enrollments = await Enrollment.aggregate([
-      // 1️⃣ Match user
+      // 1️⃣ Match student
       { $match: { userId } },
 
       // 2️⃣ Join student
@@ -580,7 +806,71 @@ export const getMyEnrollmentsStudent = async (req, res) => {
       },
       { $unwind: "$tutor" },
 
-      // 4️⃣ Join payment
+      // 4️⃣ Join TutorAvailability (slot-level)
+      {
+        $lookup: {
+          from: "tutoravailabilities",
+          let: {
+            tutorId: "$tutorId",
+            slotDate: "$slot.date",
+            slotId: "$slotId",
+          },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ["$tutorId", "$$tutorId"] },
+                    { $eq: ["$date", "$$slotDate"] },
+                  ],
+                },
+              },
+            },
+            {
+              $project: {
+                availability: {
+                  $filter: {
+                    input: "$availability",
+                    as: "a",
+                    cond: { $eq: ["$$a._id", "$$slotId"] },
+                  },
+                },
+              },
+            },
+          ],
+          as: "tutorAvailability",
+        },
+      },
+      {
+        $unwind: {
+          path: "$tutorAvailability",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+
+      // 5️⃣ Merge availability into slot
+      {
+        $addFields: {
+          slot: {
+            $mergeObjects: [
+              "$slot",
+              {
+                isAvailable: {
+                  $arrayElemAt: [
+                    "$tutorAvailability.availability.isAvailable",
+                    0,
+                  ],
+                },
+                isBooked: {
+                  $arrayElemAt: ["$tutorAvailability.availability.isBooked", 0],
+                },
+              },
+            ],
+          },
+        },
+      },
+
+      // 6️⃣ Join payment
       {
         $lookup: {
           from: "payments",
@@ -605,7 +895,7 @@ export const getMyEnrollmentsStudent = async (req, res) => {
       },
       { $unwind: { path: "$payment", preserveNullAndEmptyArrays: true } },
 
-      // 5️⃣ Join package
+      // 7️⃣ Join package
       {
         $lookup: {
           from: "coursepackages",
@@ -616,7 +906,7 @@ export const getMyEnrollmentsStudent = async (req, res) => {
       },
       { $unwind: { path: "$package", preserveNullAndEmptyArrays: true } },
 
-      // 6️⃣ Compute sessionStart and sessionEnd datetimes
+      // 8️⃣ Compute session start & end
       {
         $addFields: {
           sessionStart: {
@@ -646,20 +936,14 @@ export const getMyEnrollmentsStudent = async (req, res) => {
         },
       },
 
-      // 7️⃣ Compute dynamic status based on time
+      // 9️⃣ Compute status
       {
         $addFields: {
           computedStatus: {
             $switch: {
               branches: [
-                {
-                  case: { $eq: ["$status", "CANCELLED"] },
-                  then: "CANCELLED",
-                },
-                {
-                  case: { $eq: ["$status", "COMPLETED"] },
-                  then: "COMPLETED",
-                },
+                { case: { $eq: ["$status", "CANCELLED"] }, then: "CANCELLED" },
+                { case: { $eq: ["$status", "COMPLETED"] }, then: "COMPLETED" },
                 {
                   case: {
                     $and: [
@@ -695,7 +979,7 @@ export const getMyEnrollmentsStudent = async (req, res) => {
         },
       },
 
-      // 8️⃣ Filter according to requested tab
+      // 🔟 Filter tab
       {
         $match: (() => {
           switch (statusFilter) {
@@ -704,39 +988,25 @@ export const getMyEnrollmentsStudent = async (req, res) => {
             case "COMPLETED":
               return { computedStatus: "COMPLETED" };
             case "MISSED":
-              // For MISSED, we want either computedStatus = MISSED
-              // or original status = UPCOMING but sessionEnd < now
-              return {
-                $or: [
-                  { computedStatus: "MISSED" },
-                  {
-                    $and: [
-                      { status: "UPCOMING" },
-                      { sessionEnd: { $lt: now } },
-                    ],
-                  },
-                ],
-              };
-            case "CANCELLED":
-              return { computedStatus: "CANCELLED" };
-            case "PENDING":
-              return { computedStatus: "PENDING" };
+              return { computedStatus: "MISSED" };
             case "ONGOING":
               return { computedStatus: "ONGOING" };
+            case "CANCELLED":
+              return { computedStatus: "CANCELLED" };
             default:
               return {};
           }
         })(),
       },
 
-      // 9️⃣ Project final response
+      // 1️⃣1️⃣ Final projection
       {
         $project: {
           _id: 1,
           slot: 1,
           status: 1,
-          meetingLink: 1,
           computedStatus: 1,
+          meetingLink: 1,
           paymentStatus: 1,
           createdAt: 1,
           student: {
@@ -762,14 +1032,14 @@ export const getMyEnrollmentsStudent = async (req, res) => {
         },
       },
 
-      // 10️⃣ Sort latest first
+      // 1️⃣2️⃣ Sort
       { $sort: { createdAt: -1 } },
     ]);
 
-    res.json({ success: true, data: enrollments });
+    return res.json({ success: true, data: enrollments });
   } catch (error) {
-    console.error("getMyEnrollments error", error);
-    res.status(500).json({ message: error.message });
+    console.error("getMyEnrollmentsStudent error:", error);
+    return res.status(500).json({ message: error.message });
   }
 };
 

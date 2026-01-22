@@ -67,6 +67,68 @@ export const getAvailability = async (req, res) => {
   }
 };
 
+// export const getAvailability = async (req, res) => {
+//   try {
+//     const tutorId = req.user.id;
+//     const { date } = req.query;
+
+//     // 1️⃣ Calculate week start (Monday)
+//     let startDate;
+
+//     if (date) {
+//       startDate = new Date(date);
+//       startDate.setHours(0, 0, 0, 0);
+//     } else {
+//       const today = new Date();
+//       const dayOfWeek = today.getDay(); // 0 = Sunday
+//       const monday = new Date(today);
+//       monday.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+//       monday.setHours(0, 0, 0, 0);
+//       startDate = monday;
+//     }
+
+//     // 2️⃣ Calculate week end (Sunday)
+//     const endDate = new Date(startDate);
+//     endDate.setDate(startDate.getDate() + 6);
+//     endDate.setHours(23, 59, 59, 999);
+
+//     // 3️⃣ Fetch availability
+//     const availability = await TutorAvailability.find({
+//       tutorId,
+//       date: { $gte: startDate, $lte: endDate },
+//     })
+//       .sort({ date: 1 })
+//       .lean();
+
+//     // 4️⃣ Format for frontend (WITH SLOT INFO)
+//     const formatted = availability.map((day) => ({
+//       date: day.date,
+//       availability: day.availability.map((slot) => ({
+//         slotId: slot._id,              // ✅ important
+//         startTime: slot.startTime,
+//         endTime: slot.endTime,
+//         isAvailable: slot.isAvailable,
+//         isBooked: slot.isBooked,       // ✅ added
+//       })),
+//     }));
+
+//     return res.status(200).json({
+//       success: true,
+//       data: formatted,
+//       message: formatted.length
+//         ? "Availability fetched"
+//         : "No availability set for this week",
+//     });
+//   } catch (error) {
+//     console.error("Error fetching availability:", error);
+//     return res.status(500).json({
+//       success: false,
+//       message: "Failed to fetch availability",
+//       error: error.message,
+//     });
+//   }
+// };
+
 export const saveAvailability = async (req, res) => {
   try {
     const tutorId = req.user.id;
