@@ -394,22 +394,42 @@ const MySessions = () => {
                 {tutor.slots.length > 0 ? (
                   <div className="grid grid-cols-2 gap-2 mb-4">
                     {tutor.slots.map((slot, i) => (
+                      // <button
+                      //   key={i}
+                      //   disabled={slot.isBooked || !slot.isAvailable}
+                      //   onClick={() =>
+                      //     handleSlotSelection(tutor.id, tutor.date, slot)
+                      //   }
+                      //   className={`px-3 py-2 text-xs rounded-lg font-bold
+                      //     ${
+                      //       slot.isBooked
+                      //         ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                      //         : selectedSlot?.tutorId === tutor.id &&
+                      //             selectedSlot?.startTime === slot.startTime
+                      //           ? "bg-[#6335F8] text-white"
+                      //           : "bg-white border border-gray-200 hover:bg-purple-50"
+                      //     }
+                      //   `}
+                      // >
+                      //   {slot.isBooked
+                      //     ? "Reserved"
+                      //     : `${slot.startTime} - ${slot.endTime}`}
+                      // </button>
                       <button
-                        key={i}
+                        key={slot._id}
                         disabled={slot.isBooked || !slot.isAvailable}
                         onClick={() =>
                           handleSlotSelection(tutor.id, tutor.date, slot)
                         }
                         className={`px-3 py-2 text-xs rounded-lg font-bold
-                          ${
-                            slot.isBooked
-                              ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                              : selectedSlot?.tutorId === tutor.id &&
-                                  selectedSlot?.startTime === slot.startTime
-                                ? "bg-[#6335F8] text-white"
-                                : "bg-white border border-gray-200 hover:bg-purple-50"
-                          }
-                        `}
+    ${
+      slot.isBooked
+        ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+        : selectedSlot?.slotId === slot._id
+          ? "bg-[#6335F8] text-white"
+          : "bg-white border border-gray-200 hover:bg-purple-50"
+    }
+  `}
                       >
                         {slot.isBooked
                           ? "Reserved"

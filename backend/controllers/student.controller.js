@@ -12,6 +12,7 @@ import mongoose from "mongoose";
  * Optional query params:
  *  - tutorId: filter by specific tutor
  */
+
 // export const getClasses = async (req, res) => {
 //   try {
 //     const todayStary = new Date();
@@ -863,20 +864,91 @@ export const checkPaymentStatus = async (req, res) => {
 //   }
 // };
 
+// export const saveSelectedSlot = async (req, res) => {
+//   try {
+//     const userId = req.user.id;
+//     const { tutorId, slot, date } = req.body[0];
+//     const slotId = slot._id;
+//     const { startTime, endTime } = slot;
+//     // 1️⃣ Check successful payment
+//     const payment = await Payment.findOne({
+//       userId,
+//       tutorId,
+//       status: "SUCCESS",
+//     }).populate("packageId"); // 👈 IMPORTANT
+
+//     if (!payment) {
+//       return res.status(403).json({ message: "Payment required" });
+//     }
+
+//     if (!payment.packageId) {
+//       return res.status(400).json({ message: "Package not found for payment" });
+//     }
+
+//     const totalLessons = payment.packageId.lessons;
+
+//     // 2️⃣ Count already booked lessons
+//     const bookedCount = await Enrollment.countDocuments({
+//       userId,
+//       tutorId,
+//     });
+
+//     if (bookedCount >= totalLessons) {
+//       return res.status(400).json({
+//         message: `Lesson limit reached. You can book only ${totalLessons} lessons. if you want book more sessions please upgrade your plan`,
+//       });
+//     }
+
+//     // 3️⃣ Prevent duplicate slot booking
+//     const existingEnrollment = await Enrollment.findOne({
+//       userId,
+//       tutorId,
+//       slotId,
+//     });
+
+//     if (existingEnrollment) {
+//       return res.status(400).json({ message: "Slot already booked" });
+//     }
+
+//     // 4️⃣ Save enrollment
+//     const enrollment = await Enrollment.create({
+//       userId,
+//       tutorId,
+//       slotId,
+//       slot: {
+//         startTime,
+//         endTime,
+//         date,
+//       },
+//       status: "UPCOMING",
+//       paymentStatus: "SUCCESS",
+//       packageId: payment.packageId._id, // 👈 optional but recommended
+//     });
+
+//     return res.json({
+//       message: "Slot booked successfully",
+//       remainingLessons: totalLessons - (bookedCount + 1),
+//       data: enrollment,
+//     });
+//   } catch (err) {
+//     console.error("Save slot error:", err);
+//     res.status(500).json({ message: "Server error" });
+//   }
+// };
+
 export const saveSelectedSlot = async (req, res) => {
   try {
     const userId = req.user.id;
     const { tutorId, slot, date } = req.body[0];
-
     const slotId = slot._id;
     const { startTime, endTime } = slot;
-
+    console.log(date);
     // 1️⃣ Check successful payment
     const payment = await Payment.findOne({
       userId,
       tutorId,
       status: "SUCCESS",
-    }).populate("packageId"); // 👈 IMPORTANT
+    }).populate("packageId");
 
     if (!payment) {
       return res.status(403).json({ message: "Payment required" });
@@ -894,11 +966,9 @@ export const saveSelectedSlot = async (req, res) => {
       tutorId,
     });
 
-    console.log(bookedCount, "booke", totalLessons, "totallw");
-
     if (bookedCount >= totalLessons) {
       return res.status(400).json({
-        message: `Lesson limit reached. You can book only ${totalLessons} lessons. if you want book more sessions please upgrade your plan`,
+        message: `Lesson limit reached. You can book only ${totalLessons} lessons.`,
       });
     }
 
@@ -913,7 +983,27 @@ export const saveSelectedSlot = async (req, res) => {
       return res.status(400).json({ message: "Slot already booked" });
     }
 
-    // 4️⃣ Save enrollment
+    // 4️⃣ Update tutor availability (slot-level check)
+    const availabilityUpdate = await TutorAvailability.updateOne(
+      {
+        tutorId,
+        date,
+        "availability._id": slotId,
+      },
+      {
+        $set: {
+          "availability.$.isBooked": true,
+        },
+      },
+    );
+
+    if (!availabilityUpdate) {
+      return res.status(400).json({
+        message: "Slot is no longer available",
+      });
+    }
+
+    // 5️⃣ Save enrollment
     const enrollment = await Enrollment.create({
       userId,
       tutorId,
@@ -925,23 +1015,8 @@ export const saveSelectedSlot = async (req, res) => {
       },
       status: "UPCOMING",
       paymentStatus: "SUCCESS",
-      packageId: payment.packageId._id, // 👈 optional but recommended
+      packageId: payment.packageId._id,
     });
-
-    // 5️⃣ Mark slot as booked in tutor availability
-    await TutorAvailability.updateOne(
-      {
-        tutorId,
-        date,
-        "availability._id": slotId,
-        "availability.isBooked": false,
-      },
-      {
-        $set: {
-          "availability.$.isBooked": true,
-        },
-      },
-    );
 
     return res.json({
       message: "Slot booked successfully",
