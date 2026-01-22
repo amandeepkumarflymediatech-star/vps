@@ -140,7 +140,7 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 px-4 sm:px-6">
 
           {/* PROGRESS OVERVIEW */}
-          <div className="lg:col-span-2 bg-white rounded-[1.5rem] sm:rounded-[2rem] border border-slate-100 p-5 sm:p-8 shadow-sm">
+          <div className="lg:col-span-6   w-full  bg-white rounded-[1.5rem] sm:rounded-[2rem] border border-slate-100 p-5 sm:p-8 shadow-sm">
             <div className="flex justify-between items-center mb-6">
               <h3 className="font-bold text-slate-800 flex items-center gap-2">
                 <LayoutDashboard size={18} className="text-blue-600" />
@@ -160,7 +160,7 @@ const Dashboard = () => {
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
               </div>
             ) : enrollments.length > 0 ? (
-              <div className="space-y-4">
+              <div className="space-y-4  w-full ">
                 {/* Progress bar */}
                 <div>
                   <div className="flex justify-between text-sm mb-2">
@@ -218,7 +218,7 @@ const Dashboard = () => {
           </div>
 
           {/* UPCOMING CLASSES */}
-          <div className="bg-white rounded-[1.5rem] sm:rounded-[2rem] border border-slate-100 p-5 sm:p-8 shadow-sm">
+          {/* <div className="bg-white rounded-[1.5rem] sm:rounded-[2rem] border border-slate-100 p-5 sm:p-8 shadow-sm">
             <h3 className="font-bold text-slate-800 mb-6 flex items-center gap-2">
               <CalendarDays size={18} className="text-blue-600" />
               Upcoming Classes
@@ -265,7 +265,7 @@ const Dashboard = () => {
                 </div>
               )}
             </div>
-          </div>
+          </div> */}
 
         </div>
       </main>
