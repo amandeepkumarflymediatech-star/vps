@@ -32,6 +32,31 @@ const isAvailableFutureSlot = (date, slot) => {
   return slotDate.getTime() > now.getTime();
 };
 
+const getStatusClasses = (status) => {
+  switch (status) {
+    case "UPCOMING":
+      return "bg-blue-50 text-blue-700 ring-1 ring-blue-100";
+    case "COMPLETED":
+      return "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100";
+    case "PENDING":
+      return "bg-amber-50 text-amber-700 ring-1 ring-amber-100";
+    case "CANCELLED":
+    case "MISSED":
+      return "bg-rose-50 text-rose-700 ring-1 ring-rose-100";
+    default:
+      return "bg-gray-50 text-gray-700 ring-1 ring-gray-100";
+  }
+};
+
+const formatStatus = (status) => {
+  if (!status) return "";
+  return status
+    .toLowerCase()
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+};
+
 const MySessions = () => {
   const router = useRouter();
   const user = JSON.parse(localStorage.getItem("user"));
@@ -212,71 +237,118 @@ const MySessions = () => {
         </div>
       </div>
       {/* ENROLLMENTS TABLE */}
-      <div className="bg-white p-6 rounded-xl shadow border overflow-x-auto">
-        <h2 className="text-2xl font-bold mb-4">
-          Your Enrollments ({activeTab})
-        </h2>
+      <div className="bg-white p-6 rounded-2xl shadow border">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-bold text-gray-900">My Sessions</h2>
+            <p className="text-sm text-gray-500">
+              Showing <span className="font-semibold">{activeTab}</span> sessions
+            </p>
+          </div>
+          <div className="inline-flex items-center gap-2 rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-600">
+            <span className="h-2 w-2 rounded-full bg-emerald-500" />
+            {enrollments.length} {enrollments.length === 1 ? "session" : "sessions"}
+          </div>
+        </div>
         {loadingEnrollments ? (
-          <div className="p-6 text-center">Loading enrollments...</div>
+          <div className="p-6 text-center text-sm text-gray-500">
+            Loading enrollments...
+          </div>
         ) : enrollments.length === 0 ? (
           <div className="p-6 text-center text-gray-500">
             No enrollments found for this tab.
           </div>
         ) : (
-          <table className="w-full text-sm">
-            <thead className="bg-gray-100 text-left">
-              <tr>
-                <th className="p-3">Tutor</th>
-                <th className="p-3">Course</th>
-                <th className="p-3">Date</th>
-                <th className="p-3">Time</th>
-                <th className="p-3">Meeting</th>
-                <th className="p-3">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {enrollments.map((e) => (
-                <tr key={e._id} className="border-t">
-                  <td className="p-3">{e.tutor?.name}</td>
-                  <td className="p-3">{e.package?.title}</td>
-                  <td className="p-3">
-                    {new Date(e.slot?.date).toLocaleDateString()}
-                  </td>
-                  <td className="p-3">
-                    {e.slot?.startTime} - {e.slot?.endTime}
-                  </td>
-                  <td className="p-3">
-                    {e.meetingLink ? (
-                      <a
-                        href={e.meetingLink}
-                        target="_blank"
-                        className="text-blue-600 underline"
-                      >
-                        Join
-                      </a>
-                    ) : (
-                      <span className="text-gray-400">N/A</span>
-                    )}
-                  </td>
-                  <td className="p-3">
-                    <span
-                      className={`px-2 py-1 rounded text-xs font-semibold ${
-                        e.status === "UPCOMING"
-                          ? "bg-blue-100 text-blue-700"
-                          : e.status === "COMPLETED"
-                            ? "bg-green-100 text-green-700"
-                            : "bg-red-100 text-red-700"
-                      }`}
-                    >
-                      {e.status}
-                    </span>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[720px] text-sm">
+              <thead className="bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                <tr>
+                  <th className="px-4 py-3">Tutor</th>
+                  <th className="px-4 py-3">Course</th>
+                  <th className="px-4 py-3">Date</th>
+                  <th className="px-4 py-3">Time</th>
+                  <th className="px-4 py-3">Meeting</th>
+                  <th className="px-4 py-3 text-right">Status</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {enrollments.map((e) => (
+                  <tr
+                    key={e._id}
+                    className="border-t border-gray-100 transition-colors hover:bg-gray-50/80"
+                  >
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-indigo-50 text-xs font-semibold text-indigo-700">
+                          {e.tutor?.name?.[0] || "T"}
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-sm font-semibold text-gray-900">
+                            {e.tutor?.name}
+                          </span>
+                          {e.package?.title && (
+                            <span className="text-xs text-gray-500">
+                              {e.package.title}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 align-top">
+                      <span className="text-sm text-gray-800 line-clamp-2">
+                        {e.package?.title || "-"}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2 text-sm text-gray-800">
+                        <Calendar className="h-4 w-4 text-gray-400" />
+                        <span>
+                          {e.slot?.date
+                            ? new Date(e.slot.date).toLocaleDateString()
+                            : "-"}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2 text-sm text-gray-800">
+                        <Clock className="h-4 w-4 text-gray-400" />
+                        <span>
+                          {e.slot?.startTime && e.slot?.endTime
+                            ? `${e.slot.startTime} - ${e.slot.endTime}`
+                            : "-"}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      {e.meetingLink ? (
+                        <a
+                          href={e.meetingLink}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1 text-sm font-semibold text-indigo-600 hover:text-indigo-700 hover:underline"
+                        >
+                          Join session
+                        </a>
+                      ) : (
+                        <span className="text-xs text-gray-400">Not available</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <span
+                        className={`inline-flex items-center justify-end gap-2 rounded-full px-3 py-1 text-xs font-semibold ${getStatusClasses(e.status)}`}
+                      >
+                        <span className="h-1.5 w-1.5 rounded-full bg-current" />
+                        {formatStatus(e.status)}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
+
 
       {/* PAYMENT MESSAGE */}
       {paymentMessage && (
