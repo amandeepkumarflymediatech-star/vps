@@ -236,7 +236,7 @@ const BookSession = () => {
   }
 
   return (
-    <div className="p-4 bg-white min-h-screen space-y-6">
+    <div className="max-w-7xl mx-auto px-4 lg:px-10 bg-[#FBFCFF] min-h-screen pt-5 space-y-8 overflow-x-hidden">
       <Toaster />
 
       <h1 className="text-3xl font-black mt-10">Book a Session</h1>
@@ -249,16 +249,15 @@ const BookSession = () => {
       )}
 
       {/* DATE SELECTOR */}
-      <div className="flex gap-2">
+      <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
         {dates.map((d) => (
           <button
             key={d.date}
             onClick={() => setActiveDate(d.date)}
-            className={`w-16 h-16 rounded-xl font-bold ${
-              activeDate === d.date
-                ? "bg-[#6335F8] text-white"
-                : "bg-purple-50 text-[#6335F8]"
-            }`}
+            className={`w-16 h-16 rounded-xl font-bold shrink-0 ${activeDate === d.date
+              ? "bg-[#6335F8] text-white"
+              : "bg-purple-50 text-[#6335F8]"
+              }`}
           >
             <div className="text-xs">{d.label}</div>
             <div className="text-lg">{d.dateNum}</div>
@@ -272,7 +271,7 @@ const BookSession = () => {
           placeholder="Search tutor"
           value={searchName}
           onChange={(e) => setSearchName(e.target.value)}
-          className="border px-3 py-2 rounded-lg w-full"
+          className="border px-3 py-2 rounded-lg w-full flex-1"
         />
         <button className="bg-[#6335F8] text-white px-4 rounded-lg">
           <Search size={16} />
@@ -303,12 +302,11 @@ const BookSession = () => {
                       });
                       setSelectedTutor(tutor);
                     }}
-                    className={`px-3 py-1 text-xs rounded-lg border ${
-                      selectedSlot?.tutorId === tutor.tutorId &&
+                    className={`px-3 py-1 text-xs rounded-lg border ${selectedSlot?.tutorId === tutor.tutorId &&
                       selectedSlot?.startTime === slot.startTime
-                        ? "bg-[#6335F8] text-white"
-                        : ""
-                    }`}
+                      ? "bg-[#6335F8] text-white"
+                      : ""
+                      }`}
                   >
                     {slot.label}
                   </button>
@@ -332,8 +330,8 @@ const BookSession = () => {
 
       {/* CONFIRM MODAL */}
       {showConfirm && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-xl w-full max-w-md relative">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
+          <div className="bg-white p-6 rounded-xl w-full max-w-md relative shadow-2xl">
             <button
               onClick={() => setShowConfirm(false)}
               className="absolute top-4 right-4"

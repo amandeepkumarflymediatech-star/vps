@@ -80,7 +80,7 @@ const Login = () => {
         <div className="w-full max-w-md bg-white border border-neutral-200 rounded-xl shadow-xl px-8 py-9">
           {/* HEADER */}
           <h2 className="text-2xl font-semibold text-neutral-900">Sign in</h2>
-          <p className="text-sm text-neutral-500 mt-1">
+          <p className="text-md text-neutral-500 mt-1">
             Enter your credentials to continue
           </p>
 
@@ -94,7 +94,7 @@ const Login = () => {
           {/* FORM */}
           <form onSubmit={handleSubmit} className="mt-7 space-y-5">
             <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1">
+              <label className="block text-md font-medium text-neutral-700 mb-1">
                 Email address
               </label>
               <input
@@ -105,13 +105,13 @@ const Login = () => {
                 placeholder="you@company.com"
                 className="w-full h-12 px-4 text-sm
                            border border-neutral-300 rounded-md
-                           focus:outline-none focus:ring-2 focus:ring-neutral-900
+                           focus:outline-none focus:ring-1 focus:ring-neutral-900
                            focus:border-neutral-900"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1">
+              <label className="block text-md font-medium text-neutral-700 mb-1">
                 Password
               </label>
               <div className="relative">
@@ -123,7 +123,7 @@ const Login = () => {
                   placeholder="••••••••"
                   className="w-full h-12 px-4 pr-12 text-sm
                              border border-neutral-300 rounded-md
-                             focus:outline-none focus:ring-2 focus:ring-neutral-900
+                             focus:outline-none focus:ring-1 focus:ring-neutral-900
                              focus:border-neutral-900"
                 />
                 <button
@@ -139,7 +139,7 @@ const Login = () => {
             <div className="flex justify-between items-center">
               <Link
                 href="/forgot-password"
-                className="text-sm text-neutral-600 hover:text-neutral-900"
+                className="text-md text-neutral-600 hover:text-neutral-900"
               >
                 Forgot password?
               </Link>
@@ -171,7 +171,7 @@ const Login = () => {
 
           <button
             onClick={() => router.push("/tutor/login")}
-            className="block mx-auto mt-4 text-lg font-bold text-neutral-500 hover:text-neutral-900 cursor-pointer"
+            className="block mx-auto mt-4 text-lg font-bold text-black hover:text-[#0852A1] cursor-pointer"
           >
             Login as Tutor
           </button>

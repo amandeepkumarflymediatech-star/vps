@@ -52,3 +52,10 @@
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+body {
+    overflow-x: hidden;
+    position: relative;
+    width: 100%;
+}
+

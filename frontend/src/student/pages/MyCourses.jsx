@@ -15,27 +15,13 @@ import {
   checkPaymentStatus,
   saveSelectedSlot,
 } from "@/api/student.api";
-import {
-  getEnrollmentsStudents,
-  cancelEnrollment,
-} from "@/api/enrollments.api";
+import { getEnrollmentsStudents } from "@/api/enrollments.api";
 import toast from "react-hot-toast";
 
-const TABS = ["Upcoming", "Completed", "Cancelled", "Missed"];
+const TABS = ["Upcoming", "Completed", "Cancelled", "Missed", "Pending"];
 const ITEMS_PER_PAGE = 6;
 
 const getTodayKey = () => new Date().toISOString().split("T")[0];
-const canCancelSlot = (slot) => {
-  if (!slot?.date || !slot?.startTime) return false;
-  const now = new Date();
-  const [h, m] = slot.startTime.split(":").map(Number);
-  const slotDate = new Date(slot.date);
-  slotDate.setHours(h, m, 0, 0);
-
-  const diffInMs = slotDate - now;
-  const diffInHours = diffInMs / (1000 * 60 * 60);
-  return diffInHours >= 2; // 2 hours left
-};
 
 const isAvailableFutureSlot = (date, slot) => {
   if (!slot.isAvailable || slot.isBooked) return false;
@@ -144,31 +130,6 @@ const MySessions = () => {
     fetchTutors();
   }, []);
 
-  /* ---------------- Cancel SLOT SELECTION ---------------- */
-  const handleCancelSlot = async (enrollmentId) => {
-    console.log(enrollmentId);
-    const confirmed = window.confirm(
-      "Are you sure you want to cancel this session?",
-    );
-    if (!confirmed) return;
-
-    try {
-      // Call your API to cancel enrollment/slot
-      await cancelEnrollment(enrollmentId); // 👈 create this API in /api/enrollments.api.js
-      toast.success("Session cancelled successfully!");
-
-      // Update enrollments state locally
-      setEnrollments((prev) =>
-        prev.map((e) =>
-          e._id === enrollmentId ? { ...e, status: "CANCELLED" } : e,
-        ),
-      );
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to cancel session");
-    }
-  };
-
   /* ---------------- SLOT SELECTION ---------------- */
   const handleSlotSelection = async (tutorId, date, slot) => {
     if (slot.isBooked) {
@@ -208,7 +169,7 @@ const MySessions = () => {
       console.error("Slot error:", err);
       setPaymentMessage(
         err.response?.data?.message ||
-          "Something went wrong. Please try again later.",
+        "Something went wrong. Please try again later.",
       );
     }
   };
@@ -224,6 +185,7 @@ const MySessions = () => {
           userId: user.id,
           status: activeTab,
         });
+        console.log(res, "res");
         setEnrollments(res?.data?.data || []);
       } catch (err) {
         console.error(err);
@@ -262,16 +224,15 @@ const MySessions = () => {
           </p>
         </div>
 
-        <div className="flex bg-gray-100 p-1.5 rounded-2xl">
+        <div className="flex bg-gray-100 p-1.5 rounded-2xl overflow-x-auto no-scrollbar max-w-full">
           {TABS.map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-5 py-2 rounded-xl text-sm font-bold ${
-                activeTab === tab
+              className={`px-5 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${activeTab === tab
                   ? "bg-white text-[#6335F8] shadow"
-                  : "text-gray-500"
-              }`}
+                  : "text-gray-500 hover:text-gray-700"
+                }`}
             >
               {tab}
             </button>
@@ -364,7 +325,7 @@ const MySessions = () => {
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      {e.meetingLink && e.status == "UPCOMING" ? (
+                      {e.meetingLink ? (
                         <a
                           href={e.meetingLink}
                           target="_blank"
@@ -379,24 +340,7 @@ const MySessions = () => {
                         </span>
                       )}
                     </td>
-                    {/* <td className="px-4 py-3 text-right">
-                      <span
-                        className={`inline-flex items-center justify-end gap-2 rounded-full px-3 py-1 text-xs font-semibold ${getStatusClasses(e.status)}`}
-                      >
-                        <span className="h-1.5 w-1.5 rounded-full bg-current" />
-                        {formatStatus(e.status)}
-                      </span>
-                    </td> */}
-
                     <td className="px-4 py-3 text-right">
-                      {e.status === "UPCOMING" && canCancelSlot(e.slot) && (
-                        <button
-                          onClick={() => handleCancelSlot(e._id)}
-                          className="px-3 py-1 text-xs font-semibold rounded-lg bg-red-50 text-red-700 hover:bg-red-100"
-                        >
-                          Cancel
-                        </button>
-                      )}
                       <span
                         className={`inline-flex items-center justify-end gap-2 rounded-full px-3 py-1 text-xs font-semibold ${getStatusClasses(e.status)}`}
                       >
@@ -456,13 +400,12 @@ const MySessions = () => {
                           handleSlotSelection(tutor.id, tutor.date, slot)
                         }
                         className={`px-3 py-2 text-xs rounded-lg font-bold
-                          ${
-                            slot.isBooked
-                              ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                              : selectedSlot?.tutorId === tutor.id &&
-                                  selectedSlot?.startTime === slot.startTime
-                                ? "bg-[#6335F8] text-white"
-                                : "bg-white border border-gray-200 hover:bg-purple-50"
+                          ${slot.isBooked
+                            ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                            : selectedSlot?.tutorId === tutor.id &&
+                              selectedSlot?.startTime === slot.startTime
+                              ? "bg-[#6335F8] text-white"
+                              : "bg-white border border-gray-200 hover:bg-purple-50"
                           }
                         `}
                       >

@@ -69,68 +69,68 @@ const StudentPackages = () => {
   /* ---------- MAIN UI ---------- */
   return (
     <div className="min-h-screen bg-[#FBFCFF]">
-      <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-10 pt-16 md:pt-10 space-y-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-20 md:pt-10 space-y-8">
         {/* HEADER */}
-        <div className="space-y-1">
+        <div className="space-y-2">
           <h1 className="text-2xl sm:text-3xl font-black text-gray-900">
             Learning Packages
           </h1>
-          <p className="text-sm sm:text-base text-gray-500 font-medium">
-            Choose the best plan for your learning journey
+          <p className="text-sm sm:text-base text-gray-500 font-medium max-w-2xl">
+            Choose the best plan for your learning journey and start mastering English today.
           </p>
         </div>
 
         {/* GRID */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
           {packages.map((pkg) => (
             <div
               key={pkg._id}
-              className="group bg-white rounded-[2rem] border border-gray-100 shadow-sm p-6 sm:p-8 flex flex-col justify-between hover:shadow-xl transition-all"
+              className="group bg-white rounded-3xl sm:rounded-[2rem] border border-gray-100 shadow-sm p-5 sm:p-8 flex flex-col justify-between hover:shadow-xl transition-all duration-300"
             >
               {/* TOP */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-[10px] font-black text-[#6335F8] uppercase tracking-widest">
-                    <BookOpen size={14} />
-                    {pkg.category || "English Package"}
+                  <div className="flex items-center gap-2 text-[10px] sm:text-xs font-black text-[#6335F8] uppercase tracking-widest">
+                    <BookOpen size={14} className="shrink-0" />
+                    <span className="truncate max-w-[120px]">{pkg.category || "English Package"}</span>
                   </div>
 
                   {pkg.isPaymentDone && (
-                    <span className="text-[10px] px-3 py-1 rounded-full bg-green-100 text-green-700 font-black uppercase">
+                    <span className="text-[10px] px-2.5 py-1 rounded-full bg-green-100 text-green-700 font-black uppercase shrink-0">
                       Subscribed
                     </span>
                   )}
                 </div>
 
                 <div className="space-y-2">
-                  <h2 className="text-xl font-black text-gray-900">
+                  <h2 className="text-lg sm:text-xl font-black text-gray-900 line-clamp-2">
                     {pkg.title}
                   </h2>
 
                   {pkg.description && (
-                    <p className="text-sm text-gray-500 line-clamp-3">
+                    <p className="text-xs sm:text-sm text-gray-500 line-clamp-3 leading-relaxed">
                       {pkg.description}
                     </p>
                   )}
                 </div>
 
-                <div className="space-y-2 pt-2">
+                <div className="space-y-2 pt-2 border-t border-dashed border-gray-100">
                   <div className="flex items-center gap-2 text-xs font-bold text-gray-600">
-                    <CheckCircle2 size={14} className="text-green-500" />
+                    <CheckCircle2 size={14} className="text-green-500 shrink-0" />
                     Lifetime Access
                   </div>
                   <div className="flex items-center gap-2 text-xs font-bold text-gray-600">
-                    <CheckCircle2 size={14} className="text-green-500" />
+                    <CheckCircle2 size={14} className="text-green-500 shrink-0" />
                     Certificate Included
                   </div>
                 </div>
               </div>
 
               {/* FOOTER */}
-              <div className="mt-8 pt-6 border-t border-gray-50 flex items-center justify-between">
+              <div className="mt-6 pt-4 border-t border-gray-50 flex items-center justify-between gap-4">
                 <div>
-                  <div className="text-2xl font-black text-gray-900">
-                    ₹{pkg.price}
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-2xl font-black text-gray-900">₹{pkg.price}</span>
                   </div>
                   {pkg.discountPrice && (
                     <div className="text-xs text-gray-400 line-through font-bold">
@@ -142,14 +142,14 @@ const StudentPackages = () => {
                 {pkg.isPaymentDone ? (
                   <button
                     disabled
-                    className="px-6 py-3 rounded-xl bg-green-50 text-green-600 text-sm font-black cursor-not-allowed"
+                    className="px-5 py-2.5 rounded-xl bg-green-50 text-green-600 text-sm font-black cursor-not-allowed"
                   >
                     Subscribed
                   </button>
                 ) : (
                   <button
                     onClick={() => router.push(`/student/packages/${pkg._id}`)}
-                    className="px-6 py-3 rounded-xl bg-purple-50 text-[#6335F8] text-sm font-black hover:bg-[#6335F8] hover:text-white transition-all active:scale-95"
+                    className="px-5 py-2.5 rounded-xl bg-purple-50 text-[#6335F8] text-sm font-black hover:bg-[#6335F8] hover:text-white transition-all active:scale-95 whitespace-nowrap"
                   >
                     View Details
                   </button>

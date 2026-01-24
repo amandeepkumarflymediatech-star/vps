@@ -108,12 +108,12 @@ const Register = () => {
           </p>
 
           {/* FORM */}
-          <form onSubmit={handleSubmit} className="mt-7 space-y-5">
+          <form onSubmit={handleSubmit} className="mt-7 space-y-5 text-black">
 
             {/* NAME */}
             <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1">
-                Full name
+              <label className="block text-md font-medium text-black mb-1">
+                Full Name
               </label>
               <input
                 type="text"
@@ -124,15 +124,15 @@ const Register = () => {
                 placeholder="Enter Your Full Name"
                 className="w-full h-12 px-4 text-sm
                            border border-neutral-300 rounded-md
-                           focus:outline-none focus:ring-2 focus:ring-neutral-900
+                           focus:outline-none focus:ring-1 focus:ring-neutral-900
                            focus:border-neutral-900"
               />
             </div>
 
             {/* EMAIL */}
             <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1">
-                Email address
+              <label className="block text-md font-medium text-black mb-1">
+                Email Address
               </label>
               <input
                 type="email"
@@ -143,14 +143,14 @@ const Register = () => {
                 placeholder="Enter Your Email"
                 className="w-full h-12 px-4 text-sm
                            border border-neutral-300 rounded-md
-                           focus:outline-none focus:ring-2 focus:ring-neutral-900
+                           focus:outline-none focus:ring-1 focus:ring-neutral-900
                            focus:border-neutral-900"
               />
             </div>
 
 
             <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1">
+              <label className="block text-md font-medium text-black mb-1">
                 Phone number
               </label>
 
@@ -175,7 +175,7 @@ const Register = () => {
 
             {/* PASSWORD */}
             <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1">
+              <label className="block text-md font-medium text-black mb-1">
                 Password
               </label>
               <div className="relative">
@@ -188,7 +188,7 @@ const Register = () => {
                   placeholder="••••••••"
                   className="w-full h-12 px-4 pr-12 text-sm
                              border border-neutral-300 rounded-md
-                             focus:outline-none focus:ring-2 focus:ring-neutral-900
+                             focus:outline-none focus:ring-1 focus:ring-neutral-900
                              focus:border-neutral-900"
                 />
 
@@ -216,11 +216,11 @@ const Register = () => {
           </form>
 
           {/* FOOTER */}
-          <p className="text-sm text-neutral-600 mt-6 text-center">
+          <p className="text-md text-neutral-600 mt-4 text-center">
             Already have an account?{" "}
             <Link
               href="/login"
-              className="font-medium text-neutral-900 hover:underline"
+              className="font-bold text-black hover:text-[#0852A1] hover:underline"
             >
               Sign in
             </Link>

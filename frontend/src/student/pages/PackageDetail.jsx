@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 
 const PackageDetail = ({ id }) => {
-  const router = useRouter(); 
+  const router = useRouter();
   const [pkg, setPkg] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -57,94 +57,108 @@ const PackageDetail = ({ id }) => {
   }
 
   return (
-    <div className="min-h-screen bg-[#FBFCFF] pt-16 md:pt-10 px-4 sm:px-6 lg:px-10">
-      <div className="max-w-5xl mx-auto space-y-8">
+    <div className="min-h-screen bg-[#FBFCFF] pt-20 pb-10 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto space-y-6 sm:space-y-8">
         {/* BACK BUTTON */}
         <button
           onClick={() => router.back()}
-          className="flex items-center gap-2 text-sm font-black text-gray-600 hover:text-[#6335F8]"
+          className="group flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-[#6335F8] transition-colors"
         >
-          <ArrowLeft size={16} /> Back to Packages
+          <div className="p-2 bg-white rounded-full shadow-sm group-hover:shadow-md transition-all">
+            <ArrowLeft size={16} />
+          </div>
+          Back to Packages
         </button>
 
         {/* HEADER */}
-        <div className="bg-white rounded-[2.5rem] p-6 sm:p-10 border border-gray-100 space-y-4">
-          <div className="flex items-center gap-2 text-xs font-black text-[#6335F8] uppercase tracking-widest">
-            <BookOpen size={14} />
-            {pkg.category || "Learning Package"}
+        <div className="bg-white rounded-3xl sm:rounded-[2.5rem] p-6 sm:p-10 border border-gray-100 shadow-sm space-y-5">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-2 text-[10px] sm:text-xs font-black text-[#6335F8] uppercase tracking-widest bg-purple-50 px-3 py-1.5 rounded-full">
+              <BookOpen size={14} />
+              {pkg.category || "Learning Package"}
+            </div>
           </div>
 
-          <h1 className="text-2xl sm:text-3xl font-black text-gray-900">
-            {pkg.title}
-          </h1>
+          <div className="space-y-3">
+            <h1 className="text-2xl sm:text-4xl font-black text-gray-900 leading-tight">
+              {pkg.title}
+            </h1>
 
-          <p className="text-gray-500 text-sm sm:text-base">
-            {pkg.description}
-          </p>
+            <p className="text-gray-500 text-sm sm:text-base leading-relaxed">
+              {pkg.description}
+            </p>
+          </div>
 
-          <div className="flex flex-wrap gap-3 pt-4">
+          <div className="flex flex-wrap gap-3 pt-2">
             {pkg.level && (
-              <span className="px-4 py-1 text-xs font-black rounded-full bg-blue-50 text-blue-600">
+              <span className="px-4 py-1.5 text-xs font-bold rounded-full bg-blue-50 text-blue-600 border border-blue-100">
                 {pkg.level}
               </span>
             )}
             {pkg.validity && (
-              <span className="px-4 py-1 text-xs font-black rounded-full bg-green-50 text-green-600 flex items-center gap-1">
-                <Clock size={12} /> {pkg.validity}
+              <span className="px-4 py-1.5 text-xs font-bold rounded-full bg-green-50 text-green-600 border border-green-100 flex items-center gap-1.5">
+                <Clock size={14} /> {pkg.validity}
               </span>
             )}
           </div>
         </div>
 
         {/* CONTENT LIST */}
-        <div className="bg-white rounded-[2.5rem] p-6 sm:p-10 border border-gray-100">
-          <h2 className="text-xl font-black text-gray-900 mb-6">
+        <div className="bg-white rounded-3xl sm:rounded-[2.5rem] p-6 sm:p-10 border border-gray-100 shadow-sm">
+          <h2 className="text-lg sm:text-2xl font-black text-gray-900 mb-6 flex items-center gap-2">
+            <CheckCircle2 className="text-green-500" />
             What’s Included
           </h2>
 
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {(pkg.contents || []).map((item, idx) => (
               <div
                 key={idx}
-                className="flex items-center justify-between p-4 rounded-xl bg-gray-50"
+                className="flex items-start gap-4 p-4 rounded-2xl bg-gray-50 border border-gray-100/50 hover:border-gray-200 transition-colors"
               >
-                <div className="flex items-center gap-3">
-                  <CheckCircle2 className="text-green-500" size={18} />
-                  <span className="font-bold text-gray-800">{item.title}</span>
+                <div className="p-1.5 bg-white rounded-full shadow-sm text-green-600 mt-0.5">
+                  <CheckCircle2 size={16} />
                 </div>
-                {item.duration && (
-                  <span className="text-xs font-bold text-gray-500">
-                    {item.duration}
-                  </span>
-                )}
+                <div className="flex-1">
+                  <h3 className="font-bold text-gray-900 text-sm sm:text-base">{item.title}</h3>
+                  {item.duration && (
+                    <p className="text-xs font-medium text-gray-500 mt-1">
+                      {item.duration}
+                    </p>
+                  )}
+                </div>
               </div>
             ))}
 
             {!pkg.contents?.length && (
-              <p className="text-sm text-gray-500">
-                Package content will be available after enrollment.
-              </p>
+              <div className="col-span-full p-8 text-center bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+                <p className="text-sm text-gray-500">
+                  Package content details will be available after enrollment.
+                </p>
+              </div>
             )}
           </div>
         </div>
 
         {/* PRICE & CTA */}
-        <div className="bg-white rounded-[2.5rem] p-6 sm:p-10 border border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-6">
-          <div>
-            <div className="flex items-baseline gap-1">
-              <IndianRupee size={18} />
-              <span className="text-3xl font-black text-gray-900">
-                {pkg.price}
+        <div className="sticky bottom-4 z-10 bg-white/80 backdrop-blur-md rounded-3xl p-5 sm:p-8 border border-gray-200/50 shadow-lg sm:shadow-sm sm:relative sm:bottom-0 sm:bg-white sm:border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-6">
+          <div className="text-center sm:text-left w-full sm:w-auto">
+            <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1 sm:hidden">
+              Total Price
+            </p>
+            <div className="flex items-baseline justify-center sm:justify-start gap-2">
+              <span className="text-3xl sm:text-4xl font-black text-gray-900">
+                ₹{pkg.price}
               </span>
+              {pkg.discountPrice && (
+                <span className="text-sm sm:text-lg text-gray-400 font-bold line-through">
+                  ₹{pkg.discountPrice}
+                </span>
+              )}
             </div>
-            {pkg.discountPrice && (
-              <div className="text-sm text-gray-400 font-bold line-through">
-                ₹{pkg.discountPrice}
-              </div>
-            )}
           </div>
 
-          {/* <button className="px-10 py-4 rounded-2xl bg-[#6335F8] text-white font-black hover:opacity-90 active:scale-95 transition">
+          {/* <button className="w-full sm:w-auto px-8 sm:px-10 py-3.5 sm:py-4 rounded-xl sm:rounded-2xl bg-[#6335F8] text-white font-black shadow-lg shadow-indigo-200 hover:shadow-xl hover:-translate-y-0.5 active:scale-95 transition-all text-sm sm:text-base">
             Enroll Now
           </button> */}
         </div>

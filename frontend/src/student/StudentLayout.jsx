@@ -13,7 +13,7 @@
 //   const [checkingAuth, setCheckingAuth] = useState(true);
 
 //   useEffect(() => {
-    
+
 //     if (typeof window === "undefined") return;
 
 //     const token = localStorage.getItem("token");
@@ -44,7 +44,7 @@
 //         sidebarOpen={sidebarOpen}
 //         setSidebarOpen={setSidebarOpen}
 //       />
-      
+
 
 //       {/* MAIN CONTENT */}
 //       <div className="flex flex-col flex-1 md:ml-64">
@@ -78,6 +78,7 @@ const StudentLayout = ({ children }) => {
   const router = useRouter();
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
 
   // Define routes where header should be hidden
@@ -111,13 +112,18 @@ const StudentLayout = ({ children }) => {
       <Sidebar
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
+        isCollapsed={isSidebarCollapsed}
+        toggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
       />
 
-      <div className="flex flex-col flex-1 md:ml-72">
+      <div
+        className={`flex flex-col flex-1 transition-all duration-300 ease-in-out overflow-x-hidden ${isSidebarCollapsed ? "md:ml-20" : "md:ml-72"
+          }`}
+      >
         {/* Only show Header if hideHeader is false */}
         {/* {!hideHeader && <Header setSidebarOpen={setSidebarOpen} />} */}
 
-        <main className={`flex-1 p-4 md:p-6 ${hideHeader ? 'pt-0' : ''}`}>
+        <main className={`flex-1 p-4 md:p-6 ${hideHeader ? "pt-0" : ""}`}>
           {children}
         </main>
       </div>
