@@ -143,12 +143,12 @@ exports.createPackage = async (req, res) => {
 
     const courseIds = courses || [];
 
-    if (courseIds.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Please select at least one course for the package.",
-      });
-    }
+    // if (courseIds.length === 0) {
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: "Please select at least one course for the package.",
+    //   });
+    // }
 
     await CoursePackage.create({
       title,

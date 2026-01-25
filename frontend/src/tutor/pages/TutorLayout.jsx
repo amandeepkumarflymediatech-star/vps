@@ -134,7 +134,7 @@ const TutorLayout = ({ children }) => {
               pathname.startsWith("/tutor/classes") ? activeLink : normalLink
             }
           >
-            <GraduationCap size={20} /> My Courses
+            <GraduationCap size={20} /> My Classes
           </Link>
 
           <Link
@@ -151,7 +151,9 @@ const TutorLayout = ({ children }) => {
             href="/tutor/availability"
             onClick={() => setSidebarOpen(false)}
             className={
-              pathname.startsWith("/tutor/availability") ? activeLink : normalLink
+              pathname.startsWith("/tutor/availability")
+                ? activeLink
+                : normalLink
             }
           >
             <Calendar size={20} /> Availability
@@ -195,24 +197,22 @@ const TutorLayout = ({ children }) => {
                 {user?.role || "TUTOR"}
               </span>
             </div>
-            <img
-              src={user?.avatar || "no image"}
-              alt="Profile"
-              className="w-9 h-9 md:w-10 md:h-10 rounded-full border-2 border-[#0852A1]/20"
-            />
-
-            <div className="h-6 w-[1px] bg-gray-300 mx-1 hidden sm:block"></div>
-
-            <button
-              onClick={handleLogout}
-              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition flex items-center gap-1"
-              title="Logout"
-            >
-              <LogOut size={20} />
-              <span className="hidden lg:block text-sm font-medium">
-                Logout
-              </span>
-            </button>
+            <div>
+              
+            <Link
+              href={`/tutor/profile/${user.id}`}
+              onClick={() => setSidebarOpen(false)}
+              className={
+                pathname.startsWith("/tutor/profile") ? activeLink : normalLink
+              }
+              >
+              <img
+                src={user?.avatar || "no image"}
+                alt="Profile"
+                className="w-9 h-9 md:w-10 md:h-10 rounded-full border-2 border-[#0852A1]/20"
+                />
+            </Link>
+                </div>
           </div>
         </header>
 

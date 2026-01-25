@@ -1063,6 +1063,23 @@ export const checkPaymentStatus = async (req, res) => {
   }
 };
 
+export const getAllEnrollmentStudents = async (req, res) => {
+  try {
+    let filter = {}
+    if (req.user.role == "STUDENT") {
+      filter = { userId: req.user.id }
+    } else {
+      filter = { tutorId: id }
+    }
+    const enrollments = await Enrollment.find(filter).populate("userId")
+    return res.json({ success: true, data: enrollments });
+
+  } catch (err) {
+    console.log(err)
+    res.status(500).json({ error: err.message });
+  }
+}
+
 // ----------------- SAVE SELECTED SLOT -----------------
 // export const saveSelectedSlot = async (req, res) => {
 //   try {

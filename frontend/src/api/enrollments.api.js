@@ -10,6 +10,9 @@ export const getEnrollments = (params) => {
 export const getEnrollmentsStudents = (params) => {
   return API.get("/student/student-classes", { params });
 };
+export const getAllEnrollmentsStudents = () => {
+  return API.get("/student/allenrollments");
+};
 export const updateMeetingLink = (id, data) =>
   API.post(`/student/enrollments/${id}/meeting-link`, data);
 export const cancelEnrollment = (id, data) =>

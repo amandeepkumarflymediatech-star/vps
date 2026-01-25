@@ -10,7 +10,7 @@ const mongoose = require("mongoose");
 const { auth, role } = require("../middlewares/auth.middleware");
 const crypto = require("crypto");
 const sendMail = require("../utils/sendmail");
-
+const { BASE_URL, FRONTEND_URL } = require("../config/config")
 // Route: GET /admin/users/* ========================================================
 
 router.get("/", auth, role("ADMIN"), async (req, res) => {
@@ -123,7 +123,7 @@ router.post("/create", auth, role("ADMIN"), async (req, res) => {
       user.resetTokenExpiry = Date.now() + 1000 * 60 * 30; // 30 mins
       await user.save();
 
-      const link = `${process.env.BASE_URL}/admin/users/setup-password/${token}`;
+      const link = `${BASE_URL}/admin/users/setup-password/${token}`;
 
       await sendMail({
         to: user.email,
@@ -289,7 +289,7 @@ router.post("/toggle-status", auth, role("ADMIN"), async (req, res) => {
       const token = crypto.randomBytes(32).toString("hex");
       user.resetToken = token;
       user.resetTokenExpiry = Date.now() + 1000 * 60 * 30; // 30 mins
-      const link = `${process.env.BASE_URL}/admin/users/setup-password/${token}`;
+      const link = `${BASE_URL}/admin/users/setup-password/${token}`;
 
       await sendMail({
         to: user.email,
@@ -361,7 +361,7 @@ router.post("/setup-password", async (req, res) => {
 
   await user.save();
 
-  res.redirect(`${process.env.FRONTEND_URL}/tutor/login`);
+  res.redirect(`${FRONTEND_URL}/tutor/login`);
 });
 
 module.exports = router;

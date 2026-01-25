@@ -17,7 +17,7 @@
 //   "Upcoming",
 //   "Completed",
 //   "Cancelled",
-//   "Missed", 
+//   "Missed",
 // ];
 
 // const Enrollments = () => {
@@ -242,7 +242,6 @@
 
 // export default Enrollments;
 
-
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
@@ -257,7 +256,7 @@ import {
   User,
   Link as LinkIcon,
   ChevronRight,
-  AlertCircle
+  AlertCircle,
 } from "lucide-react";
 
 // Standardized Status Options
@@ -271,8 +270,13 @@ const Enrollments = () => {
   const [status, setStatus] = useState("UPCOMING");
   const [searchQuery, setSearchQuery] = useState("");
 
-  const user = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem("user")) : null;
-
+  const user =
+    typeof window !== "undefined"
+      ? JSON.parse(localStorage.getItem("user"))
+      : null;
+  /* =========================
+     FETCH DATA
+  ========================= */
   useEffect(() => {
     if (!user?.id) return;
     const fetchEnrollments = async () => {
@@ -289,12 +293,16 @@ const Enrollments = () => {
     fetchEnrollments();
   }, [user?.id]);
 
+  /* =========================
+     FILTER
+  ========================= */
+
   const filteredEnrollments = useMemo(() => {
     const q = searchQuery.toLowerCase();
     return enrollments.filter(
       (e) =>
         e.student?.name?.toLowerCase().includes(q) ||
-        e.package?.title?.toLowerCase().includes(q)
+        e.package?.title?.toLowerCase().includes(q),
     );
   }, [enrollments, searchQuery]);
 
@@ -306,7 +314,11 @@ const Enrollments = () => {
     try {
       await updateMeetingLink(id, { meetingLink, status });
       setEnrollments((prev) =>
-        prev.map((e) => (e._id === id ? { ...e, meetingLink, status: status.toUpperCase() } : e))
+        prev.map((e) =>
+          e._id === id
+            ? { ...e, meetingLink, status: status.toUpperCase() }
+            : e,
+        ),
       );
       toast.success("Class updated successfully");
       setEditingId(null);
@@ -337,16 +349,22 @@ const Enrollments = () => {
   return (
     <div className="min-h-screen bg-gray-50/50 p-4 md:p-10 font-sans">
       <div className="max-w-7xl mx-auto space-y-6">
-        
         {/* HEADER */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-black text-gray-900 uppercase tracking-tight">Class Schedule</h1>
-            <p className="text-gray-500 text-sm">Update links and session completion status</p>
+            <h1 className="text-2xl font-black text-gray-900 uppercase tracking-tight">
+              Class Schedule
+            </h1>
+            <p className="text-gray-500 text-sm">
+              Update links and session completion status
+            </p>
           </div>
 
           <div className="relative group w-full md:w-80">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+              size={18}
+            />
             <input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -362,24 +380,33 @@ const Enrollments = () => {
             <table className="w-full text-left">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-200 text-black text-[14px] font-bold uppercase  ">
-                  <th className="px-8 py-4">Student & Course</th>
+                  <th className="px-8 py-4">Student </th>
+                  <th className="px-6 py-4">Course</th>
                   <th className="px-6 py-4">Schedule</th>
-                  <th className="px-6 py-4">Meeting Access</th>
+                  <th className="px-6 py-4">Time</th>
+                  <th className="px-6 py-4">Meeting Link</th>
                   <th className="px-6 py-4 text-center">Current Status</th>
                   <th className="px-8 py-4 text-right">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {filteredEnrollments.map((e) => (
-                  <tr key={e._id} className="hover:bg-gray-50/50 transition-colors">
+                  <tr
+                    key={e._id}
+                    className="hover:bg-gray-50/50 transition-colors"
+                  >
                     <td className="px-8 py-5">
                       <div className="flex items-center gap-4">
                         <div className="h-10 w-10 bg-gray-100 rounded-xl flex items-center justify-center text-gray-400 group-hover:bg-indigo-100 group-hover:text-indigo-600">
                           <User size={20} />
                         </div>
                         <div>
-                          <p className="font-bold text-gray-900">{e.student?.name}</p>
-                          <p className="text-xs text-indigo-600 font-medium">{e.package?.title}</p>
+                          <p className="font-bold text-gray-900">
+                            {e.student?.name}
+                          </p>
+                          <p className="text-xs text-indigo-600 font-medium">
+                            {e.package?.title}
+                          </p>
                         </div>
                       </div>
                     </td>
@@ -398,7 +425,9 @@ const Enrollments = () => {
                     <td className="px-6 py-5">
                       {editingId === e._id ? (
                         <div className="flex flex-col gap-1">
-                          <label className="text-[10px] font-bold text-indigo-600 uppercase">Meeting Link</label>
+                          <label className="text-[10px] font-bold text-indigo-600 uppercase">
+                            Meeting Link
+                          </label>
                           <input
                             autoFocus
                             value={meetingLink}
@@ -424,19 +453,25 @@ const Enrollments = () => {
                     <td className="px-6 py-5 text-center">
                       {editingId === e._id ? (
                         <div className="flex flex-col gap-1 items-center">
-                           <label className="text-[10px] font-bold text-indigo-600 uppercase">Set Status</label>
+                          <label className="text-[10px] font-bold text-indigo-600 uppercase">
+                            Set Status
+                          </label>
                           <select
                             value={status}
                             onChange={(ev) => setStatus(ev.target.value)}
                             className="bg-white border-2 border-indigo-500 rounded-lg px-2 py-2 text-xs font-bold outline-none"
                           >
                             {STATUS_OPTIONS.map((opt) => (
-                              <option key={opt} value={opt}>{opt}</option>
+                              <option key={opt} value={opt}>
+                                {opt}
+                              </option>
                             ))}
                           </select>
                         </div>
                       ) : (
-                        <span className={getStatusBadge(e.status)}>{e.status?.toUpperCase()}</span>
+                        <span className={getStatusBadge(e.status)}>
+                          {e.status?.toUpperCase()}
+                        </span>
                       )}
                     </td>
                     <td className="px-8 py-5 text-right">
@@ -476,59 +511,90 @@ const Enrollments = () => {
                       <User size={20} />
                     </div>
                     <div>
-                      <p className="font-bold text-gray-900 leading-none">{e.student?.name}</p>
-                      <p className="text-[11px] text-gray-400 mt-1 uppercase font-bold tracking-tight">{e.package?.title}</p>
+                      <p className="font-bold text-gray-900 leading-none">
+                        {e.student?.name}
+                      </p>
+                      <p className="text-[11px] text-gray-400 mt-1 uppercase font-bold tracking-tight">
+                        {e.package?.title}
+                      </p>
                     </div>
                   </div>
-                  <span className={getStatusBadge(e.status)}>{e.status?.toUpperCase()}</span>
+                  <span className={getStatusBadge(e.status)}>
+                    {e.status?.toUpperCase()}
+                  </span>
                 </div>
 
                 <div className="flex gap-4 border-y border-gray-50 py-3">
-                   <div className="text-xs">
-                      <p className="text-gray-400 font-bold uppercase text-[9px]">Date</p>
-                      <p className="font-bold text-gray-700">{new Date(e.slot?.date).toLocaleDateString()}</p>
-                   </div>
-                   <div className="text-xs">
-                      <p className="text-gray-400 font-bold uppercase text-[9px]">Time</p>
-                      <p className="font-bold text-gray-700">{e.slot?.startTime}</p>
-                   </div>
+                  <div className="text-xs">
+                    <p className="text-gray-400 font-bold uppercase text-[9px]">
+                      Date
+                    </p>
+                    <p className="font-bold text-gray-700">
+                      {new Date(e.slot?.date).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div className="text-xs">
+                    <p className="text-gray-400 font-bold uppercase text-[9px]">
+                      Time
+                    </p>
+                    <p className="font-bold text-gray-700">
+                      {e.slot?.startTime}
+                    </p>
+                  </div>
                 </div>
 
                 {editingId === e._id ? (
                   <div className="space-y-3 p-4 bg-indigo-50 rounded-2xl border border-indigo-100">
                     <div>
-                       <label className="text-[10px] font-black text-indigo-600 uppercase">Meeting Link</label>
-                       <input 
-                         value={meetingLink}
-                         onChange={(ev) => setMeetingLink(ev.target.value)}
-                         className="w-full mt-1 p-3 bg-white rounded-xl border-2 border-indigo-400 outline-none text-sm"
-                         placeholder="Paste Zoom/Meet Link"
-                       />
+                      <label className="text-[10px] font-black text-indigo-600 uppercase">
+                        Meeting Link
+                      </label>
+                      <input
+                        value={meetingLink}
+                        onChange={(ev) => setMeetingLink(ev.target.value)}
+                        className="w-full mt-1 p-3 bg-white rounded-xl border-2 border-indigo-400 outline-none text-sm"
+                        placeholder="Paste Zoom/Meet Link"
+                      />
                     </div>
                     <div>
-                       <label className="text-[10px] font-black text-indigo-600 uppercase">Change Status</label>
-                       <select 
-                         value={status}
-                         onChange={(ev) => setStatus(ev.target.value)}
-                         className="w-full mt-1 p-3 bg-white rounded-xl border-2 border-indigo-400 outline-none text-sm font-bold"
-                       >
-                         {STATUS_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                       </select>
+                      <label className="text-[10px] font-black text-indigo-600 uppercase">
+                        Change Status
+                      </label>
+                      <select
+                        value={status}
+                        onChange={(ev) => setStatus(ev.target.value)}
+                        className="w-full mt-1 p-3 bg-white rounded-xl border-2 border-indigo-400 outline-none text-sm font-bold"
+                      >
+                        {STATUS_OPTIONS.map((opt) => (
+                          <option key={opt} value={opt}>
+                            {opt}
+                          </option>
+                        ))}
+                      </select>
                     </div>
-                    <button onClick={() => handleSave(e._id)} className="w-full py-3 bg-indigo-600 text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-indigo-200">
+                    <button
+                      onClick={() => handleSave(e._id)}
+                      className="w-full py-3 bg-indigo-600 text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-indigo-200"
+                    >
                       Update Class
                     </button>
                   </div>
                 ) : (
                   <div className="flex gap-2">
-                    <a href={e.meetingLink} className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${e.meetingLink ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' : 'bg-gray-100 text-gray-300 pointer-events-none'}`}>
+                    <a
+                      href={e.meetingLink}
+                      className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${e.meetingLink ? "bg-indigo-600 text-white shadow-lg shadow-indigo-100" : "bg-gray-100 text-gray-300 pointer-events-none"}`}
+                    >
                       <Video size={16} /> Join Class
                     </a>
-                    <button onClick={() => {
+                    <button
+                      onClick={() => {
                         setEditingId(e._id);
                         setMeetingLink(e.meetingLink || "");
                         setStatus(e.status?.toUpperCase() || "UPCOMING");
-                    }} className="px-4 bg-gray-100 text-gray-600 rounded-xl">
+                      }}
+                      className="px-4 bg-gray-100 text-gray-600 rounded-xl"
+                    >
                       <Edit2 size={18} />
                     </button>
                   </div>

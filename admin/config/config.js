@@ -8,7 +8,7 @@ module.exports = {
   EMAIL_PORT: process.env.EMAIL_PORT ? Number(process.env.EMAIL_PORT) : 587,
   EMAIL_SECURE: process.env.EMAIL_SECURE === "true",
   BASE_URL: process.env.BASE_URL || "http://localhost:5000",
-  FRONTEND_URL: process.env.FRONTEND_URL || "http://localhost:5173",
+  FRONTEND_URL: process.env.CLIENT_URL || "http://localhost:3000",
   CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME,
   CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY,
   CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET,
