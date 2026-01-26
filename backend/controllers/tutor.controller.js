@@ -3,7 +3,7 @@ import Class from "../models/class.js";
 import Batch from "../models/batch.js";
 import User from "../models/User.js";
 import mongoose from "mongoose";
-
+import Enrollment from "../models/enrollment.js"
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 export const listTutors = async (req, res) => {
   try {
@@ -22,7 +22,7 @@ export const listTutors = async (req, res) => {
     // 1️⃣ Fetch tutors
     const tutors = await User.find(filter)
       .select(
-        "name email phone avatar imageid organizationId createdAt expertise experience availability responseTime rating reviewsCount",
+        "name email phone avatar description imageid organizationId createdAt expertise experience availability responseTime rating reviewsCount",
       )
       .sort({ createdAt: -1 })
       .skip(skip)
@@ -129,13 +129,27 @@ export const getTutorById = async (req, res) => {
       _id: id,
       role: "TUTOR",
     }).select(
-      "name email phone organizationId avatar imageid status isVerified createdAt expertise experience bio education specialties availability responseTime rating reviewsCount",
+      "name email phone  description  organizationId avatar imageid status isVerified createdAt expertise experience bio education specialties availability responseTime rating reviewsCount",
     );
     if (!tutor) {
       return res.status(404).json({ message: "Tutor not found" });
     }
+    // ✅ Count enrollments for this tutor
+    const enrollmentCount = await Enrollment.countDocuments({
+      tutorId: id,
+      // optional filters 👇
+      // paymentStatus: "SUCCESS",
+      // status: { $ne: "CANCELLED" },
+    });
 
-    res.json({ success: true, data: tutor });
+    res.json({
+      success: true,
+      data: {
+        ...tutor.toObject(),
+        enrollmentCount,
+      },
+    });
+    // res.json({ success: true, data: tutor });
   } catch (error) {
     console.error("getTutorById error", error);
     res.status(500).json({ message: error.message });

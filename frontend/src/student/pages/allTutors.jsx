@@ -39,7 +39,7 @@ const AllTutors = () => {
 
   // Load favorites from localStorage on mount
   useEffect(() => {
-    const savedFavorites = localStorage.getItem('tutorFavorites');
+    const savedFavorites = localStorage.getItem("tutorFavorites");
     if (savedFavorites) {
       setFavorites(JSON.parse(savedFavorites));
     }
@@ -64,10 +64,11 @@ const AllTutors = () => {
               : Math.floor(Math.random() * 200) + 10,
           price: Math.floor(Math.random() * 50) + 20,
           image: t.avatar
-            ? (t.avatar.startsWith('http') ? t.avatar : `http://localhost:8000/${t.avatar}`)
+            ? t.avatar.startsWith("http")
+              ? t.avatar
+              : `http://localhost:8000/${t.avatar}`
             : `https://i.pravatar.cc/150?u=${t.email}`,
-          bio:
-            "Master your communication skills with personalized lessons tailored to your professional goals.",
+          bio: t.description,
           isFeatured: index < 3,
         }));
         setTutors(apiTutors);
@@ -110,7 +111,7 @@ const AllTutors = () => {
         : [...prev, id];
 
       // Save to localStorage
-      localStorage.setItem('tutorFavorites', JSON.stringify(newFavorites));
+      localStorage.setItem("tutorFavorites", JSON.stringify(newFavorites));
 
       return newFavorites;
     });
@@ -125,9 +126,7 @@ const AllTutors = () => {
   }
 
   if (error) {
-    return (
-      <div className="p-6 text-red-500 text-sm font-medium">{error}</div>
-    );
+    return <div className="p-6 text-red-500 text-sm font-medium">{error}</div>;
   }
 
   if (!tutors.length) {
@@ -141,11 +140,12 @@ const AllTutors = () => {
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 px-4 sm:px-6 md:px-8 bg-[#FDFDFF]  h-screen ">
-
       {/* ================= HEADER ================= */}
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
         <div className="space-y-2">
-          <h1 className="mt-17 sm:mt-10 text-2xl sm:text-3xl font-black text-gray-900 tracking-tight">  Find the perfect <span className="text-[#6335F8]">Tutor</span>
+          <h1 className="mt-17 sm:mt-10 text-2xl sm:text-3xl font-black text-gray-900 tracking-tight">
+            {" "}
+            Find the perfect <span className="text-[#6335F8]">Tutor</span>
           </h1>
           <p className="text-gray-500 font-medium text-sm sm:text-lg">
             Expert-led sessions for career and language growth.
@@ -185,19 +185,17 @@ const AllTutors = () => {
                 setCurrentPage(1);
               }}
               className={`px-3 sm:px-5 py-2 rounded-full text-xs sm:text-sm font-bold border transition
-            ${activeCategory === cat
-                  ? "bg-[#6335F8] border-[#6335F8] text-white"
-                  : "bg-white border-gray-200 text-gray-500 hover:border-[#6335F8]"
-                }`}
+            ${
+              activeCategory === cat
+                ? "bg-[#6335F8] border-[#6335F8] text-white"
+                : "bg-white border-gray-200 text-gray-500 hover:border-[#6335F8]"
+            }`}
             >
               {cat}
             </button>
           ))}
         </div>
       </div>
-
-
-
 
       {/* ================= TUTORS GRID (SMALL ON MOBILE) ================= */}
       {currentTutors.length === 0 ? (
@@ -235,14 +233,17 @@ const AllTutors = () => {
 
                 <button
                   onClick={() => toggleFavorite(tutor.id)}
-                  className={`p-2 rounded-xl ${favorites.includes(tutor.id)
-                    ? "bg-red-50 text-red-500"
-                    : "bg-gray-100 text-gray-400"
-                    }`}
+                  className={`p-2 rounded-xl ${
+                    favorites.includes(tutor.id)
+                      ? "bg-red-50 text-red-500"
+                      : "bg-gray-100 text-gray-400"
+                  }`}
                 >
                   <Heart
                     size={18}
-                    className={favorites.includes(tutor.id) ? "fill-current" : ""}
+                    className={
+                      favorites.includes(tutor.id) ? "fill-current" : ""
+                    }
                   />
                 </button>
               </div>
@@ -271,7 +272,6 @@ const AllTutors = () => {
         </div>
       )}
 
-
       {/* ================= PAGINATION (NO SCROLL) ================= */}
       {totalPages > 1 && (
         <div className="flex flex-col items-center gap-4 pt-8">
@@ -280,10 +280,11 @@ const AllTutors = () => {
               <button
                 key={n}
                 onClick={() => setCurrentPage(n)}
-                className={`w-9 h-9 sm:w-11 sm:h-11 text-xs sm:text-sm font-black rounded-xl ${currentPage === n
-                  ? "bg-[#6335F8] text-white"
-                  : "text-gray-400 hover:bg-gray-100"
-                  }`}
+                className={`w-9 h-9 sm:w-11 sm:h-11 text-xs sm:text-sm font-black rounded-xl ${
+                  currentPage === n
+                    ? "bg-[#6335F8] text-white"
+                    : "text-gray-400 hover:bg-gray-100"
+                }`}
               >
                 {n}
               </button>
@@ -296,8 +297,6 @@ const AllTutors = () => {
         </div>
       )}
     </div>
-
-
   );
 };
 

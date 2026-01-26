@@ -27,6 +27,7 @@ export default function ProfilePage() {
     name: "",
     email: "",
     phone: "",
+    description: "",
   });
   const [avatar, setAvatar] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
@@ -48,11 +49,13 @@ export default function ProfilePage() {
       try {
         const res = await getTutorById(id);
         const data = res?.data?.data;
+        console.log(data);
         if (res?.data?.success && data) {
           setForm({
             name: data.name || "",
             email: data.email || "",
             phone: data.phone || "",
+            description: data.description || "",
           });
           setUser(data);
           if (data.avatar) {
@@ -92,6 +95,7 @@ export default function ProfilePage() {
       formData.append("name", form.name);
       formData.append("email", form.email);
       formData.append("phone", form.phone);
+      formData.append("description", form.description);
       if (avatar) formData.append("avatar", avatar);
 
       const res = await profileUpdate(user._id, formData);
@@ -102,6 +106,7 @@ export default function ProfilePage() {
           name: data.name || "",
           email: data.email || "",
           phone: data.phone || "",
+          description: data.description || "",
         });
         if (data.avatar) {
           setImagePreview(data.avatar);
@@ -114,6 +119,7 @@ export default function ProfilePage() {
           email: data.email,
           avatar: data.avatar,
           role: data.role,
+          description: data.description,
           organizationId: data.organizationId,
         };
         localStorage.setItem("user", JSON.stringify(newdata));
@@ -132,12 +138,13 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 pt-6 md:pt-6 pb-10">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-
         {/* Success Message */}
         {showSuccess && (
           <div className="fixed top-4 right-4 z-50 bg-green-500 text-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-2 animate-in slide-in-from-right">
             <Check size={20} />
-            <span className="font-bold text-sm">Profile updated successfully!</span>
+            <span className="font-bold text-sm">
+              Profile updated successfully!
+            </span>
           </div>
         )}
 
@@ -146,11 +153,12 @@ export default function ProfilePage() {
           <h1 className="text-3xl sm:text-4xl font-black text-slate-900 mb-2">
             Tutor Profile
           </h1>
-          <p className="text-slate-600">Manage your profile information and settings</p>
+          <p className="text-slate-600">
+            Manage your profile information and settings
+          </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:items-start">
-
           {/* Left Column - Profile Card */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-2xl p-6 shadow-lg border border-slate-100 h-full">
@@ -158,13 +166,17 @@ export default function ProfilePage() {
               <div className="relative group mb-6">
                 {imagePreview ? (
                   <img
-                    src={imagePreview.startsWith('http') ? imagePreview : `http://localhost:8000/${imagePreview}`}
+                    src={
+                      imagePreview.startsWith("http")
+                        ? imagePreview
+                        : `http://localhost:8000/${imagePreview}`
+                    }
                     alt="Profile"
                     className="w-32 h-32 mx-auto rounded-full object-cover border-4 border-blue-100 shadow-lg"
                   />
                 ) : (
                   <div className="w-32 h-32 mx-auto rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-4xl font-black border-4 border-blue-100 shadow-lg">
-                    {user?.name?.charAt(0)?.toUpperCase() || 'T'}
+                    {user?.name?.charAt(0)?.toUpperCase() || "T"}
                   </div>
                 )}
 
@@ -187,9 +199,11 @@ export default function ProfilePage() {
               {/* Name & Role */}
               <div className="text-center mb-6">
                 <h2 className="text-2xl font-black text-slate-900 mb-1">
-                  {user?.name || 'Tutor'}
+                  {user?.name || "Tutor"}
                 </h2>
-                <p className="text-sm text-slate-500 font-medium">{user?.role || 'Tutor'}</p>
+                <p className="text-sm text-slate-500 font-medium">
+                  {user?.role || "Tutor"}
+                </p>
               </div>
 
               {/* Quick Stats */}
@@ -197,23 +211,23 @@ export default function ProfilePage() {
                 <div className="flex items-center justify-between p-3 bg-blue-50 rounded-xl">
                   <div className="flex items-center gap-2">
                     <BookOpen size={18} className="text-blue-600" />
-                    <span className="text-sm font-medium text-slate-700">Courses</span>
+                    <span className="text-sm font-medium text-slate-700">Classes</span>
                   </div>
-                  <span className="font-black text-blue-600">0</span>
+                  <span className="font-black text-blue-600">   {user?.enrollmentCount}</span>
                 </div>
                 <div className="flex items-center justify-between p-3 bg-purple-50 rounded-xl">
                   <div className="flex items-center gap-2">
                     <Star size={18} className="text-purple-600" />
                     <span className="text-sm font-medium text-slate-700">Rating</span>
                   </div>
-                  <span className="font-black text-purple-600">4.9</span>
+                  <span className="font-black text-purple-600">    {user?.rating}</span>
                 </div>
                 <div className="flex items-center justify-between p-3 bg-green-50 rounded-xl">
                   <div className="flex items-center gap-2">
                     <Award size={18} className="text-green-600" />
                     <span className="text-sm font-medium text-slate-700">Experience</span>
                   </div>
-                  <span className="font-black text-green-600">2+ yrs</span>
+                  <span className="font-black text-green-600">{user?.experience}</span>
                 </div>
               </div>
             </div>
@@ -221,9 +235,14 @@ export default function ProfilePage() {
 
           {/* Right Column - Edit Form */}
           <div className="lg:col-span-2">
-            <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-6 sm:p-8 shadow-lg border border-slate-100 h-full flex flex-col">
+            <form
+              onSubmit={handleSubmit}
+              className="bg-white rounded-2xl p-6 sm:p-8 shadow-lg border border-slate-100 h-full flex flex-col"
+            >
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-black text-slate-900">Profile Information</h3>
+                <h3 className="text-xl font-black text-slate-900">
+                  Profile Information
+                </h3>
                 {!isEditing ? (
                   <button
                     type="button"
@@ -286,7 +305,7 @@ export default function ProfilePage() {
                     />
                   ) : (
                     <p className="text-slate-900 font-medium px-4 py-3 bg-slate-50 rounded-xl">
-                      {user?.name || '-'}
+                      {user?.name || "-"}
                     </p>
                   )}
                 </div>
@@ -308,7 +327,7 @@ export default function ProfilePage() {
                     />
                   ) : (
                     <p className="text-slate-900 font-medium px-4 py-3 bg-slate-50 rounded-xl break-all">
-                      {user?.email || '-'}
+                      {user?.email || "-"}
                     </p>
                   )}
                 </div>
@@ -331,7 +350,28 @@ export default function ProfilePage() {
                     />
                   ) : (
                     <p className="text-slate-900 font-medium px-4 py-3 bg-slate-50 rounded-xl">
-                      {user?.phone || 'Not provided'}
+                      {user?.phone || "Not provided"}
+                    </p>
+                  )}
+                </div>
+                {/* description */}
+                <div>
+                  <label className="flex items-center gap-2 text-sm font-bold text-slate-700 mb-2">
+                    <User size={16} />
+                    Description
+                  </label>
+                  {isEditing ? (
+                    <textarea
+                      name="description"
+                      value={form.description}
+                      onChange={handleChange}
+                      maxLength={50}
+                      className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                      placeholder="Enter your full name"
+                    ></textarea>
+                  ) : (
+                    <p className="text-slate-900 font-medium px-4 py-3 bg-slate-50 rounded-xl">
+                      {user?.description || "-"}
                     </p>
                   )}
                 </div>

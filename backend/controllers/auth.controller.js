@@ -357,7 +357,7 @@ export const login = async (req, res) => {
         organizationId: user.organizationId,
       },
       process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN || "7d" }
+      { expiresIn: process.env.JWT_EXPIRES_IN || "7d" },
     );
 
     // 8️⃣ Set cookie
@@ -380,7 +380,7 @@ export const login = async (req, res) => {
         phone: user.phone,
         role: user.role,
         avatar: user.avatar,
-        isPaymentDone:user.isPaymentDone,
+        isPaymentDone: user.isPaymentDone,
         organizationId: user.organizationId,
       },
     });
@@ -410,12 +410,13 @@ export const updateProfile = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    const { name, email, phone } = req.body;
+    const { name, email, phone, description = "" } = req.body;
 
     const updates = {};
     if (name) updates.name = name;
     if (email) updates.email = email;
     if (phone) updates.phone = phone;
+    if (description) updates.description = description;
 
     // If photo uploaded (via multer)
     if (req.file) {
@@ -426,7 +427,7 @@ export const updateProfile = async (req, res) => {
     const user = await User.findByIdAndUpdate(
       userId,
       { $set: updates },
-      { new: true, runValidators: true }
+      { new: true, runValidators: true },
     ).select("-password");
 
     res.json({

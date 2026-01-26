@@ -23,7 +23,7 @@ const userSchema = new mongoose.Schema(
     isPaymentDone: { type: Boolean, default: false },
     resetToken: String,
     resetTokenExpiry: Date,
-
+    description: { type: String },
     // ============ Tutor-specific profile fields ============
     // Area of expertise (e.g., "IELTS", "Business English")
     expertise: { type: String },
@@ -53,7 +53,7 @@ const userSchema = new mongoose.Schema(
       default: 0,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export default mongoose.models.User || mongoose.model("User", userSchema);

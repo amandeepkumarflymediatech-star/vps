@@ -16,6 +16,7 @@ import Link from "next/link";
 import { getTutorById } from "@/api/tutorApi";
 import { getStudentClasses } from "@/api/student.api";
 import { getAvailabilityByTutorId } from "@/api/tutorAvailability.api";
+import BookSession from "./myClass";
 
 // Helper: build next 7 days (today + 6)
 const buildDates = () => {
@@ -98,7 +99,7 @@ const TutorDetailsView = ({ id: propId }) => {
             if (Array.isArray(cls) && cls.length > 0) {
               // pick earliest class by startDate, then earliest slot within that class
               const sortedClasses = [...cls].sort(
-                (a, b) => new Date(a.startDate) - new Date(b.startDate)
+                (a, b) => new Date(a.startDate) - new Date(b.startDate),
               );
               const firstClass = sortedClasses[0];
               const schedule = Array.isArray(firstClass.schedule)
@@ -111,8 +112,7 @@ const TutorDetailsView = ({ id: propId }) => {
                   const tb = b.startTime || "";
                   return ta.localeCompare(tb);
                 });
-                const slot =
-                  sortedSlots.length <= 1 ? [] : sortedSlots[0];
+                const slot = sortedSlots.length <= 1 ? [] : sortedSlots[0];
 
                 const dayPart = slot.day || "";
                 const timePart =
@@ -153,14 +153,14 @@ const TutorDetailsView = ({ id: propId }) => {
             experience: t.experience || "5+ Years",
             // Optional rich profile fields with safe fallbacks
             bio:
-              t.bio ||
+              t.description ||
               "Passionate English tutor focused on helping students gain real-world speaking confidence.",
             email: t.email,
             education: t.education || "Certified English Trainer",
             specialties:
               Array.isArray(t.specialties) && t.specialties.length > 0
                 ? t.specialties
-                : ["Spoken English", "Grammar", "Interview Prep"],
+                : [t.expertise],
             // High-level availability & response time coming from backend schema / classes
             availability: nextAvailability,
             responseTime: t.responseTime || "< 2 hours",
@@ -205,7 +205,7 @@ const TutorDetailsView = ({ id: propId }) => {
   const todayStr = new Date().toISOString().slice(0, 10);
   const now = new Date();
   const currentHHMM = `${String(now.getHours()).padStart(2, "0")}:${String(
-    now.getMinutes()
+    now.getMinutes(),
   ).padStart(2, "0")}`;
 
   // Slots for selected date - now using tutor availability
@@ -218,12 +218,10 @@ const TutorDetailsView = ({ id: propId }) => {
     const dayName = dayNames[d.getDay()];
 
     // Find the availability for this specific date
-    const dayAvailability = tutorAvailability.availability?.find(
-      (day) => {
-        const dayDate = new Date(day.date).toISOString().slice(0, 10);
-        return dayDate === dateStr;
-      }
-    );
+    const dayAvailability = tutorAvailability.availability?.find((day) => {
+      const dayDate = new Date(day.date).toISOString().slice(0, 10);
+      return dayDate === dateStr;
+    });
 
     if (!dayAvailability) return [];
 
@@ -280,7 +278,11 @@ const TutorDetailsView = ({ id: propId }) => {
             <div className="relative flex-shrink-0">
               {tutor.avatar ? (
                 <img
-                  src={tutor.avatar.startsWith('http') ? tutor.avatar : `http://localhost:8000/${tutor.avatar}`}
+                  src={
+                    tutor.avatar.startsWith("http")
+                      ? tutor.avatar
+                      : `http://localhost:8000/${tutor.avatar}`
+                  }
                   alt={tutor.name}
                   className="w-20 h-20 md:w-24 md:h-24 rounded-full object-cover border-4 border-white/20"
                 />
@@ -294,20 +296,22 @@ const TutorDetailsView = ({ id: propId }) => {
               <h1 className="text-2xl md:text-3xl font-bold mb-1">
                 {tutor.name}
               </h1>
-              <p className="text-sm md:text-base opacity-80">
-                {tutor.subject}
-              </p>
+              <p className="text-sm md:text-base opacity-80">{tutor.subject}</p>
             </div>
           </div>
 
           {/* Stats cards */}
           <div className="flex flex-wrap justify-center sm:justify-start gap-3 md:gap-4 mb-6">
             <div className="bg-white text-indigo-700 rounded-2xl px-4 py-2 md:px-6 md:py-3 text-center text-sm shadow-lg min-w-[120px] md:min-w-[130px]">
-              <div className="text-xl md:text-2xl font-bold">{tutor.joinedYear}</div>
+              <div className="text-xl md:text-2xl font-bold">
+                {tutor.joinedYear}
+              </div>
               <div className="opacity-70 text-xs md:text-sm">Tutor since</div>
             </div>
             <div className="bg-white text-indigo-700 rounded-2xl px-4 py-2 md:px-6 md:py-3 text-center text-sm shadow-lg min-w-[120px] md:min-w-[130px]">
-              <div className="text-xl md:text-2xl font-bold">{tutor.reviews}</div>
+              <div className="text-xl md:text-2xl font-bold">
+                {tutor.reviews}
+              </div>
               <div className="opacity-70 text-xs md:text-sm">Session taken</div>
             </div>
           </div>
@@ -316,22 +320,24 @@ const TutorDetailsView = ({ id: propId }) => {
           <div className="flex border-b border-white/20 text-sm overflow-x-auto">
             <button
               onClick={() => setActiveTab("about")}
-              className={`px-4 md:px-6 pb-2 transition whitespace-nowrap ${activeTab === "about"
-                ? "font-semibold border-b-2 border-white"
-                : "text-white/80 hover:text-white"
-                }`}
+              className={`px-4 md:px-6 pb-2 transition whitespace-nowrap ${
+                activeTab === "about"
+                  ? "font-semibold border-b-2 border-white"
+                  : "text-white/80 hover:text-white"
+              }`}
             >
               About
             </button>
-            <button
+            {/* <button
               onClick={() => setActiveTab("booking")}
-              className={`px-4 md:px-6 pb-2 transition whitespace-nowrap ${activeTab === "booking"
-                ? "font-semibold border-b-2 border-white"
-                : "text-white/80 hover:text-white"
-                }`}
+              className={`px-4 md:px-6 pb-2 transition whitespace-nowrap ${
+                activeTab === "booking"
+                  ? "font-semibold border-b-2 border-white"
+                  : "text-white/80 hover:text-white"
+              }`}
             >
               Book a Session
-            </button>
+            </button> */}
           </div>
         </div>
       </div>
@@ -350,14 +356,16 @@ const TutorDetailsView = ({ id: propId }) => {
         {activeTab === "about" && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
             {/* LEFT CONTENT */}
-            <div className="lg:col-span-2 space-y-6 md:space-y-8">
+            <div className="lg:col-span-2  space-y-6 md:space-y-8">
               {/* About */}
               <div className="bg-white rounded-2xl md:rounded-3xl p-6 md:p-8 border shadow-sm">
                 <h2 className="text-lg md:text-xl font-bold mb-3 md:mb-4 flex items-center">
                   <BookOpen size={20} className="mr-2 text-blue-600" />
                   About Me
                 </h2>
-                <p className="text-sm md:text-base text-gray-600 leading-relaxed mb-4 md:mb-6">{tutor.bio}</p>
+                <p className="text-sm md:text-base text-gray-600 leading-relaxed mb-4 md:mb-6">
+                  {tutor.bio}
+                </p>
 
                 <h3 className="text-xs md:text-sm font-bold uppercase mb-2 md:mb-3 text-gray-700">
                   Specialties
@@ -375,13 +383,13 @@ const TutorDetailsView = ({ id: propId }) => {
               </div>
 
               {/* Education */}
-              <div className="bg-white rounded-2xl md:rounded-3xl p-6 md:p-8 border shadow-sm">
+              {/* <div className="bg-white rounded-2xl md:rounded-3xl p-6 md:p-8 border shadow-sm">
                 <h2 className="text-lg md:text-xl font-bold mb-3 md:mb-4 flex items-center">
                   <Award size={20} className="mr-2 text-blue-600" />
                   Education
                 </h2>
                 <p className="text-sm md:text-base text-gray-700 font-medium">{tutor.education}</p>
-              </div>
+              </div> */}
             </div>
 
             {/* RIGHT SIDEBAR */}
@@ -393,7 +401,9 @@ const TutorDetailsView = ({ id: propId }) => {
                       <Calendar size={16} className="mr-2" />
                       Next Available
                     </div>
-                    <span className="font-bold text-xs md:text-sm text-right">{tutor.availability}</span>
+                    <span className="font-bold text-xs md:text-sm text-right">
+                      {tutor.availability}
+                    </span>
                   </div>
 
                   <div className="flex justify-between items-center p-3 md:p-4 bg-gray-50 rounded-xl md:rounded-2xl">
@@ -401,24 +411,34 @@ const TutorDetailsView = ({ id: propId }) => {
                       <Mail size={16} className="mr-2" />
                       Response Time
                     </div>
-                    <span className="font-bold text-xs md:text-sm">{tutor.responseTime}</span>
+                    <span className="font-bold text-xs md:text-sm">
+                      {tutor.responseTime}
+                    </span>
                   </div>
 
                   <div className="flex items-center gap-2 p-3 md:p-4 bg-gray-50 rounded-xl md:rounded-2xl">
                     <Star size={16} className="text-yellow-400 fill-current" />
-                    <strong className="text-xs md:text-sm">{tutor.rating}</strong>
-                    <span className="text-gray-600 text-xs md:text-sm">({tutor.reviews} reviews)</span>
+                    <strong className="text-xs md:text-sm">
+                      {tutor.rating}
+                    </strong>
+                    <span className="text-gray-600 text-xs md:text-sm">
+                      ({tutor.reviews} reviews)
+                    </span>
                   </div>
 
                   <div className="flex items-center gap-2 p-3 md:p-4 bg-gray-50 rounded-xl md:rounded-2xl">
                     <Clock size={16} className="text-gray-400" />
-                    <span className="text-gray-600 text-xs md:text-sm">{tutor.experience}</span>
+                    <span className="text-gray-600 text-xs md:text-sm">
+                      {tutor.experience}
+                    </span>
                   </div>
 
                   {tutor.verified && (
                     <div className="flex items-center justify-center gap-2 p-3 md:p-4 bg-blue-50 rounded-xl md:rounded-2xl">
                       <ShieldCheck size={16} className="text-blue-700" />
-                      <span className="text-blue-700 font-semibold text-xs md:text-sm">Verified Tutor</span>
+                      <span className="text-blue-700 font-semibold text-xs md:text-sm">
+                        Verified Tutor
+                      </span>
                     </div>
                   )}
                 </div>
@@ -435,98 +455,21 @@ const TutorDetailsView = ({ id: propId }) => {
         )}
 
         {/* Book a Session Tab Content */}
-        {activeTab === "booking" && (
+        {/* {activeTab === "booking" && ( 
           <div className="bg-white rounded-2xl md:rounded-3xl shadow-md p-5 md:p-8">
-            {/* Date strip */}
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm md:text-base font-semibold text-gray-800 flex items-center gap-2">
-                <Calendar size={18} className="text-purple-600" />
-                Choose your timing
-              </h2>
-            </div>
-
-            <div className="flex gap-2 md:gap-3 overflow-x-auto pb-2 mb-6 -mx-1 px-1">
-              {dates.map((d, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setActiveDateIndex(idx)}
-                  className={`min-w-[60px] md:min-w-[70px] rounded-xl px-3 py-2 md:px-4 md:py-3 text-center font-semibold border transition flex-shrink-0
-                    ${activeDateIndex === idx
-                      ? "bg-[#6335F8] text-white border-transparent"
-                      : "bg-white text-[#6335F8] border-[#E0D7FF]"
-                    }`}
-                >
-                  <div className="text-xs mb-1">{d.day}</div>
-                  <div className="text-base md:text-lg">{d.date}</div>
-                </button>
-              ))}
-            </div>
-
-            {/* Time slots */}
-            <div className="mb-3 text-xs md:text-sm font-medium text-gray-700">
-              Choose your timing
-            </div>
-
-            {slotsForSelectedDay.length === 0 ? (
-              <div className="text-gray-400 text-sm py-8 text-center">
-                No available slots for this day.
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-3">
-                {slotsForSelectedDay.map((slot) => (
-                  <button
-                    key={slot.key}
-                    disabled={slot.isPast}
-                    onClick={() => setSelectedSlotKey(slot.key)}
-                    className={`flex items-center gap-2 px-3 py-2.5 md:px-4 md:py-3 rounded-xl md:rounded-2xl border text-xs md:text-sm
-                      ${slot.isPast
-                        ? "bg-gray-100 text-gray-300 cursor-not-allowed border-gray-200"
-                        : selectedSlotKey === slot.key
-                          ? "border-[#6335F8] bg-[#6335F8] text-white"
-                          : "bg-white hover:border-[#6335F8] text-gray-700"
-                      }`}
-                  >
-                    <span
-                      className={`w-3 h-3 rounded-full border flex-shrink-0
-                        ${slot.isPast
-                          ? "border-gray-300 bg-gray-200"
-                          : selectedSlotKey === slot.key
-                            ? "border-white bg-white"
-                            : "border-gray-400"
-                        }`}
-                    />
-                    {slot.label}
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {/* Action */}
-            <div className="mt-6 md:mt-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div className="flex items-center justify-center sm:justify-start text-xs md:text-sm text-gray-500 gap-2">
-                <Star size={16} className="text-yellow-400 fill-yellow-400" />
-                <span>
-                  {tutor.rating} rating • {tutor.reviews} reviews
-                </span>
-              </div>
-
-              <button
-                disabled={!selectedSlotKey}
-                className={`w-full sm:w-auto px-6 md:px-8 py-3 rounded-xl md:rounded-2xl font-semibold text-sm md:text-base shadow-md transition
-                  ${selectedSlotKey
-                    ? "bg-[#6335F8] text-white hover:bg-[#5128d8]"
-                    : "bg-gray-200 text-gray-400 cursor-not-allowed"
-                  }`}
-              >
-                Continue to book
-              </button>
-            </div>
-          </div>
-        )}
+         
+           <div className="flex items-center justify-between mb-4">
+             <h2 className="text-sm md:text-base font-semibold text-gray-800 flex items-center gap-2">
+              <Calendar size={18} className="text-purple-600" />
+             Choose your timing
+           </h2>
+          //   </div>
+          //   <BookSession />
+          // </div>
+        {/* )} */}
       </div>
     </div>
   );
 };
 
 export default TutorDetailsView;
-
