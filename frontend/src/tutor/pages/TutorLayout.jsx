@@ -217,7 +217,7 @@ const TutorLayout = ({ children }) => {
         </header>
 
         {/* PAGE CONTENT */}
-        <main className="flex-1 p-4 md:p-8 overflow-y-auto">
+        <main className="flex-1 p-4 md:p-8 overflow-y-auto text-black font-medium">
           <div className="max-w-7xl mx-auto">{children}</div>
         </main>
       </div>

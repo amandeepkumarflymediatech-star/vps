@@ -122,7 +122,7 @@ const Register = () => {
                 value={form.name}
                 onChange={handleChange}
                 placeholder="Enter Your Full Name"
-                className="w-full h-12 px-4 text-sm
+                className="w-full h-12 px-4 text-sm text-black font-medium
                            border border-neutral-300 rounded-md
                            focus:outline-none focus:ring-1 focus:ring-neutral-900
                            focus:border-neutral-900"
@@ -141,7 +141,7 @@ const Register = () => {
                 value={form.email}
                 onChange={handleChange}
                 placeholder="Enter Your Email"
-                className="w-full h-12 px-4 text-sm
+                className="w-full h-12 px-4 text-sm text-black font-medium
                            border border-neutral-300 rounded-md
                            focus:outline-none focus:ring-1 focus:ring-neutral-900
                            focus:border-neutral-900"
@@ -165,7 +165,7 @@ const Register = () => {
                     placeholder: "Enter Your Phone Number",
                   }}
                   className="w-full"
-                  inputClassName="!w-full !h-12 !text-sm !border-neutral-300
+                  inputClassName="!w-full !h-12 !text-sm !border-neutral-300 text-black font-medium
                       focus:!ring-2 focus:!ring-neutral-900
                       rounded-r-md" // rounded only on right side
                   buttonClassName="!h-12 !rounded-l-md !border !border-neutral-300" // fix country code dropdown
@@ -186,7 +186,7 @@ const Register = () => {
                   value={form.password}
                   onChange={handleChange}
                   placeholder="••••••••"
-                  className="w-full h-12 px-4 pr-12 text-sm
+                  className="w-full h-12 px-4 pr-12 text-sm text-black font-medium
                              border border-neutral-300 rounded-md
                              focus:outline-none focus:ring-1 focus:ring-neutral-900
                              focus:border-neutral-900"

@@ -95,7 +95,7 @@ const VerifyOtp = () => {
             value={otp}
             onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
             placeholder="Enter OTP"
-            className="w-full text-center tracking-widest text-lg px-4 py-3 border rounded-lg"
+            className="w-full text-center tracking-widest text-lg px-4 py-3 border rounded-lg text-black font-medium"
           />
 
           <button

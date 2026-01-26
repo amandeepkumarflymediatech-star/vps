@@ -128,7 +128,7 @@ const RegisterOtp = () => {
                   onChange={(e) => handleChange(e.target.value, index)}
                   onKeyDown={(e) => handleKeyDown(e, index)}
                   className="w-10 h-10 sm:w-12 sm:h-14 text-center text-lg font-semibold
-           border border-neutral-300 rounded-lg
+           border border-neutral-300 rounded-lg text-black font-medium
            shadow-sm
            focus:outline-none
            focus:ring-1 focus:ring-neutral-900

@@ -123,7 +123,7 @@ const StudentLayout = ({ children }) => {
         {/* Only show Header if hideHeader is false */}
         {/* {!hideHeader && <Header setSidebarOpen={setSidebarOpen} />} */}
 
-        <main className={`flex-1 p-4 md:p-6 ${hideHeader ? "pt-0" : ""}`}>
+        <main className={`flex-1 p-4 md:p-6 text-black font-medium ${hideHeader ? "pt-0" : ""}`}>
           {children}
         </main>
       </div>
