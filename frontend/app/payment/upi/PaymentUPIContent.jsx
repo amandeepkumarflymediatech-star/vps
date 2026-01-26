@@ -125,7 +125,7 @@ export default function PaymentUPIContent() {
   ====================== */
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#FBFCFF] px-4 py-8">
+    <div className="min-h-screen flex items-center justify-center bg-[#FBFCFF] px-4 py-8 text-black font-medium">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -172,7 +172,7 @@ export default function PaymentUPIContent() {
                 type="file"
                 accept="image/*"
                 onChange={(e) => setSelectedFile(e.target.files[0])}
-                className="w-full mb-4 border p-2 rounded"
+                className="w-full mb-4 border p-2 rounded text-black font-medium"
               />
 
               <button
