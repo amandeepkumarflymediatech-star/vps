@@ -139,21 +139,23 @@ const StudentPackages = () => {
                   )}
                 </div>
 
-                {pkg.isPaymentDone ? (
-                  <button
-                    disabled
-                    className="px-5 py-2.5 rounded-xl bg-green-50 text-green-600 text-sm font-black cursor-not-allowed transition-all active:scale-95"
-                  >
-                    Subscribed
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => router.push(`/student/packages/${pkg._id}`)}
-                    className="px-5 py-2.5 rounded-xl bg-purple-50 text-[#6335F8] text-sm font-black hover:bg-[#6335F8] hover:text-white transition-all active:scale-95"
-                  >
-                    View Details
-                  </button>
-                )}
+                
+                 {pkg.isPaymentDone ? (
+  <button
+    disabled
+    className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-green-50 text-green-600 text-xs sm:text-sm font-black cursor-not-allowed transition-all"
+  >
+    Subscribed
+  </button>
+) : (
+  <button
+    onClick={() => router.push(`/student/packages/${pkg._id}`)}
+    className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-purple-50 text-[#6335F8] text-xs sm:text-sm font-black hover:bg-[#6335F8] hover:text-white transition-all active:scale-95"
+  >
+    View Details
+  </button>
+)}
+
               </div>
             </div>
           ))}

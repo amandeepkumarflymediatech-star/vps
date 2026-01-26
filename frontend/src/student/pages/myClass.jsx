@@ -215,7 +215,10 @@ const BookSession = () => {
         return;
       }
 
-      if (paid && status !== "SUCCESS") {
+      if (
+        (!paid && status == "UNDER_REVIEW") ||
+        (paid && status !== "SUCCESS")
+      ) {
         setPaymentMessage("Please wait for admin payment confirmation.");
         return;
       }
