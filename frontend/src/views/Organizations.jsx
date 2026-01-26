@@ -122,7 +122,7 @@ const Organizations = () => {
                   Book Corporate Demo <ChevronRight className="w-5 h-5" />
                 </button>
                 <button
-                  onClick={() => router.push("/contact")}
+                  onClick={() => router.push("/support")}
                   className="flex items-center justify-center gap-2 border-2 border-slate-200 bg-white text-slate-700 px-8 py-4 rounded-xl font-bold hover:bg-slate-50 transition-all"
                 >
                   View Case Studies

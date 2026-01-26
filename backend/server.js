@@ -14,6 +14,7 @@ import courseRoutes from "./routes/course.routes.js";
 import classRoutes from "./routes/class.routes.js";
 import packageRoutes from "./routes/package.routes.js";
 import paymentRoutes from "./routes/payment.routes.js";
+import supportRoutes from "./routes/support.routes.js";
 
 
 
@@ -65,6 +66,7 @@ app.use("/api/courses", courseRoutes);
 app.use("/api/classes", classRoutes);
 app.use("/api/packages", packageRoutes);
 app.use("/api/payment", paymentRoutes);
+app.use("/api/support", supportRoutes);
 
 
 

@@ -91,7 +91,7 @@ const TutorLogin = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                className="w-full h-12 px-4 text-sm border border-neutral-300 rounded-full
+                className="w-full h-12 px-4 text-sm border border-neutral-300 rounded-full text-black font-medium
                            shadow-sm focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:shadow-md"
               />
             </div>
@@ -107,7 +107,7 @@ const TutorLogin = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter password"
-                className="w-full h-12 px-4 text-sm border border-neutral-300 rounded-full pr-10
+                className="w-full h-12 px-4 text-sm border border-neutral-300 rounded-full pr-10 text-black font-medium
                            shadow-sm focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:shadow-md"
               />
               <button
