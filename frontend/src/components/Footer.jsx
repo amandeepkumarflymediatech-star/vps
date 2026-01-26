@@ -19,7 +19,10 @@ const COMPANY_INFO = {
 
 const Footer = () => {
   return (
-    <footer className="bg-[#F8F3F3] text-black">
+
+
+    <footer className="bg-gray-100 text-black">
+       <hr className="border-gray-100 my-6" />
       {/* Main Footer Content */}
       <div className="max-w-7xl mx-auto px-4 py-14 grid gap-10 sm:grid-cols-2 lg:grid-cols-5">
         
@@ -96,8 +99,8 @@ const Footer = () => {
           <h4 className="font-bold mb-4 text-lg">Company</h4>
           <ul className="space-y-2 text-md text-black/80">
             <li><Link href="/CoursesPricing">Pricing</Link></li>
-            <li><Link href="/#book-a-session">Book a Session</Link></li>
-            <li><Link href="/#contact">Contact</Link></li>
+            
+            <li><Link href="/support">Contact</Link></li>
           </ul>
         </div>
 
@@ -146,13 +149,13 @@ const Footer = () => {
         </div>
           
         {/* Legal Links */}
-        <div className="text-center text-xs text-black/60 pb-6">
+        {/* <div className="text-center text-xs text-black/60 pb-6">
           <Link href="/privacy" className="mx-2 hover:underline">Privacy</Link>
           |
           <Link href="/terms" className="mx-2 hover:underline">Terms</Link>
           |
           <Link href="/cookies" className="mx-2 hover:underline">Cookies</Link>
-        </div>
+        </div> */}
       </div>
 
 
