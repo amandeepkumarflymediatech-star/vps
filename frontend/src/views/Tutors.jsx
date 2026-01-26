@@ -245,13 +245,13 @@ const Tutors = () => {
                       {tutor.name}
                     </h3>
                     <p className="text-[#0852A1] font-bold text-xs sm:text-sm tracking-wide uppercase line-clamp-1">
-                      {tutor.title || "Certified English Expert"}
+                      {tutor.expertise || "Certified English Expert"}
                     </p>
                   </div>
 
                   {/* Bio */}
                   <p className="text-slate-500 text-sm leading-relaxed line-clamp-2 mb-6 px-2 sm:px-4 min-h-[40px]">
-                    {tutor.bio ||
+                    {tutor.description ||
                       tutor.about ||
                       "Passionate about helping students achieve fluency and confidence in English language communication."}
                   </p>
