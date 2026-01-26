@@ -143,12 +143,8 @@ const TutorDetailsView = ({ id: propId }) => {
             // Use expertise from backend when available, otherwise default label
             subject: t.expertise || "Spoken English & Communication",
             // Use backend rating/reviews when available, otherwise fall back to defaults
-            rating:
-              typeof t.rating === "number" && t.rating > 0 ? t.rating : 4.8,
-            reviews:
-              typeof t.reviewsCount === "number" && t.reviewsCount > 0
-                ? t.reviewsCount
-                : 120,
+            rating: t.rating,
+            reviews: t.reviewsCount,
             // Use experience string from backend if present
             experience: t.experience || "5+ Years",
             // Optional rich profile fields with safe fallbacks

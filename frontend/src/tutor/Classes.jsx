@@ -1,5 +1,3 @@
-
-
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
@@ -65,10 +63,10 @@ const Enrollments = () => {
   }, [enrollments, searchQuery]);
 
   const handleSave = async (id) => {
-    if (!meetingLink.trim()) {
-      toast.error("Meeting link is required");
-      return;
-    }
+    // if (!meetingLink.trim()) {
+    //   window.alert("Meeting link is required");
+    //   return;
+    // }
     try {
       await updateMeetingLink(id, { meetingLink, status });
       setEnrollments((prev) =>
@@ -131,9 +129,6 @@ const Enrollments = () => {
     //         />
     //       </div>
     //     </div>
-
-
-
 
     //     {/* DATA CONTAINER */}
     //     <div className="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden">
@@ -368,243 +363,243 @@ const Enrollments = () => {
     // </div>
 
     <div className="min-h-screen bg-gray-50/50 px-3 sm:px-4 md:px-8 lg:px-10 font-sans overflow-x-hidden">
-  <div className="max-w-7xl mx-auto space-y-6 w-full">
+      <div className="max-w-7xl mx-auto space-y-6 w-full">
+        {/* HEADER */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-black text-gray-900 uppercase tracking-tight">
+              Class Schedule
+            </h1>
+            <p className="text-gray-500 text-xs sm:text-sm">
+              Update links and session completion status
+            </p>
+          </div>
 
-    {/* HEADER */}
-    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-      <div>
-        <h1 className="text-xl sm:text-2xl font-black text-gray-900 uppercase tracking-tight">
-          Class Schedule
-        </h1>
-        <p className="text-gray-500 text-xs sm:text-sm">
-          Update links and session completion status
-        </p>
-      </div>
+          <div className="relative group w-full sm:w-72 md:w-80">
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+              size={18}
+            />
+            <input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search students..."
+              className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all shadow-sm text-sm"
+            />
+          </div>
+        </div>
 
-      <div className="relative group w-full sm:w-72 md:w-80">
-        <Search
-          className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-          size={18}
-        />
-        <input
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search students..."
-          className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all shadow-sm text-sm"
-        />
-      </div>
-    </div>
+        {/* DATA CONTAINER */}
+        <div className="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden">
+          {/* DESKTOP TABLE */}
+          <div className="hidden lg:block w-full overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="bg-gray-50 border-b border-gray-200 text-black text-[14px] font-bold uppercase">
+                  <th className="px-6 py-4">Student</th>
+                  <th className="px-6 py-4">Course</th>
+                  <th className="px-6 py-4">Schedule</th>
+                  <th className="px-6 py-4">Time</th>
+                  <th className="px-6 py-4">Meeting Link</th>
+                  <th className="px-6 py-4 text-center">Current Status</th>
+                  <th className="px-6 py-4 text-right">Action</th>
+                </tr>
+              </thead>
 
-    {/* DATA CONTAINER */}
-    <div className="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden">
+              <tbody className="divide-y divide-gray-100">
+                {filteredEnrollments.map((e) => (
+                  <tr
+                    key={e._id}
+                    className="hover:bg-gray-50/50 transition-colors"
+                  >
+                    <td className="px-6 py-5">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 bg-gray-100 rounded-xl flex items-center justify-center text-gray-400">
+                          <User size={20} />
+                        </div>
+                        <div>
+                          <p className="font-bold text-gray-900">
+                            {e.student?.name}
+                          </p>
+                          <p className="text-xs text-indigo-600 font-medium">
+                            {e.package?.title}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
 
-      {/* DESKTOP TABLE */}
-      <div className="hidden lg:block w-full overflow-x-auto">
-        <table className="w-full text-left">
-          <thead>
-            <tr className="bg-gray-50 border-b border-gray-200 text-black text-[14px] font-bold uppercase">
-              <th className="px-6 py-4">Student</th>
-              <th className="px-6 py-4">Course</th>
-              <th className="px-6 py-4">Schedule</th>
-              <th className="px-6 py-4">Time</th>
-              <th className="px-6 py-4">Meeting Link</th>
-              <th className="px-6 py-4 text-center">Current Status</th>
-              <th className="px-6 py-4 text-right">Action</th>
-            </tr>
-          </thead>
+                    <td className="px-6 py-5 text-sm font-medium text-gray-700">
+                      {e.course?.title || "-"}
+                    </td>
 
-          <tbody className="divide-y divide-gray-100">
-            {filteredEnrollments.map((e) => (
-              <tr key={e._id} className="hover:bg-gray-50/50 transition-colors">
+                    <td className="px-6 py-5 text-sm font-bold">
+                      {new Date(e.slot?.date).toLocaleDateString()}
+                    </td>
 
-                <td className="px-6 py-5">
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 bg-gray-100 rounded-xl flex items-center justify-center text-gray-400">
-                      <User size={20} />
+                    <td className="px-6 py-5 text-sm font-bold text-indigo-600">
+                      {e.slot?.startTime} - {e.slot?.endTime}
+                    </td>
+
+                    <td className="px-6 py-5">
+                      {editingId === e._id ? (
+                        <input
+                          autoFocus
+                          value={meetingLink}
+                          onChange={(ev) => setMeetingLink(ev.target.value)}
+                          className="w-full max-w-xs bg-white border-2 border-indigo-500 rounded-lg px-3 py-2 text-sm outline-none"
+                          placeholder="Paste Link..."
+                        />
+                      ) : e.meetingLink ? (
+                        <a
+                          href={e.meetingLink}
+                          target="_blank"
+                          className="inline-flex items-center gap-2 px-3 py-2 bg-indigo-50 text-indigo-700 rounded-xl text-xs font-bold hover:bg-indigo-600 hover:text-white transition-all"
+                        >
+                          <Video size={14} /> JOIN SESSION
+                        </a>
+                      ) : (
+                        <span className="text-gray-300 text-xs italic">
+                          Link missing
+                        </span>
+                      )}
+                    </td>
+
+                    <td className="px-6 py-5 text-center">
+                      {editingId === e._id ? (
+                        <select
+                          value={status}
+                          onChange={(ev) => setStatus(ev.target.value)}
+                          className="bg-white border-2 border-indigo-500 rounded-lg px-2 py-2 text-xs font-bold outline-none"
+                        >
+                          {STATUS_OPTIONS.map((opt) => (
+                            <option key={opt} value={opt}>
+                              {opt}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <span className={getStatusBadge(e.status)}>
+                          {e.status?.toUpperCase()}
+                        </span>
+                      )}
+                    </td>
+
+                    <td className="px-6 py-5 text-right">
+                      {editingId === e._id ? (
+                        <button
+                          onClick={() => handleSave(e._id)}
+                          className="bg-gray-900 text-white px-4 py-2 rounded-xl text-xs font-black uppercase hover:bg-indigo-600 transition-all"
+                        >
+                          Save
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            setEditingId(e._id);
+                            setMeetingLink(e.meetingLink || "");
+                            setStatus(e.status?.toUpperCase() || "UPCOMING");
+                          }}
+                          className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
+                        >
+                          <Edit2 size={18} />
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* MOBILE + TABLET GRID CARDS */}
+          <div className="block lg:hidden p-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {filteredEnrollments.map((e) => (
+                <div
+                  key={e._id}
+                  className="p-4 bg-white rounded-2xl border shadow-sm space-y-3"
+                >
+                  <div className="flex justify-between items-start">
+                    <div className="flex items-center gap-3">
+                      <div className="h-9 w-9 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600">
+                        <User size={18} />
+                      </div>
+                      <div>
+                        <p className="font-bold text-gray-900 text-sm">
+                          {e.student?.name}
+                        </p>
+                        <p className="text-[11px] text-gray-400 font-semibold">
+                          {e.package?.title}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-bold text-gray-900">{e.student?.name}</p>
-                      <p className="text-xs text-indigo-600 font-medium">
-                        {e.package?.title}
-                      </p>
-                    </div>
-                  </div>
-                </td>
-
-                <td className="px-6 py-5 text-sm font-medium text-gray-700">
-                  {e.course?.title || "-"}
-                </td>
-
-                <td className="px-6 py-5 text-sm font-bold">
-                  {new Date(e.slot?.date).toLocaleDateString()}
-                </td>
-
-                <td className="px-6 py-5 text-sm font-bold text-indigo-600">
-                  {e.slot?.startTime} - {e.slot?.endTime}
-                </td>
-
-                <td className="px-6 py-5">
-                  {editingId === e._id ? (
-                    <input
-                      autoFocus
-                      value={meetingLink}
-                      onChange={(ev) => setMeetingLink(ev.target.value)}
-                      className="w-full max-w-xs bg-white border-2 border-indigo-500 rounded-lg px-3 py-2 text-sm outline-none"
-                      placeholder="Paste Link..."
-                    />
-                  ) : e.meetingLink ? (
-                    <a
-                      href={e.meetingLink}
-                      target="_blank"
-                      className="inline-flex items-center gap-2 px-3 py-2 bg-indigo-50 text-indigo-700 rounded-xl text-xs font-bold hover:bg-indigo-600 hover:text-white transition-all"
-                    >
-                      <Video size={14} /> JOIN SESSION
-                    </a>
-                  ) : (
-                    <span className="text-gray-300 text-xs italic">
-                      Link missing
-                    </span>
-                  )}
-                </td>
-
-                <td className="px-6 py-5 text-center">
-                  {editingId === e._id ? (
-                    <select
-                      value={status}
-                      onChange={(ev) => setStatus(ev.target.value)}
-                      className="bg-white border-2 border-indigo-500 rounded-lg px-2 py-2 text-xs font-bold outline-none"
-                    >
-                      {STATUS_OPTIONS.map((opt) => (
-                        <option key={opt} value={opt}>
-                          {opt}
-                        </option>
-                      ))}
-                    </select>
-                  ) : (
                     <span className={getStatusBadge(e.status)}>
                       {e.status?.toUpperCase()}
                     </span>
-                  )}
-                </td>
+                  </div>
 
-                <td className="px-6 py-5 text-right">
+                  <div className="flex justify-between text-xs font-semibold text-gray-600">
+                    <span>{new Date(e.slot?.date).toLocaleDateString()}</span>
+                    <span>{e.slot?.startTime}</span>
+                  </div>
+
                   {editingId === e._id ? (
-                    <button
-                      onClick={() => handleSave(e._id)}
-                      className="bg-gray-900 text-white px-4 py-2 rounded-xl text-xs font-black uppercase hover:bg-indigo-600 transition-all"
-                    >
-                      Save
-                    </button>
+                    <div className="space-y-2">
+                      <input
+                        value={meetingLink}
+                        onChange={(ev) => setMeetingLink(ev.target.value)}
+                        className="w-full p-2 border-2 border-indigo-400 rounded-xl text-sm outline-none"
+                        placeholder="Meeting link..."
+                      />
+                      <select
+                        value={status}
+                        onChange={(ev) => setStatus(ev.target.value)}
+                        className="w-full p-2 border-2 border-indigo-400 rounded-xl text-sm font-bold outline-none"
+                      >
+                        {STATUS_OPTIONS.map((opt) => (
+                          <option key={opt} value={opt}>
+                            {opt}
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        onClick={() => handleSave(e._id)}
+                        className="w-full py-2 bg-indigo-600 text-white rounded-xl font-bold text-xs uppercase"
+                      >
+                        Update
+                      </button>
+                    </div>
                   ) : (
-                    <button
-                      onClick={() => {
-                        setEditingId(e._id);
-                        setMeetingLink(e.meetingLink || "");
-                        setStatus(e.status?.toUpperCase() || "UPCOMING");
-                      }}
-                      className="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
-                    >
-                      <Edit2 size={18} />
-                    </button>
+                    <div className="flex gap-2">
+                      <a
+                        href={e.meetingLink}
+                        className={`flex-1 text-center py-2 rounded-xl text-xs font-bold ${
+                          e.meetingLink
+                            ? "bg-indigo-600 text-white"
+                            : "bg-gray-100 text-gray-300 pointer-events-none"
+                        }`}
+                      >
+                        Join
+                      </a>
+                      <button
+                        onClick={() => {
+                          setEditingId(e._id);
+                          setMeetingLink(e.meetingLink || "");
+                          setStatus(e.status?.toUpperCase() || "UPCOMING");
+                        }}
+                        className="px-3 bg-gray-100 rounded-xl text-gray-600"
+                      >
+                        <Edit2 size={16} />
+                      </button>
+                    </div>
                   )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* MOBILE + TABLET GRID CARDS */}
-      <div className="block lg:hidden p-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {filteredEnrollments.map((e) => (
-            <div key={e._id} className="p-4 bg-white rounded-2xl border shadow-sm space-y-3">
-
-              <div className="flex justify-between items-start">
-                <div className="flex items-center gap-3">
-                  <div className="h-9 w-9 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600">
-                    <User size={18} />
-                  </div>
-                  <div>
-                    <p className="font-bold text-gray-900 text-sm">
-                      {e.student?.name}
-                    </p>
-                    <p className="text-[11px] text-gray-400 font-semibold">
-                      {e.package?.title}
-                    </p>
-                  </div>
                 </div>
-                <span className={getStatusBadge(e.status)}>
-                  {e.status?.toUpperCase()}
-                </span>
-              </div>
-
-              <div className="flex justify-between text-xs font-semibold text-gray-600">
-                <span>{new Date(e.slot?.date).toLocaleDateString()}</span>
-                <span>{e.slot?.startTime}</span>
-              </div>
-
-              {editingId === e._id ? (
-                <div className="space-y-2">
-                  <input
-                    value={meetingLink}
-                    onChange={(ev) => setMeetingLink(ev.target.value)}
-                    className="w-full p-2 border-2 border-indigo-400 rounded-xl text-sm outline-none"
-                    placeholder="Meeting link..."
-                  />
-                  <select
-                    value={status}
-                    onChange={(ev) => setStatus(ev.target.value)}
-                    className="w-full p-2 border-2 border-indigo-400 rounded-xl text-sm font-bold outline-none"
-                  >
-                    {STATUS_OPTIONS.map((opt) => (
-                      <option key={opt} value={opt}>
-                        {opt}
-                      </option>
-                    ))}
-                  </select>
-                  <button
-                    onClick={() => handleSave(e._id)}
-                    className="w-full py-2 bg-indigo-600 text-white rounded-xl font-bold text-xs uppercase"
-                  >
-                    Update
-                  </button>
-                </div>
-              ) : (
-                <div className="flex gap-2">
-                  <a
-                    href={e.meetingLink}
-                    className={`flex-1 text-center py-2 rounded-xl text-xs font-bold ${
-                      e.meetingLink
-                        ? "bg-indigo-600 text-white"
-                        : "bg-gray-100 text-gray-300 pointer-events-none"
-                    }`}
-                  >
-                    Join
-                  </a>
-                  <button
-                    onClick={() => {
-                      setEditingId(e._id);
-                      setMeetingLink(e.meetingLink || "");
-                      setStatus(e.status?.toUpperCase() || "UPCOMING");
-                    }}
-                    className="px-3 bg-gray-100 rounded-xl text-gray-600"
-                  >
-                    <Edit2 size={16} />
-                  </button>
-                </div>
-              )}
-
+              ))}
             </div>
-          ))}
+          </div>
         </div>
       </div>
-
     </div>
-  </div>
-</div>
-
-
   );
 };
 
