@@ -13,6 +13,10 @@ import {
 // Logo import
 import Logo from "../assets/logo/logo.webp";
 
+const COMPANY_INFO = {
+  name: "Fly Media Tech",
+};
+
 const Footer = () => {
   return (
     <footer className="bg-[#F8F3F3] text-black">
@@ -128,6 +132,17 @@ const Footer = () => {
           <p className="text-center md:text-left text-black/70">
             © {new Date().getFullYear()} The English Raj. All Rights Reserved.
           </p>
+          <p className="text-black/70">
+                Design and Developed by{' '}
+                <a
+                  href="https://flymediatech.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary-400 hover:text-primary-300 font-semibold transition-colors text-blue-900"
+                >
+                  Fly Media Technology
+                </a>
+              </p>
         </div>
           
         {/* Legal Links */}
@@ -139,6 +154,30 @@ const Footer = () => {
           <Link href="/cookies" className="mx-2 hover:underline">Cookies</Link>
         </div>
       </div>
+
+
+
+       {/* Bottom Bar */}
+          {/* <div className="border-t border-gray-800 pt-8 mt-12">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-6 text-sm">
+              <p className="text-gray-500">
+                © {new Date().getFullYear()} {COMPANY_INFO.name}. All rights reserved.
+              </p>
+              <p className="text-gray-500">
+                Design and Developed by{' '}
+                <a
+                  href="https://flymediatech.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary-400 hover:text-primary-300 font-semibold transition-colors"
+                >
+                  Fly Media Technology
+                </a>
+              </p>
+            </div>
+          </div> */}
+
+      
     </footer>
   );
 };

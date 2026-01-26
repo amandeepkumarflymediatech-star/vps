@@ -60,7 +60,7 @@ const Testimonials = () => {
   return (
     <section
       ref={sectionRef}
-      className="max-w-7xl mx-auto px-4 py-15"
+      className="max-w-7xl mx-auto px-4 py-15 bg-white text-black"
     >
       {/* ===== HEADER ===== */}
       <div className="text-center mb-10 sm:mb-14 px-4">
