@@ -22,19 +22,36 @@ import {
 ========================= */
 const generateTimeSlots = () => {
   const slots = [];
-  for (let hour = 9; hour <= 21; hour++) {
-    const startTime = `${String(hour).padStart(2, "0")}:00`;
-    const endTime = `${String(hour + 1).padStart(2, "0")}:00`;
-    let label =
-      hour < 12
-        ? `${hour}:00 AM`
-        : hour === 12
-          ? `12:00 PM`
-          : `${hour - 12}:00 PM`;
+  let currentMinutes = 9 * 60; // 9:00 AM
+  const endMinutes = 21 * 60;  // 9:00 PM
+
+  while (currentMinutes + 40 <= endMinutes) {
+    const startHour = Math.floor(currentMinutes / 60);
+    const startMin = currentMinutes % 60;
+
+    const endTotal = currentMinutes + 40;
+    const endHour = Math.floor(endTotal / 60);
+    const endMin = endTotal % 60;
+
+    const startTime = `${String(startHour).padStart(2, "0")}:${String(startMin).padStart(2, "0")}`;
+    const endTime = `${String(endHour).padStart(2, "0")}:${String(endMin).padStart(2, "0")}`;
+
+    const label = `${formatLabel(startHour, startMin)} - ${formatLabel(endHour, endMin)}`;
+
     slots.push({ startTime, endTime, label });
+
+    currentMinutes += 40;
   }
+
   return slots;
 };
+
+const formatLabel = (hour, minute) => {
+  const h = hour % 12 || 12;
+  const ampm = hour < 12 ? "AM" : "PM";
+  return `${h}:${String(minute).padStart(2, "0")} ${ampm}`;
+};
+
 
 const getNext7Days = () => {
   const days = [];
