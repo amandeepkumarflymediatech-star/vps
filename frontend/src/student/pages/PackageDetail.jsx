@@ -13,11 +13,11 @@ import {
 } from "lucide-react";
 
 const PackageDetail = ({ id }) => {
-  const router = useRouter();
+  // const router = useRouter();
   const [pkg, setPkg] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const user = JSON.parse(localStorage.getItem("user"));
+  // const user = JSON.parse(localStorage.getItem("user"));
   useEffect(() => {
     const fetchPackage = async () => {
       try {
@@ -39,11 +39,11 @@ const PackageDetail = ({ id }) => {
     fetchPackage();
   }, [id]);
 
-  const handleEnroll = () => {
-    console.log(user);
+  // const handleEnroll = () => {
+  //   console.log(user);
 
-    // router.push(`/CoursesPricing?tutorId=${tutorId}&time=${slot.startTime}`);
-  };
+  //   // router.push(`/CoursesPricing?tutorId=${tutorId}&time=${slot.startTime}`);
+  // };
   /* ---------- LOADING ---------- */
   if (loading) {
     return (
@@ -150,12 +150,12 @@ const PackageDetail = ({ id }) => {
                 </div>
               </div>
 
-              <button
+              {/* <button
                 onClick={handleEnroll}
                 className="mt-6 w-full py-4 rounded-2xl bg-white text-[#6335F8] font-black shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:scale-95 transition"
               >
                 Enroll Now
-              </button>
+              </button> */}
             </div>
           </div>
         </div>
@@ -167,9 +167,9 @@ const PackageDetail = ({ id }) => {
             <p className="text-lg font-black text-gray-900">₹{pkg.price}</p>
           </div>
 
-          <button className="px-6 py-3 rounded-xl bg-[#6335F8] text-white font-black shadow-md active:scale-95">
+          {/* <button className="px-6 py-3 rounded-xl bg-[#6335F8] text-white font-black shadow-md active:scale-95">
             Enroll
-          </button>
+          </button> */}
         </div>
       </div>
     </div>
