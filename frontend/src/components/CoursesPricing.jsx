@@ -46,11 +46,12 @@ function CoursesPricingContent() {
     const hasValidDiscount = pkg.discountPrice && pkg.discountPrice < pkg.price;
     const amount = hasValidDiscount ? pkg.discountPrice : pkg.price;
 
-    const lessons =
-      pkg.lessons ? `${pkg.lessons} Lessons` : pkg.title || "Package";
+    const lessons = pkg.lessons
+      ? `${pkg.lessons} Lessons`
+      : pkg.title || "Package";
 
     let url = `/payment/upi?packageId=${pkg._id}&amount=${amount}&lessons=${encodeURIComponent(
-      lessons
+      lessons,
     )}`;
 
     if (tutorId) {
@@ -71,7 +72,6 @@ function CoursesPricingContent() {
   return (
     <section className="bg-white py-16 sm:py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
-
         {/* ===== HEADER ===== */}
         <div className="text-center mb-14 max-w-3xl mx-auto">
           <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-3">
@@ -98,10 +98,11 @@ function CoursesPricingContent() {
               <div
                 key={pkg._id}
                 className={`relative bg-white rounded-2xl p-6 shadow-md transition-all
-                ${isPopular
+                ${
+                  isPopular
                     ? "border-2 border-[#0852A1] scale-105"
                     : "border border-gray-200"
-                  }`}
+                }`}
               >
                 {/* POPULAR BADGE */}
                 {isPopular && (
@@ -112,8 +113,11 @@ function CoursesPricingContent() {
 
                 {/* TITLE */}
                 <h3 className="text-xl font-bold text-gray-800 text-center">
-                  {pkg.lessons ? `${pkg.lessons} Lessons` : pkg.title}
+                  {pkg.title}
                 </h3>
+                <p className="text-sm text-gray-800 text-center">
+                  {pkg.lessons ? `${pkg.lessons} Lessons` : pkg.title}
+                </p>
 
                 {/* META */}
                 <div className="text-xs text-gray-500 text-center mt-2 mb-4 space-y-1">
@@ -151,31 +155,29 @@ function CoursesPricingContent() {
                       ₹{pkg.price}
                     </div>
                   )}
-                  <p className="text-xs text-gray-500 mt-3">
-                    Inclusive of GST
-                  </p>
+                  <p className="text-xs text-gray-500 mt-3">Inclusive of GST</p>
                 </div>
 
                 {/* FEATURES */}
                 <ul className="text-sm text-gray-600 space-y-2 mb-6">
                   {pkg.description
                     ? pkg.description.split("\n").map((item, i) => (
-                      <li key={i} className="flex gap-2">
-                        <span className="text-[#0852A1] font-bold">✓</span>
-                        {item}
-                      </li>
-                    ))
+                        <li key={i} className="flex gap-2">
+                          <span className="text-[#0852A1] font-bold">✓</span>
+                          {item}
+                        </li>
+                      ))
                     : [
-                      "1-on-1 live sessions",
-                      "Personalized learning plan",
-                      "Flexible scheduling",
-                      "Session recordings",
-                    ].map((item, i) => (
-                      <li key={i} className="flex gap-2">
-                        <span className="text-[#0852A1] font-bold">✓</span>
-                        {item}
-                      </li>
-                    ))}
+                        "1-on-1 live sessions",
+                        "Personalized learning plan",
+                        "Flexible scheduling",
+                        "Session recordings",
+                      ].map((item, i) => (
+                        <li key={i} className="flex gap-2">
+                          <span className="text-[#0852A1] font-bold">✓</span>
+                          {item}
+                        </li>
+                      ))}
                 </ul>
 
                 {/* BUTTON */}
@@ -190,20 +192,21 @@ function CoursesPricingContent() {
             );
           })}
         </div>
-
       </div>
     </section>
   );
-};
+}
 
 // Wrapper component with Suspense
 export default function CoursesPricing() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        </div>
+      }
+    >
       <CoursesPricingContent />
     </Suspense>
   );

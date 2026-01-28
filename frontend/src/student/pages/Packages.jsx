@@ -16,7 +16,12 @@ const StudentPackages = () => {
     const fetchPackages = async () => {
       try {
         const res = await getStudentPackages({ userId: user.id });
-        setPackages(res?.data?.data || []);
+        const found = res?.data?.data || [];
+        for (let x of found) {
+          x.description = x.description ? x.description.split("\n" || ",") : [];
+          x.description=x.description.slice(0,3)
+        }
+        setPackages(found);
       } catch (err) {
         console.error(err);
         setError("Failed to load packages");
@@ -76,7 +81,8 @@ const StudentPackages = () => {
             Learning Packages
           </h1>
           <p className="text-sm sm:text-base text-gray-500 font-medium max-w-2xl">
-            Choose the best plan for your learning journey and start mastering English today.
+            Choose the best plan for your learning journey and start mastering
+            English today.
           </p>
         </div>
 
@@ -92,7 +98,9 @@ const StudentPackages = () => {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-[10px] sm:text-xs font-black text-[#6335F8] uppercase tracking-widest">
                     <BookOpen size={14} className="shrink-0" />
-                    <span className="truncate max-w-[120px]">{pkg.category || "English Package"}</span>
+                    <span className="truncate max-w-[120px]">
+                      {pkg.title || "English Package"}
+                    </span>
                   </div>
 
                   {pkg.isPaymentDone && (
@@ -103,34 +111,40 @@ const StudentPackages = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <h2 className="text-lg sm:text-xl font-black text-gray-900 line-clamp-2">
-                    {pkg.title}
+                  <h2 className=" sm:text-xl font-black text-gray-900 line-clamp-2">
+                    {pkg.lessons} Lessons
                   </h2>
 
-                  {pkg.description && (
-                    <p className="text-xs sm:text-sm text-gray-500 line-clamp-3 leading-relaxed">
-                      {pkg.description}
+                  {(pkg.description || []).length > 0 ? (
+                    <ul className="space-y-2">
+                      {pkg.description.map((item, idx) => (
+                        <li
+                          key={idx}
+                          className="flex items-start gap-2 text-sm text-gray-600"
+                        >
+                          <span className="mt-1 text-green-500">
+                            <CheckCircle2 size={14} />
+                          </span>
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-sm text-gray-500">
+                      Detailed benefits will be shared after enrollment.
                     </p>
                   )}
                 </div>
-
-                <div className="space-y-2 pt-2 border-t border-dashed border-gray-100">
-                  <div className="flex items-center gap-2 text-xs font-bold text-gray-600">
-                    <CheckCircle2 size={14} className="text-green-500 shrink-0" />
-                    Lifetime Access
-                  </div>
-                  <div className="flex items-center gap-2 text-xs font-bold text-gray-600">
-                    <CheckCircle2 size={14} className="text-green-500 shrink-0" />
-                    Certificate Included
-                  </div>
-                </div>
+ 
               </div>
 
               {/* FOOTER */}
               <div className="mt-6 pt-4 border-t border-gray-50 flex items-center justify-between gap-4">
                 <div>
                   <div className="flex items-baseline gap-1">
-                    <span className="text-2xl font-black text-gray-900">₹{pkg.price}</span>
+                    <span className="text-2xl font-black text-gray-900">
+                      ₹{pkg.price}
+                    </span>
                   </div>
                   {pkg.discountPrice && (
                     <div className="text-xs text-gray-400 line-through font-bold">
@@ -139,23 +153,21 @@ const StudentPackages = () => {
                   )}
                 </div>
 
-                
-                 {pkg.isPaymentDone ? (
-  <button
-    disabled
-    className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-green-50 text-green-600 text-xs sm:text-sm font-black cursor-not-allowed transition-all"
-  >
-    Subscribed
-  </button>
-) : (
-  <button
-    onClick={() => router.push(`/student/packages/${pkg._id}`)}
-    className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-purple-50 text-[#6335F8] text-xs sm:text-sm font-black hover:bg-[#6335F8] hover:text-white transition-all active:scale-95"
-  >
-    View Details
-  </button>
-)}
-
+                {pkg.isPaymentDone ? (
+                  <button
+                    disabled
+                    className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-green-50 text-green-600 text-xs sm:text-sm font-black cursor-not-allowed transition-all"
+                  >
+                    Subscribed
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => router.push(`/student/packages/${pkg._id}`)}
+                    className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-purple-50 text-[#6335F8] text-xs sm:text-sm font-black hover:bg-[#6335F8] hover:text-white transition-all active:scale-95"
+                  >
+                    View Details
+                  </button>
+                )}
               </div>
             </div>
           ))}
