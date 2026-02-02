@@ -16,8 +16,6 @@ import packageRoutes from "./routes/package.routes.js";
 import paymentRoutes from "./routes/payment.routes.js";
 import supportRoutes from "./routes/support.routes.js";
 
-
-
 // ES Modules mein __dirname setup (Zaroori hai uploads folder access karne ke liye)
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -28,6 +26,7 @@ const app = express();
 const allowedOrigins = [
   process.env.CLIENT_URL || "http://localhost:3000",
   process.env.BACKEND_URL || "http://localhost:8000",
+  process.env.HOST_URL || "http://localhost:3000",
 ].filter(Boolean);
 
 app.use(
@@ -36,7 +35,7 @@ app.use(
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
-  })
+  }),
 );
 
 app.use((req, res, next) => {
@@ -67,9 +66,6 @@ app.use("/api/classes", classRoutes);
 app.use("/api/packages", packageRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/support", supportRoutes);
-
-
-
 
 /* ================= START SERVER ================= */
 const startServer = async () => {
