@@ -40,4 +40,5 @@ const enrollmentSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
+enrollmentSchema.index({ tutorId: 1, slotId: 1 }, { unique: true });
 export default mongoose.model("Enrollment", enrollmentSchema);

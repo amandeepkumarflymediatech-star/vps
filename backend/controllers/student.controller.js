@@ -1178,12 +1178,13 @@ export const saveSelectedSlot = async (req, res) => {
         tutorId,
         date,
         "availability._id": slotId,
+        "availability.isBooked": false, // 🔥 important
       },
       {
         $set: {
           "availability.$.isBooked": true,
         },
-      }
+      },
     );
 
     if (!availabilityUpdate || availabilityUpdate.modifiedCount === 0) {
@@ -1220,7 +1221,6 @@ export const saveSelectedSlot = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-
 
 // export const saveSelectedSlot = async (req, res) => {
 //   try {
@@ -1483,7 +1483,7 @@ export const updateMeetingLink = async (req, res) => {
   try {
     const tutorId = req.user.id;
     const { id } = req.params;
-    const { meetingLink="", status } = req.body;
+    const { meetingLink = "", status } = req.body;
 
     if (!meetingLink) {
       return res.status(400).json({ message: "Meeting link is required" });
