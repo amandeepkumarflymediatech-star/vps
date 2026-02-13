@@ -1092,6 +1092,10 @@ export const getAllEnrollmentStudents = async (req, res) => {
 // ----------------- SAVE SELECTED SLOT -----------------
 
 export const saveSelectedSlot = async (req, res) => {
+  // 🔒 Start MongoDB transaction to prevent race conditions
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     const userId = req.user.id;
     const { tutorId, slot, date } = req.body;
@@ -1104,9 +1108,11 @@ export const saveSelectedSlot = async (req, res) => {
       status: "SUCCESS",
     })
       .populate("packageId")
-      .sort({ createdAt: 1 });
+      .sort({ createdAt: 1 })
+      .session(session); // 🔒 Use transaction session
 
     if (!payments.length) {
+      await session.abortTransaction();
       return res.status(403).json({ message: "Payment required" });
     }
 
@@ -1117,19 +1123,25 @@ export const saveSelectedSlot = async (req, res) => {
     }, 0);
 
     if (!totalLessons) {
+      await session.abortTransaction();
       return res
         .status(400)
         .json({ message: "No lessons available for your payments" });
     }
 
     // 2️⃣ Count already booked lessons (for this user across all tutors)
-    const bookedCount = await Enrollment.countDocuments({
-      userId,
-      paymentStatus: "SUCCESS",
-      status: { $in: ["UPCOMING", "COMPLETED", "MISSED"] },
-    });
+    // 🔒 This count is now atomic within the transaction
+    const bookedCount = await Enrollment.countDocuments(
+      {
+        userId,
+        paymentStatus: "SUCCESS",
+        status: { $in: ["UPCOMING", "COMPLETED", "MISSED"] },
+      },
+      { session }, // 🔒 Use transaction session
+    );
 
     if (bookedCount >= totalLessons) {
+      await session.abortTransaction();
       return res.status(400).json({
         message: `Lesson limit reached. You have used all ${totalLessons} lessons.`,
       });
@@ -1155,70 +1167,91 @@ export const saveSelectedSlot = async (req, res) => {
     }
 
     if (!activePayment.packageId) {
+      await session.abortTransaction();
       return res
         .status(400)
         .json({ message: "Package not found for active payment" });
     }
 
     // 4️⃣ Prevent duplicate slot booking
-    const existingEnrollment = await Enrollment.findOne({
-      userId,
-      tutorId,
-      slotId,
-      status: { $ne: "CANCELLED" },
-    });
+    const existingEnrollment = await Enrollment.findOne(
+      {
+        userId,
+        tutorId,
+        slotId,
+        status: { $ne: "CANCELLED" },
+      },
+      { session }, // 🔒 Use transaction session
+    );
 
     if (existingEnrollment) {
+      await session.abortTransaction();
       return res.status(400).json({ message: "Slot already booked" });
     }
 
     // 5️⃣ Update tutor availability (slot-level check)
+    // 🔒 This atomic update prevents two users from booking the same slot
     const availabilityUpdate = await TutorAvailability.updateOne(
       {
         tutorId,
         date,
         "availability._id": slotId,
-        "availability.isBooked": false, // 🔥 important
+        "availability.isBooked": false, // 🔥 Atomic check-and-set
       },
       {
         $set: {
           "availability.$.isBooked": true,
         },
       },
+      { session }, // 🔒 Use transaction session
     );
 
     if (!availabilityUpdate || availabilityUpdate.modifiedCount === 0) {
+      await session.abortTransaction();
       return res.status(400).json({
         message: "Slot is no longer available",
       });
     }
 
     // 6️⃣ Save enrollment, consuming one lesson from activePayment/package
-    const enrollment = await Enrollment.create({
-      userId,
-      tutorId,
-      slotId,
-      slot: {
-        startTime,
-        endTime,
-        date,
-      },
-      status: "UPCOMING",
-      paymentStatus: "SUCCESS",
-      packageId: activePayment.packageId._id,
-      paymentId: activePayment._id, // optional but useful
-    });
+    const enrollment = await Enrollment.create(
+      [
+        {
+          userId,
+          tutorId,
+          slotId,
+          slot: {
+            startTime,
+            endTime,
+            date,
+          },
+          status: "UPCOMING",
+          paymentStatus: "SUCCESS",
+          packageId: activePayment.packageId._id,
+          paymentId: activePayment._id, // optional but useful
+        },
+      ],
+      { session }, // 🔒 Use transaction session (note: create requires array when using session)
+    );
+
+    // 🔒 Commit the transaction - all operations succeed together
+    await session.commitTransaction();
 
     const remainingLessons = totalLessons - (bookedCount + 1);
 
     return res.json({
       message: "Slot booked successfully",
       remainingLessons,
-      data: enrollment,
+      data: enrollment[0], // Return first item since create with session returns array
     });
   } catch (err) {
+    // 🔒 Rollback transaction on any error
+    await session.abortTransaction();
     console.error("Save slot error:", err);
     res.status(500).json({ message: "Server error" });
+  } finally {
+    // 🔒 Always end the session
+    session.endSession();
   }
 };
 
