@@ -1131,14 +1131,11 @@ export const saveSelectedSlot = async (req, res) => {
 
     // 2️⃣ Count already booked lessons (for this user across all tutors)
     // 🔒 This count is now atomic within the transaction
-    const bookedCount = await Enrollment.countDocuments(
-      {
-        userId,
-        paymentStatus: "SUCCESS",
-        status: { $in: ["UPCOMING", "COMPLETED", "MISSED"] },
-      },
-      { session }, // 🔒 Use transaction session
-    );
+    const bookedCount = await Enrollment.countDocuments({
+      userId,
+      paymentStatus: "SUCCESS",
+      status: { $in: ["UPCOMING", "COMPLETED", "MISSED"] },
+    }).session(session); // 🔒 Use transaction session via chaining
 
     if (bookedCount >= totalLessons) {
       await session.abortTransaction();
@@ -1174,15 +1171,12 @@ export const saveSelectedSlot = async (req, res) => {
     }
 
     // 4️⃣ Prevent duplicate slot booking
-    const existingEnrollment = await Enrollment.findOne(
-      {
-        userId,
-        tutorId,
-        slotId,
-        status: { $ne: "CANCELLED" },
-      },
-      { session }, // 🔒 Use transaction session
-    );
+    const existingEnrollment = await Enrollment.findOne({
+      userId,
+      tutorId,
+      slotId,
+      status: { $ne: "CANCELLED" },
+    }).session(session); // 🔒 Use transaction session via chaining
 
     if (existingEnrollment) {
       await session.abortTransaction();
@@ -1203,7 +1197,7 @@ export const saveSelectedSlot = async (req, res) => {
           "availability.$.isBooked": true,
         },
       },
-      { session }, // 🔒 Use transaction session
+      { session }, // 🔒 Use transaction session (passed as option)
     );
 
     if (!availabilityUpdate || availabilityUpdate.modifiedCount === 0) {
