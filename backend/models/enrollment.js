@@ -40,5 +40,4 @@ const enrollmentSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-enrollmentSchema.index({ slotId: 1 }, { unique: true });
 export default mongoose.model("Enrollment", enrollmentSchema);
