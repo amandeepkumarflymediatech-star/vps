@@ -1216,7 +1216,10 @@ export const saveSelectedSlot = async (req, res) => {
     });
   } catch (err) {
     console.error("Save slot error:", err);
-    res.status(500).json({ message: "Server error" });
+    if (err.code === 11000) {
+      return res.status(400).json({ message: "Slot already booked" });
+    }
+    return res.status(500).json({ message: "Server error" });
   }
 };
 
