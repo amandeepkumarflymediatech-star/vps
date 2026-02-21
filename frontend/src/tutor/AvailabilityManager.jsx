@@ -23,7 +23,7 @@ import {
 const generateTimeSlots = () => {
   const slots = [];
   let currentMinutes = 9 * 60; // 9:00 AM
-  const endMinutes = 21 * 60;  // 9:00 PM
+  const endMinutes = 21 * 60; // 9:00 PM
 
   while (currentMinutes + 40 <= endMinutes) {
     const startHour = Math.floor(currentMinutes / 60);
@@ -51,7 +51,6 @@ const formatLabel = (hour, minute) => {
   const ampm = hour < 12 ? "AM" : "PM";
   return `${h}:${String(minute).padStart(2, "0")} ${ampm}`;
 };
-
 
 const getNext7Days = () => {
   const days = [];
@@ -95,9 +94,10 @@ const AvailabilityManager = () => {
       const dayAvailability = {};
       res?.data?.data?.forEach((day) => {
         day?.availability?.forEach((x) => {
+          const isBooked = String(x.isBooked) === true ? true : false;
           dayAvailability[x.startTime.padStart(5, "0")] = {
             isAvailable: x.isAvailable,
-            isBooked: x.isBooked,
+            isBooked: isBooked,
           };
         });
       });
@@ -109,9 +109,9 @@ const AvailabilityManager = () => {
     }
   };
 
-  useEffect(() => {
-    fetchAvailabilityForDate(selectedDate);
-  }, []);
+  // useEffect(() => {
+  //   fetchAvailabilityForDate(selectedDate);
+  // }, []);
   useEffect(() => {
     if (!availability[selectedDate]) fetchAvailabilityForDate(selectedDate);
   }, [selectedDate]);

@@ -75,7 +75,6 @@ const BookTutorSession = () => {
           getTutorById(tutorId),
           getStudentClasses({ tutorId }),
         ]);
-        console.log(tutorRes, "res", classesRes);
         const t = tutorRes.data?.data;
         setTutor(t || null);
 

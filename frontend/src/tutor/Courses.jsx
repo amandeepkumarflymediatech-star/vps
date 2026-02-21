@@ -34,7 +34,6 @@ const Courses = () => {
   const fetchCourses = async () => {
     try {
       const res = await getCourses({tutorId:user.id});
-      console.log(res,'ress')
       setCourses(res.data);
     } catch (err) {
       console.log(err)

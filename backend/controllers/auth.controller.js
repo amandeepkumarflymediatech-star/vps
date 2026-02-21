@@ -278,11 +278,6 @@ export const login = async (req, res) => {
 
     // 1️⃣ Validate input
     if (!emailRaw || !passwordRaw || !role) {
-      console.log("❌ Login failed: Missing fields", {
-        emailRaw,
-        hasPassword: !!passwordRaw,
-        role,
-      });
       return res.status(400).json({
         success: false,
         message: "Email, password, and role are required",

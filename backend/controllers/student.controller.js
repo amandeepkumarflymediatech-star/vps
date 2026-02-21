@@ -106,14 +106,7 @@ export const getClasses = async (req, res) => {
  */
 export const getMyEnrollments = async (req, res) => {
   try {
-    // const enrollments = await Enrollment.find({ tutorId: req.user.id })
-    //   .populate("userId")
-    //   .populate("tutorId")
-    //   .sort({ createdAt: -1 });
-    // console.log(enrollments, ".eme");
-
     const tutorId = new mongoose.Types.ObjectId(req.user.id);
-
     const enrollments = await Enrollment.aggregate([
       /* 1️⃣ Match tutor */
       {
@@ -231,7 +224,6 @@ export const getMyEnrollments = async (req, res) => {
         $sort: { createdAt: 1 },
       },
     ]);
-    console.log(enrollments);
     res.json({ success: true, data: enrollments });
   } catch (error) {
     console.error("getMyEnrollments error", error);
@@ -1480,7 +1472,6 @@ export const enrollClass = async (req, res) => {
 
 // PATCH /api/enrollments/:id/meeting-link
 export const updateMeetingLink = async (req, res) => {
-  console.log(req.query, req.params, req.body);
   try {
     const tutorId = req.user.id;
     const { id } = req.params;

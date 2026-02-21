@@ -5,10 +5,7 @@ const ProtectedRoute = ({ allowedRoles }) => {
   const location = useLocation(); // 👈 CURRENT URL
   const token = getToken();
   const user = getUser();
-
-  console.log("Current path:", location.pathname);
-  console.log("Token:", token, "User:", user);
-
+  
   // ❌ Not logged in
   if (!token || !user) {
     // 👉 If tutor route → redirect to tutor login

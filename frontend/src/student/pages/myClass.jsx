@@ -230,7 +230,7 @@ const BookSession = () => {
       setPaymentMessage("Something went wrong. Try again later.");
     }
   };
-  console.log(selectedSlot, selectedTutor);
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">

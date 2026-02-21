@@ -143,7 +143,6 @@ const MySessions = () => {
 
   /* ---------------- Cancel SLOT SELECTION ---------------- */
   const handleCancelSlot = async (enrollmentId) => {
-    console.log(enrollmentId);
     const confirmed = window.confirm(
       "Are you sure you want to cancel this session?",
     );
@@ -223,7 +222,6 @@ const MySessions = () => {
           userId: user.id,
           status: activeTab,
         });
-        console.log(res, "res");
         setEnrollments(res?.data?.data || []);
       } catch (err) {
         console.error(err);

@@ -43,7 +43,6 @@ const TutorDashboard = () => {
         setLoading(true);
         const res = await getAllEnrollmentsStudents();
         const enroll = await getEnrollments();
-        
         const result = enroll?.data?.data || [];
         setEnrollments(result);
         const data = res?.data;
@@ -57,7 +56,7 @@ const TutorDashboard = () => {
 
     fetchCourses();
   }, [user]);
-  console.log(courses);
+
   // Calculate stats from real data
   const stats = {
     totalCourses: courses.length,
@@ -66,41 +65,41 @@ const TutorDashboard = () => {
     totalRevenue: courses.reduce((sum, c) => sum + (c.price || 0), 0),
   };
 
-  const statsConfig = [
-    {
-      label: "Total Classes",
-      value: stats.totalCourses.toString(),
-      icon: <BookOpen size={24} />,
-      bg: "bg-gradient-to-br from-blue-500 to-blue-600",
-      iconBg: "bg-blue-100",
-      iconColor: "text-blue-600",
-    },
-    {
-      label: "Published",
-      value: stats.publishedCourses.toString(),
-      icon: <CheckCircle size={24} />,
-      bg: "bg-gradient-to-br from-green-500 to-green-600",
-      iconBg: "bg-green-100",
-      iconColor: "text-green-600",
-    },
-    {
-      label: "With Meeting Links",
-      value: stats.withMeetingLink.toString(),
-      icon: <Video size={24} />,
-      bg: "bg-gradient-to-br from-purple-500 to-purple-600",
-      iconBg: "bg-purple-100",
-      iconColor: "text-purple-600",
-    },
-    {
-      label: "Total Revenue",
-      value: `₹${stats.totalRevenue}`,
-      icon: <TrendingUp size={24} />,
-      bg: "bg-gradient-to-br from-orange-500 to-orange-600",
-      iconBg: "bg-orange-100",
-      iconColor: "text-orange-600",
-    },
-  ];
-console.log(enrollments,'ee')
+  // const statsConfig = [
+  //   {
+  //     label: "Total Classes",
+  //     value: stats.totalCourses.toString(),
+  //     icon: <BookOpen size={24} />,
+  //     bg: "bg-gradient-to-br from-blue-500 to-blue-600",
+  //     iconBg: "bg-blue-100",
+  //     iconColor: "text-blue-600",
+  //   },
+  //   {
+  //     label: "Published",
+  //     value: stats.publishedCourses.toString(),
+  //     icon: <CheckCircle size={24} />,
+  //     bg: "bg-gradient-to-br from-green-500 to-green-600",
+  //     iconBg: "bg-green-100",
+  //     iconColor: "text-green-600",
+  //   },
+  //   {
+  //     label: "With Meeting Links",
+  //     value: stats.withMeetingLink.toString(),
+  //     icon: <Video size={24} />,
+  //     bg: "bg-gradient-to-br from-purple-500 to-purple-600",
+  //     iconBg: "bg-purple-100",
+  //     iconColor: "text-purple-600",
+  //   },
+  //   {
+  //     label: "Total Revenue",
+  //     value: `₹${stats.totalRevenue}`,
+  //     icon: <TrendingUp size={24} />,
+  //     bg: "bg-gradient-to-br from-orange-500 to-orange-600",
+  //     iconBg: "bg-orange-100",
+  //     iconColor: "text-orange-600",
+  //   },
+  // ];
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 pt-20 md:pt-6 pb-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">

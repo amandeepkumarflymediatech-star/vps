@@ -105,8 +105,6 @@ exports.renderCreatePackage = async (req, res) => {
         .select("_id title price")
         .lean();
     }
-    console.log(courses, "courses");
-
     res.render("packages/add", {
       title: "Create Package",
       courses,

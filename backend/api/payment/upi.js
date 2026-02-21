@@ -23,8 +23,6 @@ router.post("/upi/initiate", async (req, res) => {
       { new: true, upsert: true, runValidators: true }
     );
 
-    console.log("Payment recorded:", payment);
-
     return res.json({ success: true, message: "Payment recorded. Verification pending." });
   } catch (err) {
     console.error("Payment save error:", err);

@@ -3,7 +3,7 @@ import Class from "../models/class.js";
 import Batch from "../models/batch.js";
 import User from "../models/User.js";
 import mongoose from "mongoose";
-import Enrollment from "../models/enrollment.js"
+import Enrollment from "../models/enrollment.js";
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 export const listTutors = async (req, res) => {
   try {
@@ -100,7 +100,6 @@ export const listTutors = async (req, res) => {
 //       .limit(limitNum);
 
 //     const totalTutors = await User.countDocuments(filter);
-// console.log(tutors)
 //     res.json({
 //       success: true,
 //       data: tutors,
@@ -159,7 +158,6 @@ export const getTutorById = async (req, res) => {
 export const applyTutor = async (req, res) => {
   try {
     const { name, email, phone, expertise, experience } = req.body;
-    console.log("Received tutor application data:", req.body);
     // 1️⃣ Validation
     if (!name || !email || !phone || !expertise || !experience) {
       return res.status(400).json({

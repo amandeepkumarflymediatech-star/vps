@@ -73,7 +73,6 @@ const grantAccess = async (userId, itemId, itemType) => {
 
 // POST /api/payment/upi/log
 export const logUpiPayment = async (req, res) => {
-  console.log(req.body, "sss");
   try {
     const {
       tutorId,
@@ -122,7 +121,6 @@ export const logUpiPayment = async (req, res) => {
       }
     }
 
-    console.log("Logged payment:", payment);
     res.status(201).json({ success: true, payment });
   } catch (err) {
     console.error("logUpiPayment error:", err);

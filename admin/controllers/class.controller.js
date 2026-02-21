@@ -27,7 +27,6 @@ function sortSchedule(schedule = []) {
     const ta = (a.startTime || "").padStart(5, "0");
     const tb = (b.startTime || "").padStart(5, "0");
     const days = normalized.map((s) => s.day);
-    console.log(ta.localeCompare(tb));
     return ta.localeCompare(tb);
   });
 }

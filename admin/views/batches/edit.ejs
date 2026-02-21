@@ -112,7 +112,6 @@
           <div id="schedule-container">
           <% classdata.schedule.forEach((s, i) => { %>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-2">
-              <%console.log()%>
               <select
                 name="schedule[<%= i %>][day]"
                 class="border rounded-lg px-3 py-2 "
@@ -245,7 +244,6 @@
       const options = sel.options;
       for (let i = 0; i < options.length; i++) {
         const opt = options[i];
-        console.log(opt)
         if (!allowed) {
           opt.disabled = false;
         } else {

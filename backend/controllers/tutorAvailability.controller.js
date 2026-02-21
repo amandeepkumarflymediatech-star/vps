@@ -43,14 +43,8 @@ export const getAvailability = async (req, res) => {
     // 4️⃣ Format data to match frontend logic
     let formatted = availability.map((day) => ({
       date: day.date,
-      availability: day.availability.map((slot) => ({
-        startTime: slot.startTime, // "09:00"
-        endTime: slot.endTime, // "10:00"
-        isAvailable: slot.isAvailable,
-        isBooked: slot.isBooked,
-      })),
+      availability: day.availability.map((slot) => slot),
     }));
- 
     res.status(200).json({
       success: true,
       data: formatted.length ? formatted : [],

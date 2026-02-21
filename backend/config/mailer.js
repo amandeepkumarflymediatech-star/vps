@@ -6,10 +6,7 @@ const getTransporter = () => {
   if (!transporter) {
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
       console.error("❌ CRITICAL: EMAIL_USER or EMAIL_PASS is missing in env!");
-      console.log("Details:", {
-        hasUser: !!process.env.EMAIL_USER,
-        hasPass: !!process.env.EMAIL_PASS
-      });
+      return null;
     }
 
     transporter = nodemailer.createTransport({
@@ -25,6 +22,10 @@ const getTransporter = () => {
 
 export const sendOtpEmail = async (email, otp) => {
   const mailer = getTransporter();
+  if (!mailer) {
+    console.error("❌ CRITICAL: Mailer is not initialized!");
+    return;
+  }
   await mailer.sendMail({
     from: `"EnglishRaj" <${process.env.EMAIL_USER}>`,
     to: email,
@@ -35,6 +36,10 @@ export const sendOtpEmail = async (email, otp) => {
 
 export const sendEmail = async (to, subject, text) => {
   const mailer = getTransporter();
+  if (!mailer) {
+    console.error("❌ CRITICAL: Mailer is not initialized!");
+    return;
+  }
   await mailer.sendMail({
     from: `"EnglishRaj" <${process.env.EMAIL_USER}>`,
     to,

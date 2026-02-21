@@ -50,7 +50,6 @@ export default function ProfilePage() {
       try {
         const res = await getTutorById(id);
         const data = res?.data?.data;
-        console.log(data);
         if (res?.data?.success && data) {
           setForm({
             name: data.name || "",

@@ -217,9 +217,6 @@ router.get("/:id", auth, role("ADMIN"), async (req, res) => {
 
 router.delete("/delete/:id", auth, role("ADMIN"), async (req, res) => {
   const { id } = req.params;
-
-  console.log("DELETE USER ID:", id);
-
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return res.status(400).json({ message: "Invalid user ID" });
   }
@@ -277,11 +274,9 @@ router.post("/toggle-status", auth, role("ADMIN"), async (req, res) => {
     if (!user) return res.status(404).json({ message: "User not found" });
 
     user.status = user.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
-    console.log(user, "user");
     if (user.status === "ACTIVE" && !user.isVerified) {
       user.isVerified = true;
     }
-    console.log(user.password == "", "usr");
     if (user.password == "") {
       user.isVerified = false;
     }

@@ -40,8 +40,6 @@ const PackageDetail = ({ id }) => {
   }, [id]);
 
   // const handleEnroll = () => {
-  //   console.log(user);
-
   //   // router.push(`/CoursesPricing?tutorId=${tutorId}&time=${slot.startTime}`);
   // };
   /* ---------- LOADING ---------- */

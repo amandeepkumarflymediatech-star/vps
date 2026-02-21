@@ -26,7 +26,7 @@ $(document).on("click", ".status-toggle", function () {
         status: currentStatus,
       },
       success: function (res) {
-        console.log("Status Toggle Response:", res);
+        
         badge.data("status", res.status);
 
         if (res.status=== "ACTIVE") {
@@ -148,8 +148,6 @@ $(document).on("click", ".payment-status-btn", function () {
         status: currentStatus,
       },
       success: function (res) {
-        console.log("Payment Status Response:", res);
-
         // Update badge text and color
         const badge = btn.closest("tr").find(".status-badge"); // assumes your <span> has class "status-badge"
         badge.text(res.status);

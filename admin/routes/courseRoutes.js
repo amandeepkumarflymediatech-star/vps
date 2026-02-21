@@ -62,7 +62,7 @@ router.get("/", auth, role("ADMIN"), async (req, res) => {
 //       .populate("tutorId", "name email")
 //       .populate("organizationId", "name")
 //       .sort({ createdAt: -1 });
-//     console.log(courses);
+
 
 //     return res.render("courselist", { courses: courses });
 //   } catch (err) {
@@ -117,7 +117,6 @@ router.post(
   role("ADMIN"),
   upload.single("image"),
   async (req, res) => {
-    console.log(req.body);
     try {
       const { title, description, tutorId, price, published } = req.body;
       let { classes } = req.body;
@@ -163,7 +162,7 @@ router.post(
           { $set: { courseId: data._id, tutorId: tutorId || null } },
         );
       }
-      console.log("New Course Created:", data);
+        
       return res.redirect("/admin/courses");
     } catch (err) {
       console.error(err);
@@ -315,12 +314,10 @@ router.post("/delete/:id", auth, role("ADMIN"), async (req, res) => {
     // 2. Delete image if exists
     if (course.image) {
       let deletimg = await cloudinary.uploader.destroy(course.imageId);
-      console.log("Cloudinary delete response:", deletimg);
-      if (deletimg.result !== "ok") {
+       if (deletimg.result !== "ok") {
         console.warn("Warning: Image deletion from Cloudinary failed");
         throw new Error("Failed to delete image from Cloudinary");
       } else {
-        console.log("Image deleted from Cloudinary successfully");
         // 3. Delete course from DB
         await Course.findByIdAndDelete(req.params.id);
         res.redirect("/admin/courses");
