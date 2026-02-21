@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 
 const PackageDetail = ({ id }) => {
-  // const router = useRouter();
+  const router = useRouter();
   const [pkg, setPkg] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
