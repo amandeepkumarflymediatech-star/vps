@@ -617,14 +617,57 @@ const Enrollments = () => {
               >
                 <ChevronRight size={20} className="rotate-180" />
               </button>
-              <div className="px-4 flex items-center gap-1">
-                <span className="text-sm font-black text-indigo-600">
-                  Page {page}
-                </span>
-                <span className="text-sm font-bold text-gray-400">
-                  of {totalPages}
-                </span>
+
+              <div className="flex items-center gap-1 px-2">
+                {(() => {
+                  const pages = [];
+                  if (totalPages <= 7) {
+                    for (let i = 1; i <= totalPages; i++) pages.push(i);
+                  } else {
+                    if (page <= 4) {
+                      for (let i = 1; i <= 5; i++) pages.push(i);
+                      pages.push("...");
+                      pages.push(totalPages);
+                    } else if (page >= totalPages - 3) {
+                      pages.push(1);
+                      pages.push("...");
+                      for (let i = totalPages - 4; i <= totalPages; i++)
+                        pages.push(i);
+                    } else {
+                      pages.push(1);
+                      pages.push("...");
+                      pages.push(page - 1);
+                      pages.push(page);
+                      pages.push(page + 1);
+                      pages.push("...");
+                      pages.push(totalPages);
+                    }
+                  }
+                  return pages.map((pageNum, idx) =>
+                    pageNum === "..." ? (
+                      <span
+                        key={`dots-${idx}`}
+                        className="px-2 text-gray-400 font-bold"
+                      >
+                        ...
+                      </span>
+                    ) : (
+                      <button
+                        key={pageNum}
+                        onClick={() => setPage(pageNum)}
+                        className={`min-w-[40px] h-10 rounded-xl font-bold transition-all ${
+                          page === pageNum
+                            ? "bg-indigo-600 text-white shadow-lg shadow-indigo-100"
+                            : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    ),
+                  );
+                })()}
               </div>
+
               <button
                 disabled={page === totalPages}
                 onClick={() => setPage((p) => p + 1)}

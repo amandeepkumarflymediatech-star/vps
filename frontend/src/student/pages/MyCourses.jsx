@@ -637,26 +637,75 @@ const MySessions = () => {
         {/* ENROLLMENTS PAGINATION */}
         {!loadingEnrollments && enrollments.length > 0 && (
           <div className="mt-8 flex justify-center">
-            <div className="flex bg-white p-2 rounded-2xl border shadow-sm">
+            <div className="flex bg-white p-2 rounded-2xl border shadow-sm items-center gap-1">
               <button
                 disabled={enrollmentPage === 1}
                 onClick={() => setEnrollmentPage((p) => p - 1)}
-                className="p-2 transition-colors hover:bg-gray-50 rounded-xl disabled:opacity-30"
+                className="p-2 transition-colors hover:bg-gray-50 rounded-xl disabled:opacity-30 text-gray-600"
               >
                 <ChevronLeft size={20} />
               </button>
-              <div className="px-4 flex items-center gap-1">
-                <span className="text-sm font-black text-[#6335F8]">
-                  Page {enrollmentPage}
-                </span>
-                <span className="text-sm font-bold text-gray-400">
-                  of {totalEnrollmentPages}
-                </span>
+
+              <div className="flex items-center gap-1 px-2">
+                {(() => {
+                  const pages = [];
+                  const showMax = 5;
+                  if (totalEnrollmentPages <= 7) {
+                    for (let i = 1; i <= totalEnrollmentPages; i++)
+                      pages.push(i);
+                  } else {
+                    if (enrollmentPage <= 4) {
+                      for (let i = 1; i <= 5; i++) pages.push(i);
+                      pages.push("...");
+                      pages.push(totalEnrollmentPages);
+                    } else if (enrollmentPage >= totalEnrollmentPages - 3) {
+                      pages.push(1);
+                      pages.push("...");
+                      for (
+                        let i = totalEnrollmentPages - 4;
+                        i <= totalEnrollmentPages;
+                        i++
+                      )
+                        pages.push(i);
+                    } else {
+                      pages.push(1);
+                      pages.push("...");
+                      pages.push(enrollmentPage - 1);
+                      pages.push(enrollmentPage);
+                      pages.push(enrollmentPage + 1);
+                      pages.push("...");
+                      pages.push(totalEnrollmentPages);
+                    }
+                  }
+                  return pages.map((pageNum, idx) =>
+                    pageNum === "..." ? (
+                      <span
+                        key={`dots-${idx}`}
+                        className="px-2 text-gray-400 font-bold"
+                      >
+                        ...
+                      </span>
+                    ) : (
+                      <button
+                        key={pageNum}
+                        onClick={() => setEnrollmentPage(pageNum)}
+                        className={`min-w-[40px] h-10 rounded-xl font-bold transition-all ${
+                          enrollmentPage === pageNum
+                            ? "bg-[#6335F8] text-white shadow-lg shadow-indigo-100"
+                            : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    ),
+                  );
+                })()}
               </div>
+
               <button
                 disabled={enrollmentPage === totalEnrollmentPages}
                 onClick={() => setEnrollmentPage((p) => p + 1)}
-                className="p-2 transition-colors hover:bg-gray-50 rounded-xl disabled:opacity-30"
+                className="p-2 transition-colors hover:bg-gray-50 rounded-xl disabled:opacity-30 text-gray-600"
               >
                 <ChevronRight size={20} />
               </button>
