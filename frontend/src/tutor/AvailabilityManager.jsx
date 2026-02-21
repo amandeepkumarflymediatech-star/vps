@@ -91,17 +91,28 @@ const AvailabilityManager = () => {
     try {
       setLoading(true);
       const res = await getTutorAvailability({ date: dateStr });
-      const dayAvailability = {};
-      res?.data?.data?.forEach((day) => {
-        day?.availability?.forEach((x) => {
-          const isBooked = String(x.isBooked) === true ? true : false;
-          dayAvailability[x.startTime.padStart(5, "0")] = {
-            isAvailable: x.isAvailable,
-            isBooked: isBooked,
-          };
+      const newFetchedAvailability = {};
+
+      if (Array.isArray(res?.data?.data)) {
+        res.data.data.forEach((dayData) => {
+          // Normalize date string (YYYY-MM-DD) to match frontend keys
+          const d = new Date(dayData.date);
+          const dStr = d.toISOString().split("T")[0];
+
+          const daySlots = {};
+          if (Array.isArray(dayData?.availability)) {
+            dayData.availability.forEach((slot) => {
+              if (!slot?.startTime) return;
+              daySlots[slot.startTime.padStart(5, "0")] = {
+                isAvailable: Boolean(slot.isAvailable),
+                isBooked: slot.isBooked === true || slot.isBooked === "true",
+              };
+            });
+          }
+          newFetchedAvailability[dStr] = daySlots;
         });
-      });
-      setAvailability((prev) => ({ ...prev, [dateStr]: dayAvailability }));
+      }
+      setAvailability((prev) => ({ ...prev, ...newFetchedAvailability }));
     } catch (err) {
       console.error(err);
     } finally {
@@ -109,12 +120,15 @@ const AvailabilityManager = () => {
     }
   };
 
+  useEffect(() => {
+    fetchAvailabilityForDate(selectedDate);
+  }, [selectedDate]);
   // useEffect(() => {
   //   fetchAvailabilityForDate(selectedDate);
   // }, []);
-  useEffect(() => {
-    if (!availability[selectedDate]) fetchAvailabilityForDate(selectedDate);
-  }, [selectedDate]);
+  // useEffect(() => {
+  //   if (!availability[selectedDate]) fetchAvailabilityForDate(selectedDate);
+  // }, [selectedDate]);
 
   const toggleSlot = (startTime) => {
     const slot = availability[selectedDate]?.[startTime];
