@@ -107,7 +107,11 @@ export const getClasses = async (req, res) => {
 export const getMyEnrollments = async (req, res) => {
   try {
     const tutorId = new mongoose.Types.ObjectId(req.user.id);
-    const enrollments = await Enrollment.aggregate([
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 6;
+    const skip = (page - 1) * limit;
+
+    const result = await Enrollment.aggregate([
       /* 1️⃣ Match tutor */
       {
         $match: {
@@ -219,12 +223,32 @@ export const getMyEnrollments = async (req, res) => {
         },
       },
 
-      /* 7️⃣ Sort latest first */
+      /* 7️⃣ Facet for pagination */
       {
-        $sort: { createdAt: 1 },
+        $facet: {
+          metadata: [{ $count: "total" }],
+          data: [
+            { $sort: { createdAt: -1 } },
+            { $skip: skip },
+            { $limit: limit },
+          ],
+        },
       },
     ]);
-    res.json({ success: true, data: enrollments });
+
+    const total = result[0].metadata[0]?.total || 0;
+    const enrollments = result[0].data;
+
+    res.json({
+      success: true,
+      data: enrollments,
+      pagination: {
+        total,
+        page,
+        limit,
+        pages: Math.ceil(total / limit),
+      },
+    });
   } catch (error) {
     console.error("getMyEnrollments error", error);
     res.status(500).json({ message: error.message });
@@ -772,7 +796,11 @@ export const getMyEnrollmentsStudent = async (req, res) => {
     const statusFilter = req.query.status?.toUpperCase() || "UPCOMING";
     const now = new Date();
 
-    const enrollments = await Enrollment.aggregate([
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 6;
+    const skip = (page - 1) * limit;
+
+    const result = await Enrollment.aggregate([
       // 1️⃣ Match student
       { $match: { userId } },
 
@@ -1025,11 +1053,32 @@ export const getMyEnrollmentsStudent = async (req, res) => {
         },
       },
 
-      // 1️⃣2️⃣ Sort
-      { $sort: { createdAt: -1 } },
+      // 1️⃣2️⃣ Facet for pagination
+      {
+        $facet: {
+          metadata: [{ $count: "total" }],
+          data: [
+            { $sort: { createdAt: -1 } },
+            { $skip: skip },
+            { $limit: limit },
+          ],
+        },
+      },
     ]);
 
-    return res.json({ success: true, data: enrollments });
+    const total = result[0].metadata[0]?.total || 0;
+    const enrollments = result[0].data;
+
+    return res.json({
+      success: true,
+      data: enrollments,
+      pagination: {
+        total,
+        page,
+        limit,
+        pages: Math.ceil(total / limit),
+      },
+    });
   } catch (error) {
     console.error("getMyEnrollmentsStudent error:", error);
     return res.status(500).json({ message: error.message });

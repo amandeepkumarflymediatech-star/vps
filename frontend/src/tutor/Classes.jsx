@@ -25,6 +25,8 @@ const Enrollments = () => {
   const [meetingLink, setMeetingLink] = useState("");
   const [status, setStatus] = useState("UPCOMING");
   const [searchQuery, setSearchQuery] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   const user =
     typeof window !== "undefined"
@@ -38,8 +40,13 @@ const Enrollments = () => {
     const fetchEnrollments = async () => {
       try {
         setLoading(true);
-        const res = await getEnrollments({ tutorId: user.id });
+        const res = await getEnrollments({
+          tutorId: user.id,
+          page: page,
+          limit: 6,
+        });
         setEnrollments(res?.data?.data || []);
+        setTotalPages(res?.data?.pagination?.pages || 1);
       } catch {
         toast.error("Failed to load enrollments");
       } finally {
@@ -47,7 +54,7 @@ const Enrollments = () => {
       }
     };
     fetchEnrollments();
-  }, [user?.id]);
+  }, [user?.id, page]);
 
   /* =========================
      FILTER
@@ -598,6 +605,36 @@ const Enrollments = () => {
             </div>
           </div>
         </div>
+
+        {/* PAGINATION */}
+        {!loading && enrollments.length > 0 && (
+          <div className="flex justify-center pb-10">
+            <div className="flex bg-white p-2 rounded-2xl border shadow-sm items-center gap-1">
+              <button
+                disabled={page === 1}
+                onClick={() => setPage((p) => p - 1)}
+                className="p-2 transition-colors hover:bg-gray-50 rounded-xl disabled:opacity-30 text-gray-600"
+              >
+                <ChevronRight size={20} className="rotate-180" />
+              </button>
+              <div className="px-4 flex items-center gap-1">
+                <span className="text-sm font-black text-indigo-600">
+                  Page {page}
+                </span>
+                <span className="text-sm font-bold text-gray-400">
+                  of {totalPages}
+                </span>
+              </div>
+              <button
+                disabled={page === totalPages}
+                onClick={() => setPage((p) => p + 1)}
+                className="p-2 transition-colors hover:bg-gray-50 rounded-xl disabled:opacity-30 text-gray-600"
+              >
+                <ChevronRight size={20} />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
