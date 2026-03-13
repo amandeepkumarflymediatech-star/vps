@@ -255,6 +255,7 @@ const Footer = () => {
           <ul className="space-y-2 text-sm sm:text-base text-black/80">
             <li><Link href="/CoursesPricing" className="hover:text-black">Pricing</Link></li>
             <li><Link href="/support" className="hover:text-black">Contact</Link></li>
+            <li><Link href="/become-tutor" className="hover:text-black">Become Tutor</Link></li>
           </ul>
         </div>
 
@@ -263,20 +264,31 @@ const Footer = () => {
           <h4 className="font-semibold mb-4 text-base sm:text-lg">Support</h4>
           <ul className="space-y-2 text-sm sm:text-base text-black/80">
             <li><Link href="/support" className="hover:text-black">Help & Support</Link></li>
-            <li><Link href="/become-tutor" className="hover:text-black">Become Tutor</Link></li>
             <li><Link href="/faq" className="hover:text-black">FAQ</Link></li>
+            <li><Link href="/privacy-policy" className="hover:text-black">Privacy Policy</Link></li>
+            <li><Link href="/refund-policy" className="hover:text-black">Refund Policy</Link></li>
+            <li><Link href="/terms-conditions" className="hover:text-black">Terms & Conditions</Link></li>
           </ul>
         </div>
 
         {/* Contact */}
         <div>
-          <h4 className="font-semibold mb-4 text-base sm:text-lg">Get in touch</h4>
-          <p className="text-sm text-black/80 mb-2">
-            <strong>Email:</strong> support@theenglishraj.com
-          </p>
-          <p className="text-sm text-black/80">
-            <strong>Phone:</strong> +91 90413-23089
-          </p>
+          <h4 className="font-semibold mb-4 text-base sm:text-lg">Business Address</h4>
+          <div className="text-sm text-black/80 space-y-1">
+            <p className="font-bold">The English Raj</p>
+            <p>Village Saifabad</p>
+            <p>P.O. Tehang, Phillaur</p>
+            <p>District Jalandhar, Punjab – 144410</p>
+            <p>India</p>
+          </div>
+          <div className="mt-4 pt-4 border-t border-black/10">
+            <p className="text-sm text-black/80 mb-1">
+              <strong>Email:</strong> support@theenglishraj.com
+            </p>
+            <p className="text-sm text-black/80">
+              <strong>Phone:</strong> +91 90413-23089
+            </p>
+          </div>
         </div>
       </div>
 

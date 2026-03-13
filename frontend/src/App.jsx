@@ -12,6 +12,11 @@ import BecomeTutor from "./views/BecomeTutor";
 import Organizations from "./views/Organizations";
 import Contact from "./views/contact";
 import Demo from "./views/demo";
+import Privacy_policy from "./components/Privacy_policy";
+import Refund_policy from "./components/Refund_policy";
+import Terms_Conditions from "./components/Terms_&_Conditions";
+
+
 
 /* ================= AUTH PAGES ================= */
 import Login from "./authentication/Login";
@@ -61,7 +66,12 @@ const App = () => {
           <Route path="/organizations" element={<Organizations />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/demo" element={<Demo />} />
+          <Route path="/privacy-policy" element={<Privacy_policy />} />
+          <Route path="/refund-policy" element={<Refund_policy />} />
+          <Route path="/terms-conditions" element={<Terms_Conditions />} />
         </Route>
+
+
 
         {/* 🔐 AUTH ROUTES */}
         <Route element={<AuthLayout />}>
