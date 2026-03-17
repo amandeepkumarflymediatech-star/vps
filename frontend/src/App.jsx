@@ -51,6 +51,7 @@ import DashboardRedirect from "./views/DashboardRedirect";
 import ProtectedRoute from "./common/ProtectedRoute";
 import Dashboard from "./tutor/pages/Dashboard";
 import PackageDetail from "./student/pages/PackageDetail";
+import TutorDetailsView from "./student/pages/TutorDetailsView";
 
 const App = () => {
   return (
@@ -111,6 +112,7 @@ const App = () => {
           <Route path="profile" element={<StudentProfile />} />
           <Route path="packages/:id" element={<PackageDetail />} />
           <Route path="settings" element={<StudentSettings />} />
+          <Route path="tutor/:id" element={<TutorDetailsView />} />
         </Route>
       </Routes>
 

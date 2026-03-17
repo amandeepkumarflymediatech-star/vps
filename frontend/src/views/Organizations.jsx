@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import {
   ChevronRight,
   CheckCircle2,
@@ -324,11 +325,13 @@ const Organizations = () => {
                 className="group cursor-pointer"
               >
                 <div className="relative h-64 rounded-3xl overflow-hidden mb-6">
-                  <img
+                  <Image
                     src={study.img}
                     alt={study.org}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    fill
+                    className="object-cover transition-transform duration-500 group-hover:scale-110"
                   />
+
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent opacity-60" />
                   <div className="absolute bottom-6 left-6">
                     <p className="text-xs font-bold uppercase tracking-widest text-blue-400 mb-1">

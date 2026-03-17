@@ -107,39 +107,38 @@ const BookSession = () => {
     loadTutorsAndAvailability();
   }, []);
 
+  const loadAvailabilityForDate = async () => {
+    try {
+      // setLoading(true);
+      const availabilityRes = await getStudentClasses({ activeDate });
+      const availabilityList = availabilityRes.data?.data || [];
+
+      setData((prev) =>
+        prev.map((tutor) => {
+          const avail = availabilityList
+            .filter(
+              (a) => a.tutorId?._id?.toString() === tutor.id?.toString()
+            )
+            .map((a) => ({
+              date: a.date,
+              slots: a.availability,
+            }));
+          return { ...tutor, availability: avail };
+        })
+      );
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to load availability");
+    } finally {
+      // setLoading(false);
+    }
+  };
+
   /* =========================
      FETCH AVAILABILITY WHEN DATE CHANGES
   ========================= */
   useEffect(() => {
     if (!data.length) return; // wait until tutors are loaded
-
-    const loadAvailabilityForDate = async () => {
-      try {
-        // setLoading(true);
-        const availabilityRes = await getStudentClasses({ activeDate });
-        const availabilityList = availabilityRes.data?.data || [];
-
-        setData((prev) =>
-          prev.map((tutor) => {
-            const avail = availabilityList
-              .filter(
-                (a) => a.tutorId?._id?.toString() === tutor.id?.toString()
-              )
-              .map((a) => ({
-                date: a.date,
-                slots: a.availability,
-              }));
-            return { ...tutor, availability: avail };
-          })
-        );
-      } catch (err) {
-        console.error(err);
-        toast.error("Failed to load availability");
-      } finally {
-        // setLoading(false);
-      }
-    };
-
     loadAvailabilityForDate();
 
     // reset selection when date changes
@@ -212,6 +211,8 @@ const BookSession = () => {
         setSelectedSlot(null);
         setSelectedTutor(null);
         setShowConfirm(false);
+        // Refresh availability
+        loadAvailabilityForDate();
         return;
       }
 

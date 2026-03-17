@@ -241,31 +241,28 @@ export const getAvailabilityByTutorId = async (req, res) => {
     let startDate;
     if (weekStartDate) {
       startDate = new Date(weekStartDate);
+      startDate.setUTCHours(0, 0, 0, 0);
     } else {
       const today = new Date();
       const dayOfWeek = today.getDay();
       const monday = new Date(today);
       monday.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
-      monday.setHours(0, 0, 0, 0);
+      monday.setUTCHours(0, 0, 0, 0);
       startDate = monday;
     }
 
-    const availability = await TutorAvailability.findOne({
-      tutorId,
-      weekStartDate: startDate,
-    });
+    const endDate = new Date(startDate);
+    endDate.setUTCDate(startDate.getUTCDate() + 7);
 
-    if (!availability) {
-      return res.status(200).json({
-        success: true,
-        message: "No availability set for this week",
-        data: null,
-      });
-    }
+    const availability = await TutorAvailability.find({
+      tutorId,
+      date: { $gte: startDate, $lt: endDate },
+    }).sort({ date: 1 });
 
     res.status(200).json({
       success: true,
-      data: availability,
+      data: availability && availability.length > 0 ? availability : null,
+      message: availability && availability.length > 0 ? "Availability found" : "No availability set for this week",
     });
   } catch (error) {
     console.error("Error fetching tutor availability:", error);

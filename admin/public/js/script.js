@@ -14,7 +14,7 @@ $(document).ready(function () {
   /* ===============================
      Sidebar toggle (mobile)
      =============================== */
-  $(".menu-btn").on("click", function () {
+  $(".menu-btn, #menuBtn").on("click", function () {
     $(".sidebar").toggleClass("hidden");
   });
 

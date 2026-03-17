@@ -1136,6 +1136,7 @@ export const saveSelectedSlot = async (req, res) => {
   try {
     const userId = req.user.id;
     const { tutorId, slot, date } = req.body;
+    console.log(req.body, '--------')
     const slotId = slot._id;
     const { startTime, endTime } = slot;
 
@@ -1213,12 +1214,17 @@ export const saveSelectedSlot = async (req, res) => {
       return res.status(400).json({ message: "Slot already booked" });
     }
 
-    // 5️⃣ Update tutor availability (slot-level check)
+    // 5️⃣ Update tutor availability (slot-level check ATOMICALLY)
     const availabilityUpdate = await TutorAvailability.updateOne(
       {
         tutorId,
         date,
-        "availability._id": slotId,
+        availability: {
+          $elemMatch: {
+            _id: slotId,
+            isBooked: false, // Ensure it's NOT already booked
+          },
+        },
       },
       {
         $set: {
@@ -1228,7 +1234,7 @@ export const saveSelectedSlot = async (req, res) => {
     );
     if (!availabilityUpdate || availabilityUpdate.modifiedCount === 0) {
       return res.status(400).json({
-        message: "Slot is no longer available",
+        message: "Slot is no longer available (already booked)",
       });
     }
 

@@ -65,6 +65,7 @@ app.use("/admin/courses", require("./routes/courseRoutes"));
 app.use("/admin/classes", require("./routes/class.routes"));
 app.use("/admin/packages", require("./routes/package.routes"));
 app.use("/admin/payments", require("./routes/payment.routes"));
+app.use("/admin/enrollments", require("./routes/enrollment.routes"));
 app.use("/admin/", require("./routes/admin.routes"));
 // Dashboard route (simple authentication check)
 app.get("/", (req, res) => {

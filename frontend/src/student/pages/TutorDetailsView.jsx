@@ -4,19 +4,23 @@ import React, { useEffect, useState, useMemo } from "react";
 import { useParams } from "next/navigation";
 import {
   Mail,
-  Star,
+  Star as StarIcon,
   BookOpen,
   Clock,
   Award,
   ShieldCheck,
   Calendar,
   ArrowLeft,
+  MessageSquare,
 } from "lucide-react";
 import Link from "next/link";
 import { getTutorById } from "@/api/tutorApi";
-import { getStudentClasses } from "@/api/student.api";
+import { getStudentClasses, checkPaymentStatus, saveSelectedSlot } from "@/api/student.api";
 import { getAvailabilityByTutorId } from "@/api/tutorAvailability.api";
+import { addReview, getTutorReviews } from "@/api/review.api";
 import BookSession from "./myClass";
+import Rating from "@/components/Rating";
+import Swal from "sweetalert2";
 
 // Helper: build next 7 days (today + 6)
 const buildDates = () => {
@@ -75,7 +79,39 @@ const TutorDetailsView = ({ id: propId }) => {
   const [selectedSlotKey, setSelectedSlotKey] = useState(null);
   const [tutorAvailability, setTutorAvailability] = useState(null);
 
+  // Review states
+  const [reviews, setReviews] = useState([]);
+  const [newRating, setNewRating] = useState(5);
+  const [newComment, setNewComment] = useState("");
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [user, setUser] = useState(null);
+
   const dates = useMemo(buildDates, []);
+
+  const fetchAvailability = async () => {
+    try {
+      const today = new Date();
+      const weekStartDate = new Date(Date.UTC(
+        today.getFullYear(),
+        today.getMonth(),
+        today.getDate()
+      )).toISOString().split("T")[0];
+
+      const res = await getAvailabilityByTutorId(id, weekStartDate);
+      if (res.data?.data) {
+        setTutorAvailability(res.data.data);
+      }
+    } catch (err) {
+      console.error("Failed to load tutor availability:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const userRaw = localStorage.getItem("user");
+      if (userRaw) setUser(JSON.parse(userRaw));
+    }
+  }, []);
 
   useEffect(() => {
     if (!id) return;
@@ -140,28 +176,20 @@ const TutorDetailsView = ({ id: propId }) => {
             id: t._id,
             name: t.name,
             avatar: t.avatar,
-            // Use expertise from backend when available, otherwise default label
             subject: t.expertise || "Spoken English & Communication",
-            // Use backend rating/reviews when available, otherwise fall back to defaults
             rating: typeof t.rating === "number" && t.rating > 0 ? t.rating.toFixed(1) : "5.0",
             reviews: t.reviewsCount || 0,
             enrollments: t.enrollmentCount || 0,
-            // Use experience string from backend if present
             experience: t.experience || "5+ Years",
-            // Optional rich profile fields with safe fallbacks
-            bio:
-              t.description ||
-              "Passionate English tutor focused on helping students gain real-world speaking confidence.",
+            bio: t.description || "Passionate English tutor focused on helping students gain real-world speaking confidence.",
             email: t.email,
             education: t.education || "Certified English Trainer",
             specialties:
               Array.isArray(t.specialties) && t.specialties.length > 0
                 ? t.specialties
                 : [t.expertise],
-            // High-level availability & response time coming from backend schema / classes
             availability: nextAvailability,
             responseTime: t.responseTime || "< 2 hours",
-            // Verification / status / joined date
             verified: !!t.isVerified,
             status: t.status || "INACTIVE",
             joinedDate: t.createdAt
@@ -180,24 +208,66 @@ const TutorDetailsView = ({ id: propId }) => {
       }
     };
 
-    const fetchAvailability = async () => {
+    const fetchReviews = async () => {
       try {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const weekStartDate = today.toISOString().split("T")[0];
-
-        const res = await getAvailabilityByTutorId(id, weekStartDate);
-        if (res.data?.data) {
-          setTutorAvailability(res.data.data);
+        const res = await getTutorReviews(id);
+        if (res.data?.success) {
+          setReviews(res.data.data);
         }
       } catch (err) {
-        console.error("Failed to load tutor availability:", err);
+        console.error("Failed to load reviews:", err);
       }
     };
 
+    console.log("Fetching data for tutor ID:", id);
+
     fetchTutor();
     fetchAvailability();
+    fetchReviews();
   }, [id]);
+
+  const handleReviewSubmit = async (e) => {
+    e.preventDefault();
+    if (!newRating) {
+      Swal.fire("Error", "Please select a rating", "error");
+      return;
+    }
+
+    try {
+      setSubmittingReview(true);
+      const res = await addReview({
+        tutorId: id,
+        rating: newRating,
+        comment: newComment,
+      });
+
+      if (res.data?.success) {
+        Swal.fire("Success", "Review submitted successfully!", "success");
+        setNewComment("");
+        setNewRating(5);
+        // Refresh reviews
+        const reviewsRes = await getTutorReviews(id);
+        if (reviewsRes.data?.success) {
+          setReviews(reviewsRes.data.data);
+        }
+        // Refresh tutor score
+        const tutorRes = await getTutorById(id);
+        if (tutorRes.data?.data) {
+          const t = tutorRes.data.data;
+          setTutor(prev => ({
+            ...prev,
+            rating: typeof t.rating === "number" && t.rating > 0 ? t.rating.toFixed(1) : "5.0",
+            reviews: t.reviewsCount || 0,
+          }));
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      Swal.fire("Error", err.response?.data?.message || "Failed to submit review", "error");
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
 
   const todayStr = new Date().toISOString().slice(0, 10);
   const now = new Date();
@@ -205,35 +275,34 @@ const TutorDetailsView = ({ id: propId }) => {
     now.getMinutes(),
   ).padStart(2, "0")}`;
 
-  // Slots for selected date - now using tutor availability
+  // Slots for selected date - now using tutor availability array from backend
   const slotsForSelectedDay = useMemo(() => {
-    if (!dates[activeDateIndex] || !tutorAvailability) return [];
+    if (!dates[activeDateIndex] || !tutorAvailability || !Array.isArray(tutorAvailability)) return [];
 
     const d = dates[activeDateIndex].dateObj;
     const dateStr = d.toISOString().slice(0, 10);
-    const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    const dayName = dayNames[d.getDay()];
-
-    // Find the availability for this specific date
-    const dayAvailability = tutorAvailability.availability?.find((day) => {
-      const dayDate = new Date(day.date).toISOString().slice(0, 10);
-      return dayDate === dateStr;
+    // Find the availability document for this specific date
+    const dayDoc = tutorAvailability.find((doc) => {
+      const docDate = new Date(doc.date).toISOString().slice(0, 10);
+      return docDate === dateStr;
     });
 
-    if (!dayAvailability) return [];
+    if (!dayDoc || !dayDoc.availability) return [];
 
     const items = [];
     const isToday = dateStr === todayStr;
 
-    // Get only available slots
-    dayAvailability.slots.forEach((slot, idx) => {
-      if (!slot.isAvailable) return; // Skip unavailable slots
-
+    // Get only available slots from the day's availability array
+    dayDoc.availability.forEach((slot) => {
+      if (!slot.isAvailable || slot.isBooked) return; // Skip unavailable or booked slots
       const key = `${dateStr}-${slot.startTime}`;
       const isPastToday = isToday && slot.endTime <= currentHHMM;
 
       items.push({
+        _id: slot._id,
         key,
+        startTime: slot.startTime, // 24h format
+        endTime: slot.endTime,     // 24h format
         label: `${formatTime(slot.startTime)} - ${formatTime(slot.endTime)}`,
         isPast: isPastToday,
       });
@@ -317,24 +386,22 @@ const TutorDetailsView = ({ id: propId }) => {
           <div className="flex border-b border-white/20 text-sm overflow-x-auto">
             <button
               onClick={() => setActiveTab("about")}
-              className={`px-4 md:px-6 pb-2 transition whitespace-nowrap ${
-                activeTab === "about"
-                  ? "font-semibold border-b-2 border-white"
-                  : "text-white/80 hover:text-white"
-              }`}
+              className={`px-4 md:px-6 pb-2 transition whitespace-nowrap ${activeTab === "about"
+                ? "font-semibold border-b-2 border-white"
+                : "text-white/80 hover:text-white"
+                }`}
             >
               About
             </button>
-            {/* <button
-              onClick={() => setActiveTab("booking")}
-              className={`px-4 md:px-6 pb-2 transition whitespace-nowrap ${
-                activeTab === "booking"
-                  ? "font-semibold border-b-2 border-white"
-                  : "text-white/80 hover:text-white"
-              }`}
+            <button
+              onClick={() => setActiveTab("reviews")}
+              className={`px-4 md:px-6 pb-2 transition whitespace-nowrap ${activeTab === "reviews"
+                ? "font-semibold border-b-2 border-white"
+                : "text-white/80 hover:text-white"
+                }`}
             >
-              Book a Session
-            </button> */}
+              Reviews ({tutor.reviews})
+            </button>
           </div>
         </div>
       </div>
@@ -349,12 +416,11 @@ const TutorDetailsView = ({ id: propId }) => {
           <ArrowLeft size={18} className="mr-2" /> Back to Tutors
         </Link>
 
-        {/* About Tab Content */}
-        {activeTab === "about" && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
-            {/* LEFT CONTENT */}
-            <div className="lg:col-span-2  space-y-6 md:space-y-8">
-              {/* About */}
+        {/* Tab Contents */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+          {/* LEFT CONTENT */}
+          <div className="lg:col-span-2 space-y-6 md:space-y-8">
+            {activeTab === "about" ? (
               <div className="bg-white rounded-2xl md:rounded-3xl p-6 md:p-8 border shadow-sm">
                 <h2 className="text-lg md:text-xl font-bold mb-3 md:mb-4 flex items-center">
                   <BookOpen size={20} className="mr-2 text-blue-600" />
@@ -378,95 +444,234 @@ const TutorDetailsView = ({ id: propId }) => {
                   ))}
                 </div>
               </div>
-
-              {/* Education */}
-              {/* <div className="bg-white rounded-2xl md:rounded-3xl p-6 md:p-8 border shadow-sm">
-                <h2 className="text-lg md:text-xl font-bold mb-3 md:mb-4 flex items-center">
-                  <Award size={20} className="mr-2 text-blue-600" />
-                  Education
-                </h2>
-                <p className="text-sm md:text-base text-gray-700 font-medium">{tutor.education}</p>
-              </div> */}
-            </div>
-
-            {/* RIGHT SIDEBAR */}
-            <div className="lg:col-span-1">
-              <div className="bg-white rounded-2xl md:rounded-3xl p-5 md:p-6 border shadow-xl lg:sticky lg:top-8">
-                <div className="space-y-3 md:space-y-4 mb-4 md:mb-6">
-                  <div className="flex justify-between items-center p-3 md:p-4 bg-gray-50 rounded-xl md:rounded-2xl">
-                    <div className="flex items-center text-gray-600 text-xs md:text-sm">
-                      <Calendar size={16} className="mr-2" />
-                      Next Available
-                    </div>
-                    <span className="font-bold text-xs md:text-sm text-right">
-                      {tutor.availability}
-                    </span>
+            ) : (
+              <div className="space-y-6">
+                {/* Submit Review Form */}
+                {user?.role === "STUDENT" && (
+                  <div className="bg-white rounded-2xl md:rounded-3xl p-6 md:p-8 border shadow-sm">
+                    <h2 className="text-lg md:text-xl font-bold mb-4 flex items-center">
+                      <MessageSquare size={20} className="mr-2 text-blue-600" />
+                      Write a Review
+                    </h2>
+                    <form onSubmit={handleReviewSubmit} className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Your Rating
+                        </label>
+                        <Rating value={newRating} onChange={setNewRating} size={24} />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Your Comment
+                        </label>
+                        <textarea
+                          value={newComment}
+                          onChange={(e) => setNewComment(e.target.value)}
+                          className="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none min-h-[100px]"
+                          placeholder="Tell us about your experience with this tutor..."
+                          required
+                        />
+                      </div>
+                      <button
+                        type="submit"
+                        disabled={submittingReview}
+                        className="bg-blue-600 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-blue-700 transition-colors disabled:opacity-50"
+                      >
+                        {submittingReview ? "Submitting..." : "Submit Review"}
+                      </button>
+                    </form>
                   </div>
+                )}
 
-                  <div className="flex justify-between items-center p-3 md:p-4 bg-gray-50 rounded-xl md:rounded-2xl">
-                    <div className="flex items-center text-gray-600 text-xs md:text-sm">
-                      <Mail size={16} className="mr-2" />
-                      Response Time
-                    </div>
-                    <span className="font-bold text-xs md:text-sm">
-                      {tutor.responseTime}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-2 p-3 md:p-4 bg-gray-50 rounded-xl md:rounded-2xl">
-                    <Star size={16} className="text-yellow-400 fill-current" />
-                    <strong className="text-xs md:text-sm">
-                      {tutor.rating}
-                    </strong>
-                    <span className="text-gray-600 text-xs md:text-sm">
-                      ({tutor.enrollments} sessions taken)
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-2 p-3 md:p-4 bg-gray-50 rounded-xl md:rounded-2xl">
-                    <Clock size={16} className="text-gray-400" />
-                    <span className="text-gray-600 text-xs md:text-sm">
-                      {tutor.experience}
-                    </span>
-                  </div>
-
-                  {tutor.verified && (
-                    <div className="flex items-center justify-center gap-2 p-3 md:p-4 bg-blue-50 rounded-xl md:rounded-2xl">
-                      <ShieldCheck size={16} className="text-blue-700" />
-                      <span className="text-blue-700 font-semibold text-xs md:text-sm">
-                        Verified Tutor
-                      </span>
+                {/* Reviews List */}
+                <div className="bg-white rounded-2xl md:rounded-3xl p-6 md:p-8 border shadow-sm">
+                  <h2 className="text-lg md:text-xl font-bold mb-6">
+                    Student Reviews
+                  </h2>
+                  {reviews.length === 0 ? (
+                    <p className="text-gray-500 text-center py-8">No reviews yet. Be the first to review!</p>
+                  ) : (
+                    <div className="space-y-6">
+                      {reviews.map((review) => (
+                        <div key={review._id} className="border-b border-gray-100 last:border-0 pb-6 last:pb-0">
+                          <div className="flex items-center gap-3 mb-3">
+                            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center font-bold text-blue-600">
+                              {review.studentId?.avatar ? (
+                                <img src={review.studentId.avatar} alt="" className="w-full h-full rounded-full object-cover" />
+                              ) : (
+                                review.studentId?.name?.charAt(0) || "S"
+                              )}
+                            </div>
+                            <div>
+                              <p className="font-bold text-sm">{review.studentId?.name || "Student"}</p>
+                              <p className="text-xs text-gray-500">{new Date(review.createdAt).toLocaleDateString()}</p>
+                            </div>
+                            <div className="ml-auto">
+                              <Rating value={review.rating} readonly size={14} />
+                            </div>
+                          </div>
+                          <p className="text-gray-600 text-sm leading-relaxed">
+                            {review.comment}
+                          </p>
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>
+              </div>
+            )}
+          </div>
 
-                <div className="text-center text-gray-500 text-xs space-y-1 mt-2">
-                  <p>No payment required to contact the tutor</p>
-                  <p className="flex items-center justify-center gap-1 break-all">
-                    <Mail size={12} className="flex-shrink-0" /> {tutor.email}
-                  </p>
+          {/* RIGHT SIDEBAR */}
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-2xl md:rounded-3xl p-5 md:p-6 border shadow-xl lg:sticky lg:top-8">
+              {tutor.verified && (
+                <div className="flex items-center justify-center gap-2 p-3 md:p-4 bg-blue-50 rounded-xl md:rounded-2xl mb-6">
+                  <ShieldCheck size={16} className="text-blue-700" />
+                  <span className="text-blue-700 font-semibold text-xs md:text-sm">
+                    Verified Tutor
+                  </span>
                 </div>
+              )}
+
+              {/* Booking Section */}
+              <div className="space-y-6">
+                <div className="flex items-center gap-2 p-3 md:p-4 bg-gray-50 rounded-xl md:rounded-2xl">
+                  <StarIcon size={16} className="text-yellow-400 fill-current" />
+                  <strong className="text-xs md:text-sm">
+                    {tutor.rating}
+                  </strong>
+                  <span className="text-gray-600 text-xs md:text-sm">
+                    ({tutor.reviews} reviews)
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2 p-3 md:p-4 bg-gray-50 rounded-xl md:rounded-2xl">
+                  <Clock size={16} className="text-gray-400" />
+                  <span className="text-gray-600 text-xs md:text-sm">
+                    {tutor.experience}
+                  </span>
+                </div>
+
+                <div className="mt-8">
+                  <h3 className="text-sm font-bold text-gray-900 mb-4 flex items-center">
+                    <Calendar size={18} className="mr-2 text-blue-600" />
+                    Select Date & Time
+                  </h3>
+
+                  {/* Date Picker */}
+                  <div className="flex gap-2 overflow-x-auto pb-2 mb-4 no-scrollbar">
+                    {dates.map((d, i) => (
+                      <button
+                        key={i}
+                        onClick={() => setActiveDateIndex(i)}
+                        className={`flex flex-col items-center justify-center min-w-[50px] h-14 rounded-xl transition-all ${activeDateIndex === i
+                          ? "bg-blue-600 text-white shadow-lg shadow-blue-200"
+                          : "bg-gray-50 text-gray-600 hover:bg-gray-100"
+                          }`}
+                      >
+                        <span className="text-[10px] font-bold uppercase">{d.day}</span>
+                        <span className="text-sm font-black">{d.date}</span>
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Slots Grid */}
+                  <div className="space-y-2 max-h-[200px] overflow-y-auto pr-1 no-scrollbar mb-6">
+                    {slotsForSelectedDay.length > 0 ? (
+                      slotsForSelectedDay.map((slot) => (
+                        <button
+                          key={slot.key}
+                          disabled={slot.isPast}
+                          onClick={() => setSelectedSlotKey(slot.key)}
+                          className={`w-full p-3 rounded-xl text-xs font-bold transition-all border ${selectedSlotKey === slot.key
+                            ? "bg-blue-600 text-white border-blue-600"
+                            : slot.isPast
+                              ? "bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed"
+                              : "bg-white text-gray-700 border-gray-200 hover:border-blue-300"
+                            }`}
+                        >
+                          {slot.label}
+                        </button>
+                      ))
+                    ) : (
+                      <div className="text-center py-6 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+                        <p className="text-[10px] text-gray-400 font-medium">No slots available for this date</p>
+                      </div>
+                    )}
+                  </div>
+
+                  <button
+                    disabled={!selectedSlotKey}
+                    onClick={async () => {
+                      if (!user) {
+                        Swal.fire("Login Required", "Please login as a student to book a session.", "info");
+                        return;
+                      }
+                      if (user.role !== "STUDENT") {
+                        Swal.fire("Restricted", "Only students can book sessions.", "warning");
+                        return;
+                      }
+
+                      try {
+                        const res = await checkPaymentStatus(id);
+                        if (res.data?.paid && res.data?.status === "SUCCESS") {
+                          const originalDate = dates[activeDateIndex].dateObj;
+                          // Normalize to start of day in UTC
+                          const dateObj = new Date(Date.UTC(
+                            originalDate.getFullYear(),
+                            originalDate.getMonth(),
+                            originalDate.getDate()
+                          ));
+                          const dateStr = dateObj.toISOString();
+                          
+                          const slot = slotsForSelectedDay.find(s => s.key === selectedSlotKey);
+                          const { startTime, endTime, _id } = slot;
+                          
+                          await saveSelectedSlot({
+                            tutorId: id,
+                            date: dateStr,
+                            slot: { _id, startTime, endTime }
+                          });
+
+                          Swal.fire("Booked!", "Your session has been successfully booked.", "success");
+                          setSelectedSlotKey(null);
+                          // Refresh availability to remove booked slot
+                          fetchAvailability();
+                        } else {
+                          // Redirect to pricing
+                          window.location.href = `/CoursesPricing?tutorId=${id}`;
+                        }
+                      } catch (err) {
+                        console.error(err);
+                        Swal.fire("Error", err.response?.data?.message || err.message, "error");
+                      }
+                    }}
+                    className={`w-full py-4 rounded-2xl font-bold text-sm transition-all ${selectedSlotKey
+                      ? "bg-blue-600 text-white shadow-xl shadow-blue-200 hover:bg-blue-700 font-black"
+                      : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      }`}
+                  >
+                    Book Session Now
+                  </button>
+                </div>
+              </div>
+
+              <div className="text-center text-gray-500 text-xs space-y-1 mt-6 pt-6 border-t border-gray-50">
+                <p>No payment required to contact the tutor</p>
+                <p className="flex items-center justify-center gap-1 break-all">
+                  <Mail size={12} className="flex-shrink-0" /> {tutor.email}
+                </p>
               </div>
             </div>
           </div>
-        )}
-
-        {/* Book a Session Tab Content */}
-        {/* {activeTab === "booking" && ( 
-          <div className="bg-white rounded-2xl md:rounded-3xl shadow-md p-5 md:p-8">
-         
-           <div className="flex items-center justify-between mb-4">
-             <h2 className="text-sm md:text-base font-semibold text-gray-800 flex items-center gap-2">
-              <Calendar size={18} className="text-purple-600" />
-             Choose your timing
-           </h2>
-          //   </div>
-          //   <BookSession />
-          // </div>
-        {/* )} */}
+        </div>
       </div>
     </div>
   );
 };
 
 export default TutorDetailsView;
+
+
+

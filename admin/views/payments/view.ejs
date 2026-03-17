@@ -52,6 +52,23 @@
             </div>
 
             <div>
+              <span class="font-semibold">Method:</span>
+              <span class="ml-2 px-2 py-0.5 bg-gray-100 rounded text-xs"><%= payment.method || 'UPI' %></span>
+            </div>
+
+            <div>
+              <span class="font-semibold">Order ID:</span>
+              <span class="ml-2 text-xs text-gray-500"><%= payment.clientPaymentId %></span>
+            </div>
+
+            <% if (payment.transactionId) { %>
+            <div>
+              <span class="font-semibold">Payment ID:</span>
+              <span class="ml-2 text-xs text-gray-500"><%= payment.transactionId %></span>
+            </div>
+            <% } %>
+
+            <div>
               <span class="font-semibold">Status:</span>
               <span class="ml-2 font-semibold
             <%= payment.status === 'SUCCESS'
@@ -128,17 +145,6 @@
       </div>
     </main>
 
-    <!-- ================= MOBILE MENU SCRIPT ================= -->
-    <script>
-      const menuBtn = document.getElementById("menuBtn");
-      const sidebar = document.querySelector(".sidebar");
-
-      if (menuBtn && sidebar) {
-        menuBtn.addEventListener("click", () => {
-          sidebar.classList.toggle("hidden");
-        });
-      }
-    </script>
 
     <!-- ================= FORM AJAX ================= -->
     <script>

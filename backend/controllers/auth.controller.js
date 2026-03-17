@@ -405,13 +405,14 @@ export const updateProfile = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    const { name, email, phone, description = "" } = req.body;
+    const { name, email, phone, description = "", expertise = "" } = req.body;
 
     const updates = {};
     if (name) updates.name = name;
     if (email) updates.email = email;
     if (phone) updates.phone = phone;
     if (description) updates.description = description;
+    if (expertise) updates.expertise = expertise;
 
     // If photo uploaded (via multer)
     if (req.file) {

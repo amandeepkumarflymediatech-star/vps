@@ -29,6 +29,7 @@ export default function ProfilePage() {
     email: "",
     phone: "",
     description: "",
+    expertise: "",
   });
   const [avatar, setAvatar] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
@@ -56,6 +57,7 @@ export default function ProfilePage() {
             email: data.email || "",
             phone: data.phone || "",
             description: data.description || "",
+            expertise: data.expertise || "",
           });
           setUser(data);
           if (data.avatar) {
@@ -96,6 +98,7 @@ export default function ProfilePage() {
       formData.append("email", form.email);
       formData.append("phone", form.phone);
       formData.append("description", form.description);
+      formData.append("expertise", form.expertise);
       if (avatar) formData.append("avatar", avatar);
 
       const res = await profileUpdate(user._id, formData);
@@ -107,6 +110,7 @@ export default function ProfilePage() {
           email: data.email || "",
           phone: data.phone || "",
           description: data.description || "",
+          expertise: data.expertise || "",
         });
         if (data.avatar) {
           setImagePreview(data.avatar);
@@ -371,6 +375,27 @@ export default function ProfilePage() {
                   ) : (
                     <p className="text-slate-900 font-medium px-4 py-3 bg-slate-50 rounded-xl">
                       {user?.description || "-"}
+                    </p>
+                  )}
+                </div>
+                {/* expertise */}
+                <div>
+                  <label className="flex items-center gap-2 text-sm font-bold text-slate-700 mb-2">
+                    <MdDescription size={16} />
+                    Expertise
+                  </label>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      name="expertise"
+                      value={form.expertise}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                      placeholder="Enter your expertise"
+                    />
+                  ) : (
+                    <p className="text-slate-900 font-medium px-4 py-3 bg-slate-50 rounded-xl">
+                      {user?.expertise || "-"}
                     </p>
                   )}
                 </div>

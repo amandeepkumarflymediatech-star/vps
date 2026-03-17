@@ -4,6 +4,8 @@ import {
   createUpiPayment,
   logUpiPayment,
   uploadPaymentProof,
+  createRazorpayOrder,
+  verifyRazorpaySignature,
 } from "../controllers/payment.controller.js";
 import upload from "../middlewares/upload.js";
 
@@ -22,5 +24,9 @@ router.post(
   upload.single("paymentImage"),
   uploadPaymentProof
 );
+
+// RAZORPAY ROUTES
+router.post("/razorpay/order", paymentAuth, createRazorpayOrder);
+router.post("/razorpay/verify", paymentAuth, verifyRazorpaySignature);
 
 export default router;
