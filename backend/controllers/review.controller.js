@@ -56,7 +56,7 @@ export const addReview = async (req, res) => {
 export const getLatestReviews = async (req, res) => {
   try {
     const reviews = await Review.find()
-      .populate("studentId", "name avatar")
+      .populate("studentId", "name avatar profession")
       .populate("tutorId", "name avatar expertise")
       .sort({ createdAt: -1 })
       .limit(6);

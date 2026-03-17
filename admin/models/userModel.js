@@ -24,6 +24,39 @@ const UserSchema = new mongoose.Schema(
     isPaymentDone: { type: Boolean, default: false },
     resetToken: String,
     resetTokenExpiry: Date,
+      description: { type: String },
+    // ============ Tutor-specific profile fields ============
+    // Area of expertise (e.g., "IELTS", "Business English")
+    expertise: { type: String },
+    // Overall experience label (e.g., "5+ Years")
+    experience: { type: String },
+    // Rich profile info for TutorDetailsView (optional, can be filled later)
+    bio: { type: String },
+    education: { type: String },
+    specialties: [{ type: String }],
+    // High-level availability info shown in "Next Available" on TutorDetailsView
+    availability: {
+      type: String,
+      default: "Today",
+    },
+    profession: {
+      type: String,
+      default: "student",
+    },
+    // How fast the tutor usually replies (for TutorDetailsView sidebar)
+    responseTime: {
+      type: String,
+      default: "< 2 hours",
+    },
+    // Aggregate rating info for public tutor profile
+    rating: {
+      type: Number,
+      default: 0,
+    },
+    reviewsCount: {
+      type: Number,
+      default: 0,
+    },
   },
   { timestamps: true }
 );

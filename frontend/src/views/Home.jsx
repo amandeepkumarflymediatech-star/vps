@@ -81,7 +81,7 @@ const Home = () => {
       </section>
 
       {/* ================= LATEST REVIEWS SECTION ================= */}
-      {latestReviews.length > 0 && (
+      {/* {latestReviews.length > 0 && (
         <section className="py-20 bg-gray-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
@@ -138,7 +138,7 @@ const Home = () => {
             </div>
           </div>
         </section>
-      )}
+      )} */}
 
       {/* ================= STATS SECTION ================= */}
       <section className="bg-gradient-to-r from-[#0B3C66] to-[#0852A1] py-12">

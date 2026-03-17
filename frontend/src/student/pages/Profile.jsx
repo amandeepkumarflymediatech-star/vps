@@ -30,6 +30,7 @@ const Profile = () => {
     name: '',
     email: '',
     phone: '',
+    profession: ''
   });
 
   // Load user from localStorage on mount
@@ -42,6 +43,7 @@ const Profile = () => {
         name: parsed.name || '',
         email: parsed.email || '',
         phone: parsed.phone || '',
+        profession: parsed.profession || '',
       });
     }
     setLoading(false);
@@ -55,6 +57,7 @@ const Profile = () => {
         name: user.name || '',
         email: user.email || '',
         phone: user.phone || '',
+        profession: user.profession || '',
       });
       setSelectedFile(null);
       setPreviewUrl(null);
@@ -70,6 +73,7 @@ const Profile = () => {
       data.append('name', formData.name);
       data.append('email', formData.email);
       data.append('phone', formData.phone);
+      data.append('profession', formData.profession);
 
       if (selectedFile) {
         data.append('avatar', selectedFile);
@@ -303,6 +307,25 @@ const Profile = () => {
                     </div>
                   ) : (
                     <p className="text-sm sm:text-base text-gray-700 font-medium">{user.phone || 'Not provided'}</p>
+                  )}
+                </div>
+
+                {/* Profession */}
+                <div>
+                  <label className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+                    <User size={14} /> Profession
+                  </label>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      name="profession"
+                      value={formData.profession}
+                      onChange={handleChange}
+                      placeholder="Enter your profession"
+                      className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-200 rounded-lg sm:rounded-xl text-sm sm:text-base focus:ring-2 focus:ring-blue-500 outline-none"
+                    />
+                  ) : (
+                    <p className="text-sm sm:text-base text-gray-700 font-medium">{user.profession || 'Not provided'}</p>
                   )}
                 </div>
 

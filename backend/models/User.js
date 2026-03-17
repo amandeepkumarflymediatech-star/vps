@@ -38,6 +38,10 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "Today",
     },
+    profession: {
+      type: String,
+      default: "student",
+    },
     // How fast the tutor usually replies (for TutorDetailsView sidebar)
     responseTime: {
       type: String,
