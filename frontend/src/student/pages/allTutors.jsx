@@ -57,11 +57,11 @@ const AllTutors = () => {
           rating:
             typeof t.rating === "number" && t.rating > 0
               ? t.rating.toFixed(1)
-              : (4 + Math.random()).toFixed(1),
+              : "5.0",
           reviews:
-            typeof t.reviewsCount === "number" && t.reviewsCount > 0
-              ? t.reviewsCount
-              : Math.floor(Math.random() * 200) + 10,
+            typeof t.enrollmentCount === "number"
+              ? t.enrollmentCount
+              : 0,
           price: Math.floor(Math.random() * 50) + 20,
           image: t.avatar
             ? t.avatar.startsWith("http")

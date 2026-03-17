@@ -230,7 +230,7 @@ const Tutors = () => {
                       <Star size={12} fill="currentColor" />
                       {tutor.rating || "5.0"}
                       <span className="text-yellow-600/60 font-medium">
-                        ({tutor.reviewsCount || 10}+)
+                        ({tutor.enrollmentCount || 0} sessions)
                       </span>
                     </div>
                     <div className="flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-bold border border-blue-100">

@@ -143,8 +143,9 @@ const TutorDetailsView = ({ id: propId }) => {
             // Use expertise from backend when available, otherwise default label
             subject: t.expertise || "Spoken English & Communication",
             // Use backend rating/reviews when available, otherwise fall back to defaults
-            rating: t.rating,
-            reviews: t.reviewsCount,
+            rating: typeof t.rating === "number" && t.rating > 0 ? t.rating.toFixed(1) : "5.0",
+            reviews: t.reviewsCount || 0,
+            enrollments: t.enrollmentCount || 0,
             // Use experience string from backend if present
             experience: t.experience || "5+ Years",
             // Optional rich profile fields with safe fallbacks
@@ -306,7 +307,7 @@ const TutorDetailsView = ({ id: propId }) => {
             </div>
             <div className="bg-white text-indigo-700 rounded-2xl px-4 py-2 md:px-6 md:py-3 text-center text-sm shadow-lg min-w-[120px] md:min-w-[130px]">
               <div className="text-xl md:text-2xl font-bold">
-                {tutor.reviews}
+                {tutor.enrollments}
               </div>
               <div className="opacity-70 text-xs md:text-sm">Session taken</div>
             </div>
@@ -418,7 +419,7 @@ const TutorDetailsView = ({ id: propId }) => {
                       {tutor.rating}
                     </strong>
                     <span className="text-gray-600 text-xs md:text-sm">
-                      ({tutor.reviews} reviews)
+                      ({tutor.enrollments} sessions taken)
                     </span>
                   </div>
 

@@ -29,15 +29,17 @@ export const listTutors = async (req, res) => {
       .limit(limitNum)
       .lean(); // <-- Use lean for easier merging
 
-    // 2️⃣ Fetch availability for all tutors in one query
+    // 2️⃣ Fetch availability and enrollment counts for all tutors in one query
     const tutorIds = tutors.map((t) => t._id);
-    const availabilities = await TutorAvailability.find({
-      tutorId: { $in: tutorIds },
-    })
-      .sort({ date: 1 })
-      .lean();
+    const [availabilities, enrollmentCounts] = await Promise.all([
+      TutorAvailability.find({ tutorId: { $in: tutorIds } }).sort({ date: 1 }).lean(),
+      Enrollment.aggregate([
+        { $match: { tutorId: { $in: tutorIds } } },
+        { $group: { _id: "$tutorId", count: { $sum: 1 } } }
+      ])
+    ]);
 
-    // 3️⃣ Map availability by tutorId
+    // 3️⃣ Map availability and enrollment counts
     const availabilityMap = {};
     availabilities.forEach((a) => {
       if (!availabilityMap[a.tutorId]) availabilityMap[a.tutorId] = [];
@@ -53,17 +55,23 @@ export const listTutors = async (req, res) => {
       });
     });
 
-    // 4️⃣ Merge availability into tutors
-    const tutorsWithAvailability = tutors.map((tutor) => ({
+    const enrollmentCountMap = {};
+    enrollmentCounts.forEach(ec => {
+      enrollmentCountMap[ec._id.toString()] = ec.count;
+    });
+
+    // 4️⃣ Merge availability and enrollmentCount into tutors
+    const tutorsWithStats = tutors.map((tutor) => ({
       ...tutor,
       availability: availabilityMap[tutor._id] || [],
+      enrollmentCount: enrollmentCountMap[tutor._id.toString()] || 0,
     }));
 
     // 5️⃣ Count total tutors
     const totalTutors = await User.countDocuments(filter);
     res.json({
       success: true,
-      data: tutorsWithAvailability,
+      data: tutorsWithStats,
       pagination: {
         total: totalTutors,
         page: pageNum,

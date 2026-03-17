@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import {
@@ -10,6 +10,8 @@ import {
   Users2,
   Award,
   Zap,
+  BookOpen,
+  ArrowUpRight,
 } from "lucide-react";
 
 /* ================= DATA ================= */
@@ -63,11 +65,37 @@ const steps = [
   },
 ];
 
+const caseStudies = [
+  {
+    org: "Global Tech Solutions",
+    title: "Executive Presence for C-Suite",
+    result: "40% increase in deal closure rate after boardroom training.",
+    img: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab",
+  },
+  {
+    org: "Apex Customer Support",
+    title: "Voice & Accent Neutralization",
+    result: "25% improvement in CSAT scores within 3 months.",
+    img: "https://images.unsplash.com/photo-1542744173-8e7e53415bb0",
+  },
+  {
+    org: "Elite Consulting Firm",
+    title: "Business Writing Mastery",
+    result: "Reduced email iteration time by 50% across the firm.",
+    img: "https://images.unsplash.com/photo-1497366216548-37526070297c",
+  },
+];
+
 /* ================= COMPONENT ================= */
 
 const Organizations = () => {
   const router = useRouter();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const caseStudiesRef = useRef(null);
+
+  const scrollToCaseStudies = () => {
+    caseStudiesRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
   // 1. Check if user is logged in (Assuming token-based auth) - only in browser
   useEffect(() => {
@@ -122,7 +150,7 @@ const Organizations = () => {
                   Book Corporate Demo <ChevronRight className="w-5 h-5" />
                 </button>
                 <button
-                  onClick={() => router.push("/support")}
+                  onClick={scrollToCaseStudies}
                   className="flex items-center justify-center gap-2 border-2 border-slate-200 bg-white text-slate-700 px-8 py-4 rounded-xl font-bold hover:bg-slate-50 transition-all"
                 >
                   View Case Studies
@@ -163,7 +191,163 @@ const Organizations = () => {
         </div>
       </section>
 
-      {/* ... (Stats and Programs sections remain the same) ... */}
+      {/* ================= STATS SECTION ================= */}
+      <section className="py-16 bg-white border-y border-slate-100">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+            {stats.map((stat, index) => (
+              <div key={index} className="text-center p-6 group">
+                <div className="mx-auto w-12 h-12 bg-blue-50 text-[#0852A1] rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  {stat.icon}
+                </div>
+                <h3 className="text-3xl font-bold text-slate-900">
+                  {stat.value}
+                </h3>
+                <p className="text-slate-500 font-medium">{stat.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ================= PROGRAMS SECTION ================= */}
+      <section className="py-24 bg-slate-50">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-slate-900 mb-4">
+              Specialized Corporate Programs
+            </h2>
+            <p className="text-xl text-slate-600 max-w-2xl mx-auto">
+              Tailored learning paths designed to address specific communication
+              challenges in your industry.
+            </p>
+          </div>
+
+          <div className="grid lg:grid-cols-2 gap-8">
+            {programs.map((program, index) => (
+              <motion.div
+                key={index}
+                whileHover={{ y: -5 }}
+                className="bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-100 flex flex-col md:flex-row"
+              >
+                <div className="md:w-1/2 relative h-64 md:h-auto">
+                  <img
+                    src={program.img}
+                    alt={program.title}
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                </div>
+                <div className="p-8 md:w-1/2">
+                  <div className="flex gap-2 mb-4">
+                    {program.tags.map((tag, tIdx) => (
+                      <span
+                        key={tIdx}
+                        className="text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-600 px-2 py-1 rounded"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                  <h3 className="text-2xl font-bold text-slate-900 mb-4">
+                    {program.title}
+                  </h3>
+                  <p className="text-slate-600 mb-6">{program.desc}</p>
+                  <button
+                    onClick={() => router.push("/contact")}
+                    className="flex items-center gap-2 text-[#0852A1] font-bold hover:gap-3 transition-all"
+                  >
+                    Learn More <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ================= PROCESS SECTION ================= */}
+      <section className="py-24 bg-white">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-20">
+            <h2 className="text-4xl font-bold text-slate-900 mb-4">
+              Our 4-Step Methodology
+            </h2>
+            <p className="text-lg text-slate-600">
+              A holistic approach to enterprise communication transformation.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-12">
+            {steps.map((step, index) => (
+              <div key={index} className="relative">
+                <div className="text-8xl font-black text-slate-50 absolute -top-12 -left-4 z-0">
+                  {step.icon}
+                </div>
+                <div className="relative z-10">
+                  <h3 className="text-xl font-bold text-slate-900 mb-3 uppercase tracking-tight">
+                    {step.title}
+                  </h3>
+                  <p className="text-slate-600 leading-relaxed">{step.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ================= CASE STUDIES SECTION ================= */}
+      <section ref={caseStudiesRef} className="py-24 bg-[#063D7A] text-white">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
+            <div>
+              <span className="text-blue-400 font-bold tracking-widest uppercase text-sm mb-4 block">
+                Success Stories
+              </span>
+              <h2 className="text-4xl md:text-5xl font-bold">Case Studies.</h2>
+            </div>
+            <button
+              onClick={() => router.push("/contact")}
+              className="flex items-center gap-2 text-slate-400 font-bold hover:text-white transition-colors"
+            >
+              Request full portfolio <ArrowUpRight className="w-5 h-5" />
+            </button>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {caseStudies.map((study, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                viewport={{ once: true }}
+                className="group cursor-pointer"
+              >
+                <div className="relative h-64 rounded-3xl overflow-hidden mb-6">
+                  <img
+                    src={study.img}
+                    alt={study.org}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent opacity-60" />
+                  <div className="absolute bottom-6 left-6">
+                    <p className="text-xs font-bold uppercase tracking-widest text-blue-400 mb-1">
+                      {study.org}
+                    </p>
+                    <h3 className="text-lg font-bold">{study.title}</h3>
+                  </div>
+                </div>
+                <p className="text-slate-400 text-sm leading-relaxed mb-4">
+                  {study.result}
+                </p>
+                <div className="flex items-center gap-2 text-white font-bold text-sm">
+                  View full story <ChevronRight className="w-4 h-4" />
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* ================= CTA SECTION ================= */}
       <section className="py-20">
