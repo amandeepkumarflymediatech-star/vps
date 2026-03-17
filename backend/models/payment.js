@@ -11,13 +11,18 @@ const paymentSchema = new mongoose.Schema(
     method: { type: String, default: "UPI" },
     status: { 
       type: String, 
-      enum: ["PENDING", "UNDER_REVIEW", "SUCCESS", "FAILED"], 
+      enum: ["PENDING", "UNDER_REVIEW", "SUCCESS", "FAILED", "COMPLETED"], 
       default: "PENDING" 
     },
     proofImage: String,
-    upiRefNo: String, // optional
+    upiRefNo: String, // optional - UPI reference number
+    transactionId: String, // Payment gateway transaction ID
   },
   { timestamps: true }
 );
+
+// Index for faster queries
+paymentSchema.index({ clientPaymentId: 1 });
+paymentSchema.index({ status: 1 });
 
 export default mongoose.model("Payment", paymentSchema);

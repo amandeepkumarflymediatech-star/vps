@@ -4,8 +4,10 @@ import {
   createUpiPayment,
   logUpiPayment,
   uploadPaymentProof,
-  createRazorpayOrder,
-  verifyRazorpaySignature,
+  initiatePhonePePayment,
+  phonePeCallback,
+  initiatePhonePeUpiPayment,
+  checkUpiPaymentStatus,
 } from "../controllers/payment.controller.js";
 import upload from "../middlewares/upload.js";
 
@@ -25,8 +27,12 @@ router.post(
   uploadPaymentProof
 );
 
-// RAZORPAY ROUTES
-router.post("/razorpay/order", paymentAuth, createRazorpayOrder);
-router.post("/razorpay/verify", paymentAuth, verifyRazorpaySignature);
+// PHONEPE ROUTES (Card/Netbanking/Wallet)
+router.post("/phonepe/initiate", paymentAuth, initiatePhonePePayment);
+router.post("/phonepe/callback", phonePeCallback);
+
+// PHONEPE UPI ROUTES (Direct UPI payment)
+router.post("/phonepe/upi", paymentAuth, initiatePhonePeUpiPayment);
+router.get("/phonepe/status/:merchantTransactionId", paymentAuth, checkUpiPaymentStatus);
 
 export default router;
