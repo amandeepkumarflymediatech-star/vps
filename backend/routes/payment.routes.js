@@ -8,6 +8,7 @@ import {
   phonePeCallback,
   initiatePhonePeUpiPayment,
   checkUpiPaymentStatus,
+  fetchPhonePeAuthTokenRoute,
 } from "../controllers/payment.controller.js";
 import upload from "../middlewares/upload.js";
 
@@ -29,10 +30,14 @@ router.post(
 
 // PHONEPE ROUTES (Card/Netbanking/Wallet)
 router.post("/phonepe/initiate", paymentAuth, initiatePhonePePayment);
+ 
 router.post("/phonepe/callback", phonePeCallback);
 
 // PHONEPE UPI ROUTES (Direct UPI payment)
 router.post("/phonepe/upi", paymentAuth, initiatePhonePeUpiPayment);
 router.get("/phonepe/status/:merchantTransactionId", paymentAuth, checkUpiPaymentStatus);
+
+// PHONEPE AUTH TOKEN
+router.get("/phonepe/auth-token", paymentAuth, fetchPhonePeAuthTokenRoute);
 
 export default router;
