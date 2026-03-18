@@ -1051,7 +1051,7 @@ export const initiatePhonePePayment = async (req, res) => {
 
     // 5️⃣ API Call
     const response = await axios.post(
-      "https://api-preprod.phonepe.com/apis/pg-sandbox/checkout/v2/pay",
+      process.env.PHONEPE_PAY_URL || "https://api-preprod.phonepe.com/apis/pg-sandbox/checkout/v2/pay",
       payload,
       {
         headers: {
