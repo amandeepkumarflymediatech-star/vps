@@ -586,7 +586,7 @@ export const initiatePhonePePayment = async (req, res) => {
     };
     console.log(payload, 'payload')
     // 📡 API Call
-    const response = await axios.post(process.env.PHONEPE_PAY_URL, payload, {
+    const response = await axios.post('https://api.phonepe.com/apis/pg/checkout/v2/pay', payload, {
       headers: {
         "Content-Type": "application/json",
         Authorization: `O-Bearer ${accessToken}`,
