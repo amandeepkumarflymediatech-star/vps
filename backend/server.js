@@ -32,6 +32,7 @@ const allowedOrigins = [
   process.env.PHONEPE_API_URL,
   process.env.PHONEPE_AUTH_URL,
   process.env.PHONEPE_CALLBACK_URL,
+  process.env.PHONEPE_PAY_URL,
   "https://mercury-uat.phonepe.com",
   "https://mercury-uat.phonepe.com/apis/hermes/pg/v1/pay",
 ].filter(Boolean);
