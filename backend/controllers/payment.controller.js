@@ -555,7 +555,7 @@ export const initiatePhonePePayment = async (req, res) => {
         message: "Token generation failed",
       });
     }
-
+    console.log(tokenData, '--token---')
     const accessToken = tokenData.token_data.access_token;
 
     // 🆔 Generate Unique Transaction ID
@@ -583,7 +583,7 @@ export const initiatePhonePePayment = async (req, res) => {
         type: "PAY_PAGE",
       },
     };
-
+    console.log(payload, 'payload')
     // 📡 API Call
     const response = await axios.post(process.env.PHONEPE_PAY_URL, payload, {
       headers: {
@@ -591,6 +591,8 @@ export const initiatePhonePePayment = async (req, res) => {
         Authorization: `O-Bearer ${accessToken}`,
       },
     });
+
+    console.log(response.data, 'repjds')
 
     // ✅ Success Condition (FIXED)
     if (response.data?.redirectUrl) {
