@@ -100,6 +100,7 @@ export const getPackages = async (req, res) => {
   //     path: "courses",
   //     select: "title price image",
   //   });
+  console.log(packages,"packages")
     return res.json({
       success: true,
       data: packages,
