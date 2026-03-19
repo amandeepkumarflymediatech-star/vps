@@ -27,6 +27,19 @@
       <h1 class="text-2xl font-semibold text-gray-800">Enrollments</h1>
     </div>
 
+    <!-- ================= FILTER BAR ================= -->
+    <div class="flex justify-end mb-4">
+      <form action="/admin/enrollments" method="GET" class="w-full md:w-auto flex items-center">
+        <select name="status" class="bg-white border text-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full" onchange="this.form.submit()">
+          <option value="">All Statuses</option>
+          <option value="PENDING" <%= typeof currentStatus !== 'undefined' && currentStatus === 'PENDING' ? 'selected' : '' %>>Pending</option>
+          <option value="UPCOMING" <%= typeof currentStatus !== 'undefined' && currentStatus === 'UPCOMING' ? 'selected' : '' %>>Upcoming</option>
+          <option value="COMPLETED" <%= typeof currentStatus !== 'undefined' && currentStatus === 'COMPLETED' ? 'selected' : '' %>>Completed</option>
+          <option value="CANCELLED" <%= typeof currentStatus !== 'undefined' && currentStatus === 'CANCELLED' ? 'selected' : '' %>>Cancelled</option>
+        </select>
+      </form>
+    </div>
+
     <!-- ================= ENROLLMENTS TABLE (DESKTOP) ================= -->
     <div class="hidden md:block bg-white rounded-xl shadow border overflow-x-auto">
       <table class="min-w-full text-sm text-left">
@@ -137,39 +150,57 @@
     </div>
 
     <!-- ================= PAGINATION ================= -->
-    <% if (totalPages > 1) { %>
-    <div class="flex items-center justify-between mt-6">
+    <div class="flex flex-col sm:flex-row items-center justify-between mt-6 gap-4">
       <p class="text-sm text-gray-600">
-        Page <span class="font-semibold"><%= currentPage %></span> of
-        <span class="font-semibold"><%= totalPages %></span>
+        Showing <span class="font-semibold"><%= enrollments.length > 0 ? ((currentPage - 1) * limit) + 1 : 0 %></span> to <span class="font-semibold"><%= ((currentPage - 1) * limit) + enrollments.length %></span> of <span class="font-semibold"><%= typeof totalEnrollments !== 'undefined' ? totalEnrollments : 0 %></span> results
       </p>
 
+      <% if (totalPages > 1) { %>
       <div class="flex items-center gap-2">
         <a
-          href="?page=<%= currentPage - 1 %>"
+          href="?page=<%= currentPage - 1 %><%= typeof currentStatus !== 'undefined' && currentStatus ? '&status=' + currentStatus : '' %>"
           class="px-3 py-2 rounded-lg border text-sm font-medium <%= currentPage === 1 ? 'pointer-events-none opacity-50 bg-gray-100' : 'hover:bg-gray-100' %>"
         >
           Prev
         </a>
 
-        <% for (let i = 1; i <= totalPages; i++) { %>
+        <% 
+        let startPage = Math.max(1, currentPage - 2);
+        let endPage = Math.min(totalPages, currentPage + 2);
+        
+        if (startPage > 1) { 
+        %>
+          <a href="?page=1<%= typeof currentStatus !== 'undefined' && currentStatus ? '&status=' + currentStatus : '' %>" class="px-3 py-2 rounded-lg text-sm font-medium border hover:bg-gray-100">1</a>
+          <% if (startPage > 2) { %>
+            <span class="px-2 py-2 text-gray-400">...</span>
+          <% } %>
+        <% } %>
+
+        <% for (let i = startPage; i <= endPage; i++) { %>
         <a
-          href="?page=<%= i %>"
+          href="?page=<%= i %><%= typeof currentStatus !== 'undefined' && currentStatus ? '&status=' + currentStatus : '' %>"
           class="px-3 py-2 rounded-lg text-sm font-medium border <%= i === currentPage ? 'bg-blue-600 text-white border-blue-600' : 'hover:bg-gray-100' %>"
         >
           <%= i %>
         </a>
         <% } %>
 
+        <% if (endPage < totalPages) { %>
+          <% if (endPage < totalPages - 1) { %>
+            <span class="px-2 py-2 text-gray-400">...</span>
+          <% } %>
+          <a href="?page=<%= totalPages %><%= typeof currentStatus !== 'undefined' && currentStatus ? '&status=' + currentStatus : '' %>" class="px-3 py-2 rounded-lg text-sm font-medium border hover:bg-gray-100"><%= totalPages %></a>
+        <% } %>
+
         <a
-          href="?page=<%= currentPage + 1 %>"
+          href="?page=<%= currentPage + 1 %><%= typeof currentStatus !== 'undefined' && currentStatus ? '&status=' + currentStatus : '' %>"
           class="px-3 py-2 rounded-lg border text-sm font-medium <%= currentPage === totalPages ? 'pointer-events-none opacity-50 bg-gray-100' : 'hover:bg-gray-100' %>"
         >
           Next
         </a>
       </div>
+      <% } %>
     </div>
-    <% } %>
   </div>
 </main>
 

@@ -9,9 +9,15 @@ exports.renderEnrollments = async (req, res) => {
     const page = parseInt(req.query.page, 10) || 1;
     const limit = 10;
     const skip = (page - 1) * limit;
+    const status = req.query.status;
 
-    const totalEnrollments = await Enrollment.countDocuments();
-    const enrollments = await Enrollment.find()
+    const filter = {};
+    if (status) {
+      filter.status = status;
+    }
+
+    const totalEnrollments = await Enrollment.countDocuments(filter);
+    const enrollments = await Enrollment.find(filter)
       .populate("userId", "name email role")
       .populate("tutorId", "name email role")
       .sort({ createdAt: -1 })
@@ -23,6 +29,9 @@ exports.renderEnrollments = async (req, res) => {
       enrollments,
       currentPage: page,
       totalPages: Math.ceil(totalEnrollments / limit),
+      totalEnrollments,
+      limit,
+      currentStatus: status || "",
     });
   } catch (error) {
     console.error("Admin enrollments list error:", error);

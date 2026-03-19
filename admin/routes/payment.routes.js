@@ -119,8 +119,15 @@ router.get("/", auth, role("ADMIN"), async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = 10;
     const skip = (page - 1) * limit;
-    const totalPayments = await Payment.countDocuments();
-    const payments = await Payment.find()
+    const status = req.query.status;
+
+    const filter = {};
+    if (status) {
+      filter.status = status;
+    }
+
+    const totalPayments = await Payment.countDocuments(filter);
+    const payments = await Payment.find(filter)
       .populate("userId", "name email role")
       .sort({ createdAt: -1 })
       .skip(skip)
@@ -131,6 +138,9 @@ router.get("/", auth, role("ADMIN"), async (req, res) => {
       payments,
       currentPage: page,
       totalPages: Math.ceil(totalPayments / limit),
+      totalPayments,
+      limit,
+      currentStatus: status || "",
     });
   } catch (err) {
     console.error("Admin payments list error:", err);
