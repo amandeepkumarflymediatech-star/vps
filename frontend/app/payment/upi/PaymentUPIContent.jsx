@@ -3,25 +3,33 @@
 import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { ShieldCheck, Loader2, Smartphone, CreditCard, CheckCircle } from "lucide-react";
-import { initiatePhonePeUpiPayment, checkUpiPaymentStatus } from "@/api/payment.api";
+import { ShieldCheck, Loader2, Smartphone, CreditCard } from "lucide-react";
+import { initiatePhonePePayment, checkPhonePePaymentStatus } from "@/api/payment.api";
 import toast from "react-hot-toast";
 
 export default function PaymentUPIContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-
+  console.log(searchParams, '-------')
   const amount = searchParams.get("amount");
   const lessons = searchParams.get("lessons");
   const packageId = searchParams.get("packageId");
   const tutorId = searchParams.get("tutorId");
-
+  console.log(lessons, 'lesons',Number(lessons))
   const [ready, setReady] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState("upi"); // 'upi' or 'card'
-  const [upiId, setUpiId] = useState("");
   const [processing, setProcessing] = useState(false);
-  const [polling, setPolling] = useState(false);
-  const [merchantTransactionId, setMerchantTransactionId] = useState(null);
+  const [polling, setPolling] = useState(false)
+
+  const handleCallback = (response, txnId) => {
+    if (response === "USER_CANCEL") {
+      setProcessing(false);
+      return;
+    }
+
+    if (response === "CONCLUDED") {
+      startPolling(txnId); // ✅ correct ID
+    }
+  };
 
   useEffect(() => {
     if (!amount || !lessons) {
@@ -36,49 +44,6 @@ export default function PaymentUPIContent() {
   const planName = `${lessons} Lessons Package`;
   const amountFormatted = Number(amount).toFixed(2);
 
-  // Handle UPI payment
-  const handleUpiPayment = async () => {
-    if (!upiId.trim()) {
-      toast.error("Please enter your UPI ID");
-      return;
-    }
-
-    // Validate UPI format
-    const upiRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9]+$/;
-    if (!upiRegex.test(upiId.trim())) {
-      toast.error("Please enter a valid UPI ID (e.g., mobilenumber@upi)");
-      return;
-    }
-
-    try {
-      setProcessing(true);
-
-      const res = await initiatePhonePeUpiPayment({
-        amount: Number(amountFormatted),
-        lessons: Number(lessons),
-        packageId,
-        tutorId,
-        upiId: upiId.trim(),
-      });
-
-      if (res.success) {
-        // Store transaction ID for status checking
-        setMerchantTransactionId(res.merchantTransactionId);
-        
-        // Start polling for payment status
-        toast.success("Payment request sent! Please approve on your UPI app.");
-        startPolling(res.merchantTransactionId);
-      } else {
-        toast.error(res.message || "Failed to initiate UPI payment");
-        setProcessing(false);
-      }
-    } catch (err) {
-      console.error("UPI payment error:", err);
-      toast.error(err.response?.data?.message || "Payment initiation failed");
-      setProcessing(false);
-    }
-  };
-
   // Poll for payment status
   const startPolling = async (transactionId) => {
     setPolling(true);
@@ -87,18 +52,18 @@ export default function PaymentUPIContent() {
 
     const poll = async () => {
       try {
-        const statusRes = await checkUpiPaymentStatus(transactionId);
+        const statusRes = await checkPhonePePaymentStatus(transactionId);
 
-        if (statusRes.status === "SUCCESS") {
+        if (statusRes.state === "COMPLETED") {
           toast.success("Payment successful!");
           setPolling(false);
-          router.push(`/payment-success?txnId=${transactionId}`);
+          router.push(`/payment-success?status=success`);
           return;
-        } else if (statusRes.status === "FAILED") {
+        } else if (statusRes.state === "FAILED") {
           toast.error("Payment failed. Please try again.");
           setPolling(false);
           setProcessing(false);
-          setMerchantTransactionId(null);
+
           return;
         }
 
@@ -109,7 +74,8 @@ export default function PaymentUPIContent() {
           toast.error("Payment timeout. Please check your UPI app.");
           setPolling(false);
           setProcessing(false);
-          setMerchantTransactionId(null);
+
+          router.push(`/payment-success?status=failed`);
         }
       } catch (err) {
         console.error("Status check error:", err);
@@ -119,7 +85,7 @@ export default function PaymentUPIContent() {
         } else {
           setPolling(false);
           setProcessing(false);
-          setMerchantTransactionId(null);
+
         }
       }
     };
@@ -131,33 +97,28 @@ export default function PaymentUPIContent() {
   const handleCardPayment = async () => {
     try {
       setProcessing(true);
-      
       const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-      
       if (!token) {
         toast.error("Please login to make payment");
         setProcessing(false);
         return;
       }
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"}/payment/phonepe/initiate`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          amount: Number(amountFormatted),
-          lessons: Number(lessons),
-          packageId,
-          tutorId,
-        }),
+      const data = await initiatePhonePePayment({
+        amount: Number(amountFormatted),
+        lessons: Number(lessons),
+        packageId,
+        tutorId,
       });
-      
-      const data = await res.json();
+
 
       if (data.success && data.redirectUrl) {
-        window.location.href = data.redirectUrl;
+        const txnId = data.merchantTransactionId;
+        window.PhonePeCheckout.transact({
+          tokenUrl: data.redirectUrl,
+          callback: (response) => handleCallback(response, txnId),
+          type: "IFRAME"
+        });;
       } else {
         toast.error(data.message || "Failed to initiate payment");
         setProcessing(false);
@@ -190,77 +151,11 @@ export default function PaymentUPIContent() {
           <span className="text-3xl font-black text-gray-900">₹{amountFormatted}</span>
         </div>
 
-        {/* Payment Method Selection */}
-        <div className="mb-6">
-          <p className="text-left text-sm font-semibold text-gray-700 mb-3">Select Payment Method</p>
-          <div className="flex gap-3">
-            <button
-              onClick={() => setPaymentMethod("upi")}
-              className={`flex-1 py-3 px-4 rounded-xl border-2 flex items-center justify-center gap-2 transition-all ${
-                paymentMethod === "upi"
-                  ? "border-[#6739B7] bg-purple-50 text-[#6739B7]"
-                  : "border-gray-200 text-gray-600 hover:border-gray-300"
-              }`}
-            >
-              <Smartphone size={18} />
-              <span className="font-semibold text-sm">UPI</span>
-            </button>
-            <button
-              onClick={() => setPaymentMethod("card")}
-              className={`flex-1 py-3 px-4 rounded-xl border-2 flex items-center justify-center gap-2 transition-all ${
-                paymentMethod === "card"
-                  ? "border-[#6739B7] bg-purple-50 text-[#6739B7]"
-                  : "border-gray-200 text-gray-600 hover:border-gray-300"
-              }`}
-            >
-              <CreditCard size={18} />
-              <span className="font-semibold text-sm">Card/Netbanking</span>
-            </button>
-          </div>
-        </div>
-
-        {/* UPI Payment Form */}
-        {paymentMethod === "upi" && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            className="mb-6"
-          >
-            <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-2xl p-4 border border-purple-100">
-              <label className="block text-left text-sm font-semibold text-gray-700 mb-2">
-                Enter Your UPI ID
-              </label>
-              <input
-                type="text"
-                value={upiId}
-                onChange={(e) => setUpiId(e.target.value)}
-                placeholder="yourname@upi"
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#6739B7] focus:ring-2 focus:ring-purple-100 outline-none transition-all text-center font-mono text-lg"
-                disabled={polling}
-              />
-              <p className="text-xs text-gray-500 mt-2 text-left">
-                Example: 9876543210@upi, name@bankname
-              </p>
-            </div>
-
-            {polling && (
-              <div className="mt-4 p-4 bg-yellow-50 rounded-xl border border-yellow-200">
-                <div className="flex items-center justify-center gap-2 text-yellow-800">
-                  <Loader2 className="animate-spin" size={20} />
-                  <span className="font-semibold">Waiting for payment approval...</span>
-                </div>
-                <p className="text-xs text-yellow-700 mt-2">
-                  Please check your UPI app and approve the payment request
-                </p>
-              </div>
-            )}
-          </motion.div>
-        )}
 
         {/* Payment Button */}
         <button
-          onClick={paymentMethod === "upi" ? handleUpiPayment : handleCardPayment}
-          disabled={processing || (paymentMethod === "upi" && polling)}
+          onClick={handleCardPayment}
+          disabled={processing || polling}
           className="w-full py-4 rounded-2xl bg-[#6739B7] text-white font-bold shadow-xl hover:bg-[#5a32a3] transition-all flex items-center justify-center gap-3 disabled:opacity-50"
         >
           {processing || polling ? (
@@ -275,19 +170,13 @@ export default function PaymentUPIContent() {
                 alt=""
                 className="w-6 h-6 invert brightness-0"
               />
-              {paymentMethod === "upi" ? "Pay via UPI" : "Pay via PhonePe"}
+              Pay via PhonePe
             </>
           )}
         </button>
 
-        <p className="mt-6 text-[11px] text-gray-400 leading-relaxed uppercase tracking-widest font-bold">
-          {paymentMethod === "upi" 
-            ? "Pay using any UPI app (Google Pay, PhonePe, Paytm, etc.)" 
-            : "Pay via UPI, Cards, or NetBanking"}
-        </p>
-        
         <div className="mt-4 flex items-center justify-center gap-4 opacity-50 grayscale">
-           <span className="text-[10px] font-bold">PHONEPE SECURE</span>
+          <span className="text-[10px] font-bold">PHONEPE SECURE</span>
         </div>
       </motion.div>
     </div>

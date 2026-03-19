@@ -33,12 +33,6 @@ const lessonPricing = {
   16: 4720,
 };
 
-const generateChecksum = (payload, endpoint, saltKey, saltIndex) => {
-  const string = payload + endpoint + saltKey;
-  const sha256 = crypto.createHash("sha256").update(string).digest("hex");
-  return `${sha256}###${saltIndex}`;
-};
-
 // POST /api/payment/upi
 export const createUpiPayment = (req, res) => {
   try {
@@ -313,779 +307,57 @@ export const uploadPaymentProof = async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
 // ================= PHONEPE INTEGRATION =================
-
-/**
- * Initiates a PhonePe payment
- * POST /api/payment/phonepe/initiate
- */
-
-// export const initiatePhonePePayment = async (req, res) => {
-//   try {
-//     // 1️⃣ Get OAuth Token
-//     const tokenData = await getPhonePeAuthToken();
-
-//     if (!tokenData.success) {
-//       return res.status(500).json({
-//         success: false,
-//         message: "Failed to generate PhonePe Auth Token",
-//       });
-//     }
-
-//     const accessToken = tokenData.token_data.access_token;
-
-//     // 2️⃣ Get request data
-//     const { amount, tutorId, packageId, lessons } = req.body;
-//     const userId = req.user?.id || req.user?._id;
-
-//     if (!userId) {
-//       return res.status(401).json({
-//         success: false,
-//         message: "Unauthorized",
-//       });
-//     }
-
-//     if (!amount || amount <= 0) {
-//       return res.status(400).json({
-//         success: false,
-//         message: "Invalid amount",
-//       });
-//     }
-
-//     // 3️⃣ Env validation
-//     if (!process.env.PHONEPE_MERCHANT_ID) {
-//       return res.status(500).json({
-//         success: false,
-//         message: "PhonePe Merchant ID not configured",
-//       });
-//     }
-
-//     // 4️⃣ Generate IDs
-//     // const merchantTransactionId = `MT${Date.now()}${Math.floor(
-//     //   Math.random() * 1000
-//     // )}`;
-
-//     // const merchantUserId = `MUID${userId.toString().slice(0, 10)}`;
-
-//     // // 5️⃣ Create DB entry (PENDING)
-//     // await Payment.create({
-//     //   clientPaymentId: merchantTransactionId,
-//     //   userId,
-//     //   tutorId,
-//     //   packageId,
-//     //   amount,
-//     //   lessons,
-//     //   method: "PHONEPE",
-//     //   status: "PENDING",
-//     // });
-
-//     // // 6️⃣ Create PhonePe request payload (NO base64)
-//     // const payload = { 
-//     //   merchantId: process.env.PHONEPE_MERCHANT_ID,
-//     //   merchantTransactionId,
-//     //   merchantOrderId:'M23XIV1J8JNND_2603171923',
-//     //   merchantUserId,
-//     //   amount: amount * 100, // paise
-//     //   redirectUrl: process.env.PHONEPE_REDIRECT_URL,
-//     //   callbackUrl: process.env.PHONEPE_CALLBACK_URL,
-//     //   redirectMode: "POST",
-//     //   paymentInstrument: {
-//     //     type: "PAY_PAGE",
-//     //   },
-//     // };
-
-//     // // 7️⃣ API Call (NEW FLOW)
-//     // const response = await axios({
-//     //   method: "POST",
-//     //   url: "https://api-preprod.phonepe.com/apis/pg-sandbox/checkout/v2/pay",
-//     //   headers: {
-//     //     "Content-Type": "application/json",
-//     //     Authorization: `O-Bearer ${accessToken}`,
-//     //   },
-//     //   data: payload,
-//     // });
-
-
-
-//     const requestHeaders = {
-//       "Content-Type": "application/json",
-//       "Authorization": `O-Bearer ${accessToken}`
-//     };
-
-//     const requestBody = {
-//       "amount": 1000,
-//       "expireAfter": 1200,
-//       "metaInfo": {
-//         "udf1": "additional-information-1",
-//         "udf2": "additional-information-2",
-//         "udf3": "additional-information-3",
-//         "udf4": "additional-information-4",
-//         "udf5": "additional-information-5",
-//         "udf6": "additional-information-6",
-//         "udf7": "additional-information-7",
-//         "udf8": "additional-information-8",
-//         "udf9": "additional-information-9",
-//         "udf10": "additional-information-10",
-//         "udf11": "additional-information-11",
-//         "udf12": "additional-information-12",
-//         "udf13": "additional-information-13",
-//         "udf14": "additional-information-14",
-//         "udf15": "additional-information-15"
-//       },
-//       "paymentFlow": {
-//         "type": "PG_CHECKOUT",
-//         "message": "Payment message used for collect requests",
-//         "merchantUrls": {
-//           "redirectUrl": ""
-//         }
-//       },
-//       "merchantOrderId": "M23XIV1J8JNND_2603171923"
-//     };
-
-//     const options = {
-//       method: 'POST',
-//       url: 'https://api-preprod.phonepe.com/apis/pg-sandbox/checkout/v2/pay',
-//       headers: requestHeaders,
-//       data: requestBody
-//     };
-//     const response = await axios.post(options.url, options.data, { headers: options.headers })
-//     // 8️⃣ Handle response
-//     if (response.data?.success) {
-//       const redirectUrl =
-//         response.data.data.instrumentResponse.redirectInfo.url;
-
-//       return res.status(200).json({
-//         success: true,
-//         redirectUrl,
-//       });
-//     } else {
-//       return res.status(400).json({
-//         success: false,
-//         message: response.data?.message || "Payment initiation failed",
-//       });
-//     }
-//   } catch (err) {
-//     console.error("=== PHONEPE V2 ERROR ===");
-//     console.error("Status:", err.response?.status);
-//     console.error(
-//       "Response:",
-//       JSON.stringify(err.response?.data, null, 2)
-//     );
-//     console.error("Message:", err.message);
-
-//     return res.status(500).json({
-//       success: false,
-//       message: err.response?.data?.message || err.message,
-//     });
-//   }
-// };
-// export const initiatePhonePePayment = async (req, res) => {
-//   try {
-//     let tokendata = await getPhonePeAuthToken()
-//     if (!tokendata.success) {
-//       return res.status(500).json({
-//         success: false,
-//         message: "Failed to generate PhonePe Auth Token",
-//       });
-//     }
-//     const accessToken = tokendata.token_data.access_token;
-//     const { amount, tutorId, packageId, lessons } = req.body;
-//     const userId = req.user?.id || req.user?._id;
-
-//     if (!userId) {
-//       console.error("User not authenticated, req.user:", req.user);
-//       return res.status(401).json({ success: false, message: "Unauthorized" });
-//     }
-
-//     if (!amount || amount <= 0) {
-//       return res
-//         .status(400)
-//         .json({ success: false, message: "Invalid amount" });
-//     }
-
-//     // Check environment variables
-//     if (!process.env.PHONEPE_MERCHANT_ID || !process.env.PHONEPE_SALT_KEY) {
-//       console.error("PhonePe environment variables not configured");
-//       return res
-//         .status(500)
-//         .json({ success: false, message: "Payment gateway not configured" });
-//     }
-
-//     const merchantTransactionId = `MT${Date.now()}${Math.floor(Math.random() * 1000)}`;
-//     const merchantUserId = `MUID${userId.toString().substring(0, 10)}`;
-
-//     const payload = {
-//       merchantId: process.env.PHONEPE_MERCHANT_ID,
-//       merchantTransactionId: merchantTransactionId,
-//       merchantOrderId: accessToken, // Fixed: merchantOrderId should typically be your order/transaction ID
-//       merchantUserId: merchantUserId,
-//       amount: amount * 100, // Convert to paise
-//       redirectUrl: process.env.PHONEPE_REDIRECT_URL,
-//       redirectMode: "POST",
-//       callbackUrl: process.env.PHONEPE_CALLBACK_URL,
-//       paymentInstrument: {
-//         type: "PAY_PAGE",
-//       },
-//     };
-
-//     const base64Payload = Buffer.from(JSON.stringify(payload)).toString(
-//       "base64",
-//     );
-//     const checksum = generateChecksum(
-//       base64Payload,
-//       "/pg/v1/pay",
-//       process.env.PHONEPE_SALT_KEY,
-//       process.env.PHONEPE_SALT_INDEX,
-//     );
-
-//     // Create a pending payment record
-//     const result = await Payment.create({
-//       clientPaymentId: merchantTransactionId,
-//       userId,
-//       tutorId,
-//       packageId,
-//       amount,
-//       lessons,
-//       method: "PHONEPE",
-//       status: "PENDING",
-//     });
-
-
-
-
-
-//     // If an OAuth token was successfully generated, attach it to the headers.
-//       const requestHeaders = {
-//       "Content-Type": "application/json"
-//     };
-//     const options = {
-//       method: 'POST',
-//       url: 'https://api-preprod.phonepe.com/apis/pg-sandbox/checkout/v2/pay',
-//       headers: requestHeaders,
-//       data: payload
-//     };
-//     if (accessToken) {
-//       options.headers["Authorization"] = `O-Bearer ${accessToken}`;
-//       // Some standard PhonePe APIs also use X-AUTHORIZATION metadata
-//       options.headers["X-AUTHORIZATION"] = `O-Bearer ${accessToken}`;
-//     }
-
-
-
-
-//     const response = await axios(options);
-//     console.log(response, '===========================================')
-//     if (response.data?.success) {
-//       const redirectUrl = response.data.data.instrumentResponse.redirectInfo.url;
-//       return res.status(200).json({ success: true, redirectUrl });
-//     } else {
-//       return res.status(400).json({
-//         success: false,
-//         message: response.data?.message || "Initiation failed",
-//       });
-//     }
-//   } catch (err) {
-//     console.error("=== initiatePhonePePayment ERROR ===");
-//     console.error("PhonePe API URL:", process.env.PHONEPE_API_URL);
-//     console.error("Merchant ID:", process.env.PHONEPE_MERCHANT_ID);
-//     console.error("PhonePe response:", JSON.stringify(err.response?.data, null, 2));
-//     console.error("HTTP Status:", err.response?.status);
-//     console.error("Error message:", err.message);
-//     res.status(500).json({
-//       success: false,
-//       message: err.message || "Payment initiation failed",
-//     });
-//   }
-// };
-
-// ================= PHONEPE UPI PAYMENT INTEGRATION =================
-
-/**
- * Initiates a PhonePe UPI Collect payment (direct UPI payment)
- * POST /api/payment/phonepe/upi
- */
-export const initiatePhonePeUpiPayment = async (req, res) => {
-  try {
-    const { amount, tutorId, packageId, lessons, upiId } = req.body;
-    const userId = req.user?.id || req.user?._id;
-
-    if (!userId) {
-      return res.status(401).json({ success: false, message: "Unauthorized" });
-    }
-
-    if (!amount || amount <= 0) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid amount" });
-    }
-
-    if (!upiId) {
-      return res
-        .status(400)
-        .json({ success: false, message: "UPI ID is required" });
-    }
-
-    const merchantTransactionId = `MT${Date.now()}${Math.floor(Math.random() * 1000)}`;
-    const merchantUserId = `MUID${userId.toString().substring(0, 10)}`;
-
-    // UPI Collect payment payload
-    const payload = {
-      merchantId: process.env.PHONEPE_MERCHANT_ID,
-      merchantTransactionId: merchantTransactionId,
-      merchantUserId: merchantUserId,
-      amount: amount * 100, // Convert to paise
-      redirectUrl: `${process.env.PHONEPE_REDIRECT_URL}?txnId=${merchantTransactionId}`,
-      redirectMode: "REDIRECT",
-      callbackUrl: process.env.PHONEPE_CALLBACK_URL,
-      paymentInstrument: {
-        type: "UPI_COLLECT",
-        upi: {
-          upiId: upiId,
-        },
-      },
-    };
-
-    const base64Payload = Buffer.from(JSON.stringify(payload)).toString(
-      "base64",
-    );
-    const checksum = generateChecksum(
-      base64Payload,
-      "/pg/v1/pay",
-      process.env.PHONEPE_SALT_KEY,
-      process.env.PHONEPE_SALT_INDEX,
-    );
-
-    console.log("Initiating PhonePe UPI payment with payload:", payload);
-
-    // Create a pending payment record with optimistic locking
-    const payment = await Payment.findOneAndUpdate(
-      { clientPaymentId: merchantTransactionId },
-      {
-        $setOnInsert: {
-          clientPaymentId: merchantTransactionId,
-          userId,
-          tutorId,
-          packageId,
-          amount,
-          lessons,
-          method: "PHONEPE_UPI",
-          status: "PENDING",
-          upiRefNo: upiId,
-        },
-      },
-      {
-        upsert: true,
-        new: true,
-        setDefaultsOnInsert: true,
-      },
-    );
-
-    const options = {
-      method: "post",
-      url: process.env.PHONEPE_API_URL,
-      headers: {
-        accept: "application/json",
-        "Content-Type": "application/json",
-        "X-VERIFY": checksum,
-      },
-      data: {
-        request: base64Payload,
-      },
-    };
-
-    const response = await axios(options);
-
-    if (response.data?.success) {
-      const redirectUrl =
-        response.data.data?.instrumentResponse?.redirectInfo?.url ||
-        `${process.env.PHONEPE_REDIRECT_URL}?txnId=${merchantTransactionId}`;
-      return res.status(200).json({
-        success: true,
-        redirectUrl,
-        merchantTransactionId,
-        message: "UPI payment request sent. Please approve on your UPI app.",
-      });
-    } else {
-      // Update payment status to failed
-      await Payment.findOneAndUpdate(
-        { clientPaymentId: merchantTransactionId },
-        { $set: { status: "FAILED" } },
-      );
-      return res.status(400).json({
-        success: false,
-        message: response.data?.message || "UPI payment initiation failed",
-      });
-    }
-  } catch (err) {
-    console.error(
-      "initiatePhonePeUpiPayment error:",
-      err.response?.data || err.message,
-    );
-    res.status(500).json({ success: false, message: err.message });
-  }
-};
-
-/**
- * Check UPI payment status
- * GET /api/payment/phonepe/status/:merchantTransactionId
- */
-export const checkUpiPaymentStatus = async (req, res) => {
-  try {
-    const { merchantTransactionId } = req.params;
-
-    if (!merchantTransactionId) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Transaction ID required" });
-    }
-
-    const saltKey = process.env.PHONEPE_SALT_KEY;
-    const saltIndex = process.env.PHONEPE_SALT_INDEX;
-
-    // Generate checksum for status check
-    const string = `/pg/v1/status/${process.env.PHONEPE_MERCHANT_ID}/${merchantTransactionId}${saltKey}`;
-    const sha256 = crypto.createHash("sha256").update(string).digest("hex");
-    const checksum = `${sha256}###${saltIndex}`;
-
-    const options = {
-      method: "get",
-      url: `${process.env.PHONEPE_BASE_URL}/pg/v1/status/${process.env.PHONEPE_MERCHANT_ID}/${merchantTransactionId}`,
-      headers: {
-        accept: "application/json",
-        "Content-Type": "application/json",
-        "X-VERIFY": checksum,
-        "X-MERCHANT-ID": process.env.PHONEPE_MERCHANT_ID,
-      },
-    };
-
-    const response = await axios(options);
-    const paymentData = response.data;
-
-    if (paymentData?.success && paymentData.code === "PAYMENT_SUCCESS") {
-      // Use lock to prevent race conditions when updating payment
-      const lockKey = `payment:${merchantTransactionId}`;
-      const lockAcquired = await acquireLock(lockKey);
-
-      if (!lockAcquired) {
-        // Another process is handling this, just return current status
-        const existingPayment = await Payment.findOne({
-          clientPaymentId: merchantTransactionId,
-        });
-        return res.status(200).json({
-          success: true,
-          payment: existingPayment,
-          message: "Payment is being processed",
-        });
-      }
-
-      try {
-        // Idempotent update - only update if not already SUCCESS
-        const payment = await Payment.findOneAndUpdate(
-          {
-            clientPaymentId: merchantTransactionId,
-            status: { $nin: ["SUCCESS", "COMPLETED"] },
-          },
-          {
-            $set: {
-              status: "SUCCESS",
-              transactionId: paymentData.data.transactionId,
-              upiRefNo: paymentData.data.upiTransactionId,
-            },
-          },
-          { new: true },
-        );
-
-        if (payment) {
-          // Grant access after successful payment
-          if (payment.packageId) {
-            await grantAccess(payment.userId, payment.packageId, "PACKAGE");
-          }
-        }
-
-        return res.status(200).json({
-          success: true,
-          payment,
-          status: "SUCCESS",
-        });
-      } finally {
-        releaseLock(lockKey);
-      }
-    } else if (paymentData?.code === "PAYMENT_PENDING") {
-      return res.status(200).json({
-        success: true,
-        status: "PENDING",
-        message: "Payment is pending. Please check your UPI app.",
-      });
-    } else {
-      // Update failed status
-      await Payment.findOneAndUpdate(
-        { clientPaymentId: merchantTransactionId },
-        { $set: { status: "FAILED" } },
-      );
-      return res.status(200).json({
-        success: false,
-        status: "FAILED",
-        message: paymentData?.message || "Payment failed",
-      });
-    }
-  } catch (err) {
-    console.error(
-      "checkUpiPaymentStatus error:",
-      err.response?.data || err.message,
-    );
-    res.status(500).json({ success: false, message: err.message });
-  }
-};
-
-/**
- * Enhanced callback handler with race condition prevention
- * POST /api/payment/phonepe/callback
- */
-export const phonePeCallback = async (req, res) => {
-  const lockKey = null;
-
-  try {
-    const { response } = req.body;
-
-    // 1. Verify checksum from PhonePe
-    const xVerify = req.headers["x-verify"];
-    const saltKey = process.env.PHONEPE_SALT_KEY;
-    const saltIndex = process.env.PHONEPE_SALT_INDEX;
-
-    const string = response + saltKey;
-    const sha256 = crypto.createHash("sha256").update(string).digest("hex");
-    const calculatedChecksum = `${sha256}###${saltIndex}`;
-
-    if (xVerify !== calculatedChecksum) {
-      console.warn("PhonePe checksum mismatch!");
-      return res.status(200).send("OK");
-    }
-
-    // 2. Decode response
-    const decodedResponse = JSON.parse(
-      Buffer.from(response, "base64").toString("utf-8"),
-    );
-    const { success, code, data } = decodedResponse;
-
-    if (success && code === "PAYMENT_SUCCESS") {
-      const { merchantTransactionId, transactionId, upiTransactionId } = data;
-
-      // 3. Acquire lock for this transaction to prevent race conditions
-      const lockKey = `payment:${merchantTransactionId}`;
-      const lockAcquired = await acquireLock(lockKey, 5000);
-
-      if (!lockAcquired) {
-        // Another callback might be processing, just acknowledge
-        console.log(
-          `Payment ${merchantTransactionId} is being processed by another request`,
-        );
-        return res.status(200).send("OK");
-      }
-
-      try {
-        // 4. Idempotent update - Only update if NOT already SUCCESS
-        const payment = await Payment.findOneAndUpdate(
-          {
-            clientPaymentId: merchantTransactionId,
-            status: { $nin: ["SUCCESS", "COMPLETED"] },
-          },
-          {
-            $set: {
-              status: "SUCCESS",
-              transactionId: transactionId,
-              upiRefNo: upiTransactionId || data.upiDetails?.upiId,
-            },
-          },
-          { new: true },
-        );
-
-        if (payment) {
-          console.log(
-            `Payment ${merchantTransactionId} processed successfully`,
-          );
-          // 5. Grant access (Only if this callback actually updated the payment)
-          if (payment.packageId) {
-            await grantAccess(payment.userId, payment.packageId, "PACKAGE");
-          }
-        } else {
-          console.log(
-            `Payment ${merchantTransactionId} already processed or not found`,
-          );
-        }
-      } finally {
-        releaseLock(lockKey);
-      }
-    }
-
-    res.status(200).send("OK");
-  } catch (err) {
-    console.error("phonePeCallback error:", err.message);
-    // Always return 200 to PhonePe to prevent retry storms
-    res.status(200).send("OK");
-  }
-};
 
 /**
  * Helper to generate PhonePe OAuth Token
  */
 export const getPhonePeAuthToken = async () => {
   try {
-    const clientId = process.env.PHONEPE_CLIENT_ID || process.env.PHONEPE_CLIENT_ID;
-    const clientSecret = process.env.PHONEPE_CLIENT_SECRET || process.env.PHONEPE_CLIENT_SECRET;
-    const authUrl = process.env.PHONEPE_AUTH_URL || "https://api-preprod.phonepe.com/apis/pg-sandbox/v1/oauth/token";
+    const clientId = process.env.PHONEPE_CLIENT_ID;
+    const clientSecret = process.env.PHONEPE_CLIENT_SECRET;
+    const authUrl = process.env.PHONEPE_AUTH_URL;
 
     if (!clientId || !clientSecret) {
       return { success: false, message: "PhonePe credentials not configured" };
     }
 
     const requestHeaders = {
-      "Content-Type": "application/x-www-form-urlencoded"
+      "Content-Type": "application/x-www-form-urlencoded",
     };
     const data = new URLSearchParams({
-      "client_version": 1,
-      "grant_type": "client_credentials",
+      client_version: 1,
+      grant_type: "client_credentials",
       client_id: clientId,
-      client_secret: clientSecret
+      client_secret: clientSecret,
     });
-    console.log(data, 'dat')
+
     const options = {
-      method: 'POST',
+      method: "POST",
       url: authUrl,
       headers: requestHeaders,
-      data: data
+      data: data,
     };
 
-    const response = await axios.request(options);
+    const response = await axios.post(options.url, data, {
+      headers: requestHeaders,
+    });
+
     return {
       success: true,
-      token_data: response.data
+      token_data: response.data,
     };
   } catch (err) {
-    console.error("=== getPhonePeAuthToken ERROR ===");
     console.error("PhonePe Auth error:", err.response?.data || err.message);
     return {
       success: false,
       message: err.message || "Failed to generate PhonePe Auth Token",
-      error_details: err.response?.data
+      error_details: err.response?.data,
     };
   }
 };
 
-
-
-// export const getPhonePeAuthToken = async () => {
-//   try {
-//     const response = await axios.post(
-//       "https://api-preprod.phonepe.com/apis/pg-sandbox/v1/oauth/token",
-//       {
-//         client_id: process.env.PHONEPE_CLIENT_ID,
-//         client_secret: process.env.PHONEPE_CLIENT_SECRET,
-//         grant_type: "client_credentials",
-//       },
-//       {
-//         headers: {
-//           "Content-Type": "application/json",
-//         },
-//       }
-//     );
-//     console.log(response, '---------------------------------------')
-//     return {
-//       success: true,
-//       token_data: response.data,
-//     };
-//   } catch (err) {
-//     console.error("AUTH ERROR:", err.response?.data || err.message);
-
-//     return {
-//       success: false,
-//     };
-//   }
-// };
-
-export const initiatePhonePePayment = async (req, res) => {
-  try {
-    const { amount } = req.body;
-    const userId = req.user?.id || "guest_user";
-
-    if (!amount || amount <= 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid amount",
-      });
-    }
-
-    // 1️⃣ Get Token
-    const tokenData = await getPhonePeAuthToken();
-    if (!tokenData.success) {
-      return res.status(500).json({
-        success: false,
-        message: "Token generation failed",
-      });
-    }
-
-    const accessToken = tokenData.token_data.access_token;
-
-    // 2️⃣ Generate IDs
-    const merchantTransactionId = `MT_${Date.now()}`;
-    const merchantUserId = `USER_${userId}`;
-
-    // 3️⃣ (Optional) Save to DB
-    // await Payment.create({ ... })
-
-    // 4️⃣ Request Body
-    const payload = {
-      merchantId: process.env.PHONEPE_CLIENT_ID,
-      merchantTransactionId,
-      merchantUserId,
-      amount: amount * 100, // paise
-      merchantOrderId: process.env.PHONEPE_CLIENT_ID,
-      redirectUrl: process.env.PHONEPE_REDIRECT_URL,
-      redirectMode: "POST",
-
-      callbackUrl: process.env.PHONEPE_CALLBACK_URL,
-
-      paymentInstrument: {
-        type: "PAY_PAGE",
-      },
-    };
-
-    // 5️⃣ API Call
-    const response = await axios.post(
-      process.env.PHONEPE_PAY_URL || "https://api-preprod.phonepe.com/apis/pg-sandbox/checkout/v2/pay",
-      payload,
-      {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `O-Bearer ${accessToken}`,
-        },
-      }
-    );
-
-    // 6️⃣ Response
-    if (response.data?.success) {
-      const redirectUrl =
-        response.data.data.instrumentResponse.redirectInfo.url;
-
-      return res.json({
-        success: true,
-        redirectUrl,
-        merchantTransactionId,
-      });
-    }
-
-    return res.status(400).json({
-      success: false,
-      message: response.data?.message,
-    });
-  } catch (err) {
-    console.error("PAYMENT ERROR:", err.response?.data || err.message);
-
-    return res.status(500).json({
-      success: false,
-      message: err.response?.data?.message || err.message,
-    });
-  }
-};
 /**
  * Express Route Handler for GET /api/payment/phonepe/auth-token
  */
@@ -1098,30 +370,265 @@ export const fetchPhonePeAuthTokenRoute = async (req, res) => {
   }
 };
 
+/**
+ * PhonePe Webhook Handler
+ * POST /api/payment/phonepe/callback
+ */
+// export const phonepeWebhook = async (req, res) => {
+//   try {
+//     const data = req.body;
+//     const merchantTransactionId = data.payload?.merchantTransactionId;
+//     const state = data.payload?.state;
+
+//     if (state === "COMPLETED") {
+//       // ✅ Payment success
+//       // Update DB
+//       console.log("Payment SUCCESS:", merchantTransactionId);
+//     } else {
+//       console.log("Payment FAILED:", merchantTransactionId);
+//     }
+//     res.status(200).json({ success: true });
+//   } catch (err) {
+//     console.error("WEBHOOK ERROR:", err.message);
+//     res.status(500).send("Webhook error");
+//   }
+// };
 
 export const phonepeWebhook = async (req, res) => {
   try {
-    const data = req.body;
+    const payload = req.body;
 
-    console.log("WEBHOOK DATA:", JSON.stringify(data, null, 2));
+    console.log("Webhook:", payload);
 
-    const merchantTransactionId = data.payload?.merchantTransactionId;
-    const state = data.payload?.state;
+    const data = payload?.payload || payload;
+    const transactionId = data?.orderId;
+    const state = data?.state;
 
-    if (state === "COMPLETED") {
-      // ✅ Payment success
-      // Update DB
-      console.log("Payment SUCCESS:", merchantTransactionId);
-    } else {
-      console.log("Payment FAILED:", merchantTransactionId);
+    if (!transactionId) {
+      return res.status(400).send("Invalid webhook");
     }
 
-    res.status(200).json({ success: true });
+    const updateData = {
+      state,
+      paymentResponse: payload,
+    };
+
+    if (state === "COMPLETED") {
+      updateData.status = "SUCCESS";
+      updateData.transactionId = data?.transactionId;
+    } else if (state === "FAILED") {
+      updateData.status = "FAILED";
+    }
+
+    const payment = await Payment.findOneAndUpdate(
+      {
+        clientPaymentId: transactionId,
+        status: { $nin: ["SUCCESS"] },
+      },
+      { $set: updateData },
+      { new: true },
+    );
+
+    // 🎁 Grant access
+    if (payment && state === "COMPLETED" && payment.packageId) {
+      await grantAccess(payment.userId, payment.packageId, "PACKAGE");
+    }
+
+    res.status(200).send("OK");
   } catch (err) {
     console.error("WEBHOOK ERROR:", err.message);
-    res.status(500).send("Webhook error");
+    res.status(500).send("Error");
   }
 };
+
+/**
+ * Initiates a PhonePe payment
+ * POST /api/payment/phonepe/initiate
+ */
+
+// export const initiatePhonePePayment = async (req, res) => {
+//   try {
+//     const { amount, tutorId, packageId, lessons } = req.body;
+//     const userId = req.user?.id || req.user?._id || "guest_user";
+
+//     if (!amount || amount <= 0) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Invalid amount",
+//       });
+//     }
+
+//     // 1️⃣ Get Token
+//     const tokenData = await getPhonePeAuthToken();
+//     if (!tokenData.success) {
+//       return res.status(500).json({
+//         success: false,
+//         message: "Token generation failed",
+//       });
+//     }
+
+//     const accessToken = tokenData.token_data.access_token;
+
+//     // 2️⃣ Generate IDs
+//     const merchantTransactionId = `MT_${Date.now()}`;
+
+//     // 3️⃣ Save to DB
+//     await Payment.create({
+//       clientPaymentId: merchantTransactionId,
+//       userId,
+//       tutorId,
+//       packageId,
+//       amount,
+//       lessons,
+//       method: "PHONEPE",
+//       status: "PENDING",
+//     });
+
+//     // 4️⃣ Request Body
+//     const payload = {
+//       merchantOrderId: merchantTransactionId,
+//       amount: amount * 100, // paise
+//       redirectMode: "REDIRECT", // Important: REDIRECT will do a standard GET redirect to your frontend
+//       callbackUrl: process.env.PHONEPE_CALLBACK_URL,
+//       paymentInstrument: {
+//         type: "PAY_PAGE",
+//       },
+//     };
+
+//     // 5️⃣ API Call
+//     const response = await axios.post(
+//       process.env.PHONEPE_PAY_URL,
+//       payload,
+//       {
+//         headers: {
+//           "Content-Type": "application/json",
+//           Authorization: `O-Bearer ${accessToken}`,
+//         },
+//       }
+//     );
+
+//     // 6️⃣ Response
+//     if (response.data?.orderId) {
+//       const redirectUrl =
+//         response.data.redirectUrl;
+
+//       return res.json({
+//         success: true,
+//         redirectUrl,
+//         orderId: response.data.orderId,
+//         merchantTransactionId: merchantTransactionId
+//       });
+//     }
+
+//     return res.status(400).json({
+//       success: false,
+//       message: response.data?.message,
+//     });
+//   } catch (err) {
+//     console.error("PAYMENT ERROR:", err.response?.data || err.message);
+
+//     return res.status(500).json({
+//       success: false,
+//       message: err.response?.data?.message || err.message,
+//     });
+//   }
+// };
+
+export const initiatePhonePePayment = async (req, res) => {
+  try {
+    const { amount, tutorId, packageId, lessons } = req.body;
+    console.log(req.body, "body");
+    const userId = req.user?.id || req.user?._id || "guest_user";
+
+    if (!amount || amount <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid amount",
+      });
+    }
+
+    // 🔐 Get Token
+    const tokenData = await getPhonePeAuthToken();
+    if (!tokenData.success) {
+      return res.status(500).json({
+        success: false,
+        message: "Token generation failed",
+      });
+    }
+
+    const accessToken = tokenData.token_data.access_token;
+
+    // 🆔 Generate Unique Transaction ID
+    const merchantTransactionId = `MT_${Date.now()}`;
+
+    // 💾 Save initial payment (PENDING)
+    await Payment.create({
+      clientPaymentId: merchantTransactionId,
+      userId,
+      tutorId,
+      packageId,
+      amount,
+      lessons,
+      method: "PHONEPE",
+      status: "PENDING",
+    });
+
+    // 📦 Payload
+    const payload = {
+      merchantOrderId: merchantTransactionId,
+      amount: amount * 100,
+      redirectMode: "REDIRECT",
+      callbackUrl: process.env.PHONEPE_CALLBACK_URL,
+      paymentInstrument: {
+        type: "PAY_PAGE",
+      },
+    };
+
+    // 📡 API Call
+    const response = await axios.post(process.env.PHONEPE_PAY_URL, payload, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `O-Bearer ${accessToken}`,
+      },
+    });
+
+    // ✅ Success Condition (FIXED)
+    if (response.data?.redirectUrl) {
+      // Save PhonePe orderId
+      await Payment.updateOne(
+        { clientPaymentId: merchantTransactionId },
+        {
+          $set: {
+            phonepeOrderId: response.data.orderId,
+          },
+        },
+      );
+
+      return res.json({
+        success: true,
+        redirectUrl: response.data.redirectUrl,
+        merchantTransactionId,
+      });
+    }
+
+    return res.status(400).json({
+      success: false,
+      message: response.data?.message || "Payment initiation failed",
+    });
+  } catch (err) {
+    console.error("INIT ERROR:", err.response?.data || err.message);
+
+    return res.status(500).json({
+      success: false,
+      message: err.response?.data?.message || err.message,
+    });
+  }
+};
+
+/**
+ * Check Payment Status
+ * GET /api/payment/phonepe/checkout-status/:transactionId
+ */
 
 export const checkPaymentStatus = async (req, res) => {
   try {
@@ -1130,7 +637,7 @@ export const checkPaymentStatus = async (req, res) => {
     const tokenData = await getPhonePeAuthToken();
     const accessToken = tokenData.token_data.access_token;
 
-    const url = `https://api-preprod.phonepe.com/apis/pg-sandbox/checkout/v2/order/${transactionId}/status`;
+    const url = `${process.env.PHONEPE_CHECKOUT_STATUS}/${transactionId}/status`;
 
     const response = await axios.get(url, {
       headers: {
@@ -1138,7 +645,41 @@ export const checkPaymentStatus = async (req, res) => {
       },
     });
 
-    return res.json(response.data);
+    const paymentData = response.data;
+    const state = paymentData?.state || paymentData?.data?.state;
+
+    const updateData = {
+      state,
+      paymentResponse: paymentData,
+    };
+
+    // ✅ SUCCESS
+    if (state === "COMPLETED") {
+      updateData.status = "SUCCESS";
+      updateData.transactionId = paymentData?.data?.transactionId;
+    }
+
+    // ❌ FAILED
+    else if (state === "FAILED") {
+      updateData.status = "FAILED";
+    }
+
+    // 🔄 Update DB safely
+    const payment = await Payment.findOneAndUpdate(
+      {
+        clientPaymentId: transactionId,
+        status: { $nin: ["SUCCESS"] },
+      },
+      { $set: updateData },
+      { new: true },
+    );
+
+    // 🎁 Grant access only once
+    if (payment && state === "COMPLETED" && payment.packageId) {
+      await grantAccess(payment.userId, payment.packageId, "PACKAGE");
+    }
+
+    return res.json(paymentData);
   } catch (err) {
     console.error("STATUS ERROR:", err.response?.data || err.message);
 
@@ -1148,3 +689,55 @@ export const checkPaymentStatus = async (req, res) => {
     });
   }
 };
+
+// export const checkPaymentStatus = async (req, res) => {
+//   try {
+//     const { transactionId } = req.params;
+//     const tokenData = await getPhonePeAuthToken();
+//     const accessToken = tokenData.token_data.access_token;
+//     const url = process.env.PHONEPE_CHECKOUT_STATUS + `/${transactionId}/status`;
+//     const response = await axios.get(url, {
+//       headers: {
+//         Authorization: `O-Bearer ${accessToken}`,
+//       },
+//     });
+
+//     const paymentData = response.data;
+//     const state = paymentData?.state || paymentData?.data?.state;
+
+//     // Securely update the database if the payment was successful
+//     if (state === "COMPLETED") {
+//       const payment = await Payment.findOneAndUpdate(
+//         {
+//           clientPaymentId: transactionId,
+//           status: { $nin: ["SUCCESS", "COMPLETED"] },
+//         },
+//         {
+//           $set: {
+//             status: "SUCCESS",
+//             transactionId: paymentData?.data?.transactionId,
+//           },
+//         },
+//         { new: true }
+//       );
+
+//       // Grant access if package was purchased
+//       if (payment && payment.packageId) {
+//         await grantAccess(payment.userId, payment.packageId, "PACKAGE");
+//       }
+//     } else if (state === "FAILED") {
+//       await Payment.findOneAndUpdate(
+//         { clientPaymentId: transactionId },
+//         { $set: { status: "FAILED" } }
+//       );
+//     }
+
+//     return res.json(paymentData);
+//   } catch (err) {
+//     console.error("STATUS ERROR:", err.response?.data || err.message);
+//     res.status(500).json({
+//       success: false,
+//       message: err.message,
+//     });
+//   }
+// };

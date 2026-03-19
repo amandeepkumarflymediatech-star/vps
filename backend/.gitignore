@@ -1,7 +1,13 @@
 node_modules
 .env
 .DS_Store
-
+ 
+ 
+.env.local
+.env.production
+.env.development
+.DS_Store
+.vscode/
 # Logs
 logs
 *.log

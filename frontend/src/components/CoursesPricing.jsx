@@ -47,8 +47,8 @@ function CoursesPricingContent() {
     const amount = hasValidDiscount ? pkg.discountPrice : pkg.price;
 
     const lessons = pkg.lessons
-      ? `${pkg.lessons} Lessons`
-      : pkg.title || "Package";
+      // ? `${pkg.lessons} Lessons`
+      // : pkg.title || "Package";
 
     let url = `/payment/upi?packageId=${pkg._id}&amount=${amount}&lessons=${encodeURIComponent(
       lessons,

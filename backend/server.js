@@ -28,8 +28,12 @@ const allowedOrigins = [
   process.env.CLIENT_URL || "http://localhost:3000",
   process.env.BACKEND_URL || "http://localhost:8000",
   process.env.HOST_URL || "http://localhost:3000",
-  "https://api.phonepe.com",
-  "https://api.phonepe.com/apis/hermes/pg/v1/pay",
+  process.env.PHONEPE_BASE_URL,
+  process.env.PHONEPE_API_URL,
+  process.env.PHONEPE_AUTH_URL,
+  process.env.PHONEPE_CALLBACK_URL,
+  "https://mercury-uat.phonepe.com",
+  "https://mercury-uat.phonepe.com/apis/hermes/pg/v1/pay",
 ].filter(Boolean);
 
 app.use(

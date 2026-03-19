@@ -156,6 +156,7 @@ export default function RootLayout({ children }) {
             fbq('track', 'PageView');
           `}
         </Script> */}
+        <script src="https://mercury.phonepe.com/web/bundle/checkout.js"></script>
         
       </head>
 
@@ -177,6 +178,7 @@ export default function RootLayout({ children }) {
         {/* Global Chatbot */}
         <Chatbot />
       </body>
+     
     </html>
   );
 }

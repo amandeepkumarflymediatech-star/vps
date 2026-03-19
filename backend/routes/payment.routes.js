@@ -4,11 +4,12 @@ import {
   createUpiPayment,
   logUpiPayment,
   uploadPaymentProof,
+  getAllPayments,
+  verifyPayment,
   initiatePhonePePayment,
-  phonePeCallback,
-  initiatePhonePeUpiPayment,
-  checkUpiPaymentStatus,
+  checkPaymentStatus,
   fetchPhonePeAuthTokenRoute,
+  phonepeWebhook
 } from "../controllers/payment.controller.js";
 import upload from "../middlewares/upload.js";
 
@@ -28,14 +29,15 @@ router.post(
   uploadPaymentProof
 );
 
+// ADMIN ROUTES
+router.get("/admin/all", paymentAuth, getAllPayments);
+router.put("/admin/verify/:paymentId", paymentAuth, verifyPayment);
+
+
 // PHONEPE ROUTES (Card/Netbanking/Wallet)
 router.post("/phonepe/initiate", paymentAuth, initiatePhonePePayment);
- 
-router.post("/phonepe/callback", phonePeCallback);
-
-// PHONEPE UPI ROUTES (Direct UPI payment)
-router.post("/phonepe/upi", paymentAuth, initiatePhonePeUpiPayment);
-router.get("/phonepe/status/:merchantTransactionId", paymentAuth, checkUpiPaymentStatus);
+router.post("/phonepe/callback", phonepeWebhook);
+router.get("/phonepe/checkout-status/:transactionId", paymentAuth, checkPaymentStatus);
 
 // PHONEPE AUTH TOKEN
 router.get("/phonepe/auth-token", paymentAuth, fetchPhonePeAuthTokenRoute);
