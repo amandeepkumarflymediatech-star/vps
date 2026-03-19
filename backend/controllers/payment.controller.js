@@ -576,8 +576,9 @@ export const initiatePhonePePayment = async (req, res) => {
     // 📦 Payload
     const payload = {
       merchantOrderId: merchantTransactionId,
+      merchantId: process.env.PHONEPE_CLIENT_ID, // ✅ REQUIRED
+      merchantUserId: `USER_${userId}`, // ✅ REQUIRED
       amount: amount * 100,
-      redirectMode: "REDIRECT",
       callbackUrl: process.env.PHONEPE_CALLBACK_URL,
       paymentInstrument: {
         type: "PAY_PAGE",
