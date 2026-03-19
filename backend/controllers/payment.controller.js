@@ -446,98 +446,9 @@ export const phonepeWebhook = async (req, res) => {
  * POST /api/payment/phonepe/initiate
  */
 
-// export const initiatePhonePePayment = async (req, res) => {
-//   try {
-//     const { amount, tutorId, packageId, lessons } = req.body;
-//     const userId = req.user?.id || req.user?._id || "guest_user";
-
-//     if (!amount || amount <= 0) {
-//       return res.status(400).json({
-//         success: false,
-//         message: "Invalid amount",
-//       });
-//     }
-
-//     // 1️⃣ Get Token
-//     const tokenData = await getPhonePeAuthToken();
-//     if (!tokenData.success) {
-//       return res.status(500).json({
-//         success: false,
-//         message: "Token generation failed",
-//       });
-//     }
-
-//     const accessToken = tokenData.token_data.access_token;
-
-//     // 2️⃣ Generate IDs
-//     const merchantTransactionId = `MT_${Date.now()}`;
-
-//     // 3️⃣ Save to DB
-//     await Payment.create({
-//       clientPaymentId: merchantTransactionId,
-//       userId,
-//       tutorId,
-//       packageId,
-//       amount,
-//       lessons,
-//       method: "PHONEPE",
-//       status: "PENDING",
-//     });
-
-//     // 4️⃣ Request Body
-//     const payload = {
-//       merchantOrderId: merchantTransactionId,
-//       amount: amount * 100, // paise
-//       redirectMode: "REDIRECT", // Important: REDIRECT will do a standard GET redirect to your frontend
-//       callbackUrl: process.env.PHONEPE_CALLBACK_URL,
-//       paymentInstrument: {
-//         type: "PAY_PAGE",
-//       },
-//     };
-
-//     // 5️⃣ API Call
-//     const response = await axios.post(
-//       process.env.PHONEPE_PAY_URL,
-//       payload,
-//       {
-//         headers: {
-//           "Content-Type": "application/json",
-//           Authorization: `O-Bearer ${accessToken}`,
-//         },
-//       }
-//     );
-
-//     // 6️⃣ Response
-//     if (response.data?.orderId) {
-//       const redirectUrl =
-//         response.data.redirectUrl;
-
-//       return res.json({
-//         success: true,
-//         redirectUrl,
-//         orderId: response.data.orderId,
-//         merchantTransactionId: merchantTransactionId
-//       });
-//     }
-
-//     return res.status(400).json({
-//       success: false,
-//       message: response.data?.message,
-//     });
-//   } catch (err) {
-//     console.error("PAYMENT ERROR:", err.response?.data || err.message);
-
-//     return res.status(500).json({
-//       success: false,
-//       message: err.response?.data?.message || err.message,
-//     });
-//   }
-// };
-
 export const initiatePhonePePayment = async (req, res) => {
   try {
     const { amount, tutorId, packageId, lessons } = req.body;
-    console.log(req.body, "body");
     const userId = req.user?.id || req.user?._id || "guest_user";
 
     if (!amount || amount <= 0) {
@@ -547,7 +458,7 @@ export const initiatePhonePePayment = async (req, res) => {
       });
     }
 
-    // 🔐 Get Token
+    // 1️⃣ Get Token
     const tokenData = await getPhonePeAuthToken();
     if (!tokenData.success) {
       return res.status(500).json({
@@ -555,13 +466,13 @@ export const initiatePhonePePayment = async (req, res) => {
         message: "Token generation failed",
       });
     }
-    console.log(tokenData, '--token---')
+
     const accessToken = tokenData.token_data.access_token;
 
-    // 🆔 Generate Unique Transaction ID
+    // 2️⃣ Generate IDs
     const merchantTransactionId = `MT_${Date.now()}`;
 
-    // 💾 Save initial payment (PENDING)
+    // 3️⃣ Save to DB
     await Payment.create({
       clientPaymentId: merchantTransactionId,
       userId,
@@ -573,53 +484,48 @@ export const initiatePhonePePayment = async (req, res) => {
       status: "PENDING",
     });
 
-    // 📦 Payload
+    // 4️⃣ Request Body
     const payload = {
       merchantOrderId: merchantTransactionId,
-      merchantId: process.env.PHONEPE_CLIENT_ID, // ✅ REQUIRED
-      merchantUserId: `USER_${userId}`, // ✅ REQUIRED
-      amount: amount * 100,
+      amount: amount * 100, // paise
+      redirectMode: "REDIRECT", // Important: REDIRECT will do a standard GET redirect to your frontend
       callbackUrl: process.env.PHONEPE_CALLBACK_URL,
       paymentInstrument: {
         type: "PAY_PAGE",
       },
     };
-    console.log(payload, 'payload')
-    // 📡 API Call
-    const response = await axios.post('https://api.phonepe.com/apis/pg/checkout/v2/pay', payload, {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `O-Bearer ${accessToken}`,
-      },
-    });
 
-    console.log(response.data, 'repjds')
-
-    // ✅ Success Condition (FIXED)
-    if (response.data?.redirectUrl) {
-      // Save PhonePe orderId
-      await Payment.updateOne(
-        { clientPaymentId: merchantTransactionId },
-        {
-          $set: {
-            phonepeOrderId: response.data.orderId,
-          },
+    // 5️⃣ API Call
+    const response = await axios.post(
+      process.env.PHONEPE_PAY_URL,
+      payload,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `O-Bearer ${accessToken}`,
         },
-      );
+      }
+    );
+
+    // 6️⃣ Response
+    if (response.data?.orderId) {
+      const redirectUrl =
+        response.data.redirectUrl;
 
       return res.json({
         success: true,
-        redirectUrl: response.data.redirectUrl,
-        merchantTransactionId,
+        redirectUrl,
+        orderId: response.data.orderId,
+        merchantTransactionId: merchantTransactionId
       });
     }
 
     return res.status(400).json({
       success: false,
-      message: response.data?.message || "Payment initiation failed",
+      message: response.data?.message,
     });
   } catch (err) {
-    console.error("INIT ERROR:", err.response?.data || err.message);
+    console.error("PAYMENT ERROR:", err.response?.data || err.message);
 
     return res.status(500).json({
       success: false,
@@ -627,6 +533,100 @@ export const initiatePhonePePayment = async (req, res) => {
     });
   }
 };
+
+// export const initiatePhonePePayment = async (req, res) => {
+//   try {
+//     const { amount, tutorId, packageId, lessons } = req.body;
+//     console.log(req.body, "body");
+//     const userId = req.user?.id || req.user?._id || "guest_user";
+
+//     if (!amount || amount <= 0) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Invalid amount",
+//       });
+//     }
+
+//     // 🔐 Get Token
+//     const tokenData = await getPhonePeAuthToken();
+//     if (!tokenData.success) {
+//       return res.status(500).json({
+//         success: false,
+//         message: "Token generation failed",
+//       });
+//     }
+//     console.log(tokenData, '--token---')
+//     const accessToken = tokenData.token_data.access_token;
+
+//     // 🆔 Generate Unique Transaction ID
+//     const merchantTransactionId = `MT_${Date.now()}`;
+
+//     // 💾 Save initial payment (PENDING)
+//     await Payment.create({
+//       clientPaymentId: merchantTransactionId,
+//       userId,
+//       tutorId,
+//       packageId,
+//       amount,
+//       lessons,
+//       method: "PHONEPE",
+//       status: "PENDING",
+//     });
+
+//     // 📦 Payload
+//     const payload = {
+//       merchantOrderId: merchantTransactionId,
+//       merchantId: process.env.PHONEPE_CLIENT_ID, // ✅ REQUIRED
+//       merchantUserId: `USER_${userId}`, // ✅ REQUIRED
+//       amount: amount * 100,
+//       callbackUrl: process.env.PHONEPE_CALLBACK_URL,
+//       paymentInstrument: {
+//         type: "PAY_PAGE",
+//       },
+//     };
+//     console.log(payload, 'payload')
+//     // 📡 API Call
+//     const response = await axios.post( process.env.PHONEPE_PAY_URL, payload, {
+//       headers: {
+//         "Content-Type": "application/json",
+//         Authorization: `O-Bearer ${accessToken}`,
+//       },
+//     });
+
+//     console.log(response.data, 'repjds')
+
+//     // ✅ Success Condition (FIXED)
+//     if (response.data?.redirectUrl) {
+//       // Save PhonePe orderId
+//       await Payment.updateOne(
+//         { clientPaymentId: merchantTransactionId },
+//         {
+//           $set: {
+//             phonepeOrderId: response.data.orderId,
+//           },
+//         },
+//       );
+
+//       return res.json({
+//         success: true,
+//         redirectUrl: response.data.redirectUrl,
+//         merchantTransactionId,
+//       });
+//     }
+
+//     return res.status(400).json({
+//       success: false,
+//       message: response.data?.message || "Payment initiation failed",
+//     });
+//   } catch (err) {
+//     console.error("INIT ERROR:", err.response?.data || err.message);
+
+//     return res.status(500).json({
+//       success: false,
+//       message: err.response?.data?.message || err.message,
+//     });
+//   }
+// };
 
 /**
  * Check Payment Status
