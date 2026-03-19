@@ -488,7 +488,7 @@ export const initiatePhonePePayment = async (req, res) => {
     const payload = {
       merchantOrderId: merchantTransactionId,
       amount: amount * 100, // paise
-      redirectMode: "REDIRECT", // Important: REDIRECT will do a standard GET redirect to your frontend
+      // redirectMode: "REDIRECT", // Important: REDIRECT will do a standard GET redirect to your frontend
       callbackUrl: process.env.PHONEPE_CALLBACK_URL,
       paymentInstrument: {
         type: "PAY_PAGE",
