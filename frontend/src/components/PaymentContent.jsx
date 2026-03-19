@@ -2,7 +2,7 @@
 
 import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { checkUpiPaymentStatus } from "../api/payment.api";
+// import { checkUpiPaymentStatus } from "../api/payment.api";
 import { Loader2 } from "lucide-react";
 
 export default function PaymentContent() {
@@ -10,81 +10,81 @@ export default function PaymentContent() {
   const router = useRouter();
   const [status, setStatus] = useState("processing");
 
-  useEffect(() => {
-    const statusParam = searchParams.get("status");
-    const tutorId = searchParams.get("tutorId");
-    const amountParam = searchParams.get("amount");
-    const lessonsParam = searchParams.get("lessons");
-    const packageId = searchParams.get("packageId");
-    const txnId = searchParams.get("txnId"); // Transaction ID from PhonePe callback
+  // useEffect(() => {
+  //   const statusParam = searchParams.get("status");
+  //   const tutorId = searchParams.get("tutorId");
+  //   const amountParam = searchParams.get("amount");
+  //   const lessonsParam = searchParams.get("lessons");
+  //   const packageId = searchParams.get("packageId");
+  //   const txnId = searchParams.get("txnId"); // Transaction ID from PhonePe callback
 
-    const amount = amountParam ? Number(amountParam) : undefined;
-    const finalStatus =
-      statusParam === "failed" || statusParam === "FAILED"
-        ? "FAILED"
-        : "SUCCESS";
+  //   const amount = amountParam ? Number(amountParam) : undefined;
+  //   const finalStatus =
+  //     statusParam === "failed" || statusParam === "FAILED"
+  //       ? "FAILED"
+  //       : "SUCCESS";
 
-    const logAndRedirect = async () => {
-      try {
-        const token =
-          typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  //   const logAndRedirect = async () => {
+  //     try {
+  //       const token =
+  //         typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
-        // If we have a txnId, check the payment status first
-        if (token && txnId) {
-          try {
-            const statusRes = await checkUpiPaymentStatus(txnId);
-            if (statusRes.status === "SUCCESS") {
-              setStatus("success");
-              // Payment already processed, redirect to success
-              setTimeout(() => router.replace("/payment-success"), 1500);
-              return;
-            } else if (statusRes.status === "PENDING") {
-              // Still pending, wait and check again
-              setStatus("pending");
-              // Let it continue to log the payment
-            } else {
-              setStatus("failed");
-              setTimeout(() => router.replace("/payment-failed"), 1500);
-              return;
-            }
-          } catch (err) {
-            console.error("Failed to check payment status:", err);
-          }
-        }
+  //       // If we have a txnId, check the payment status first
+  //       if (token && txnId) {
+  //         try {
+  //           const statusRes = await checkUpiPaymentStatus(txnId);
+  //           if (statusRes.status === "SUCCESS") {
+  //             setStatus("success");
+  //             // Payment already processed, redirect to success
+  //             setTimeout(() => router.replace("/payment-success"), 1500);
+  //             return;
+  //           } else if (statusRes.status === "PENDING") {
+  //             // Still pending, wait and check again
+  //             setStatus("pending");
+  //             // Let it continue to log the payment
+  //           } else {
+  //             setStatus("failed");
+  //             setTimeout(() => router.replace("/payment-failed"), 1500);
+  //             return;
+  //           }
+  //         } catch (err) {
+  //           console.error("Failed to check payment status:", err);
+  //         }
+  //       }
 
-        if (token && amount) {
-          await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/api/payment/upi/log`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-              },
-              body: JSON.stringify({
-                tutorId,
-                amount,
-                lessons: lessonsParam ? Number(lessonsParam) : undefined,
-                status: finalStatus,
-                packageId,
-                clientPaymentId: txnId,
-              }),
-            },
-          );
-        }
-      } catch (err) {
-        console.error("Failed to log payment", err);
-      } finally {
-        if (finalStatus === "FAILED") {
-          router.replace("/payment-failed");
-        } else {
-          router.replace("/payment-success");
-        }
-      }
-    };
+  //       if (token && amount) {
+  //         await fetch(
+  //           `${process.env.NEXT_PUBLIC_API_URL}/api/payment/upi/log`,
+  //           {
+  //             method: "POST",
+  //             headers: {
+  //               "Content-Type": "application/json",
+  //               Authorization: `Bearer ${token}`,
+  //             },
+  //             body: JSON.stringify({
+  //               tutorId,
+  //               amount,
+  //               lessons: lessonsParam ? Number(lessonsParam) : undefined,
+  //               status: finalStatus,
+  //               packageId,
+  //               clientPaymentId: txnId,
+  //             }),
+  //           },
+  //         );
+  //       }
+  //     } catch (err) {
+  //       console.error("Failed to log payment", err);
+  //     } finally {
+  //       if (finalStatus === "FAILED") {
+  //         router.replace("/payment-failed");
+  //       } else {
+  //         router.replace("/payment-success");
+  //       }
+  //     }
+  //   };
 
-    logAndRedirect();
-  }, [searchParams, router]);
+  //   logAndRedirect();
+  // }, [searchParams, router]);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4">
