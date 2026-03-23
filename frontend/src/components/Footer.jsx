@@ -192,7 +192,7 @@
 "use client";
 
 import Link from "next/link";
-import { FaInstagram } from "react-icons/fa";
+import { FaInstagram, FaYoutube,FaFacebook } from "react-icons/fa";
 
 import Logo from "../assets/logo/logo.webp";
 
@@ -223,6 +223,12 @@ const Footer = () => {
           <div className="flex flex-wrap gap-4 mt-5 text-xl text-black/70">
             <a href="https://www.instagram.com/theenglishraj" target="_blank">
               <FaInstagram className="hover:text-black hover:scale-110 transition" />
+            </a>
+            <a href="https://www.youtube.com/@theenglishraj-m6m" target="_blank">
+              <FaYoutube className="hover:text-black hover:scale-110 transition" />
+            </a>
+            <a href="https://www.facebook.com/theenglishraj" target="_blank">
+              <FaFacebook className="hover:text-black hover:scale-110 transition" />
             </a>
           </div>
         </div>
