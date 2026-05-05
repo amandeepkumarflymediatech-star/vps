@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { ShieldCheck, Loader2, Smartphone, CreditCard } from "lucide-react";
 import { initiatePhonePePayment, checkPhonePePaymentStatus } from "@/api/payment.api";
+import { validateCoupon } from "@/api/coupon.api";
 import toast from "react-hot-toast";
 
 export default function PaymentUPIContent() {
@@ -19,6 +20,12 @@ export default function PaymentUPIContent() {
   const [ready, setReady] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [polling, setPolling] = useState(false)
+  
+  // Coupon state
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [discountAmount, setDiscountAmount] = useState(0);
+  const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
 
   const handleCallback = (response, txnId) => {
     if (response === "USER_CANCEL") {
@@ -93,6 +100,37 @@ export default function PaymentUPIContent() {
     poll();
   };
 
+  const handleApplyCoupon = async () => {
+    if (!couponCode) return;
+    try {
+      setIsValidatingCoupon(true);
+      const res = await validateCoupon(couponCode);
+      if (res.data.success) {
+        const { discountType, discountValue, code } = res.data;
+        let discount = 0;
+        const currentAmount = Number(amount);
+
+        if (discountType === "PERCENTAGE") {
+          discount = (currentAmount * discountValue) / 100;
+        } else {
+          discount = discountValue;
+        }
+
+        setDiscountAmount(discount);
+        setAppliedCoupon({ code, discountType, discountValue });
+        toast.success("Coupon applied successfully!");
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Invalid coupon code");
+      setAppliedCoupon(null);
+      setDiscountAmount(0);
+    } finally {
+      setIsValidatingCoupon(false);
+    }
+  };
+
+  const finalAmount = Math.max(0, Number(amount) - discountAmount).toFixed(2);
+
   // Handle card/netbanking payment (existing PhonePe flow)
   const handleCardPayment = async () => {
     try {
@@ -105,10 +143,11 @@ export default function PaymentUPIContent() {
       }
 
       const data = await initiatePhonePePayment({
-        amount: Number(amountFormatted),
+        amount: Number(finalAmount),
         lessons: Number(lessons),
         packageId,
         tutorId,
+        couponCode: appliedCoupon?.code,
       });
 
 
@@ -148,7 +187,49 @@ export default function PaymentUPIContent() {
 
         <div className="bg-gray-50 rounded-2xl p-4 mb-6 text-center">
           <span className="text-gray-600 block text-xs uppercase font-bold tracking-wider mb-1">Total Amount</span>
-          <span className="text-3xl font-black text-gray-900">₹{amountFormatted}</span>
+          {discountAmount > 0 && (
+            <span className="text-sm text-gray-400 line-through mr-2">₹{Number(amount).toFixed(2)}</span>
+          )}
+          <span className="text-3xl font-black text-gray-900">₹{finalAmount}</span>
+        </div>
+
+        {/* Coupon Section */}
+        <div className="mb-6">
+          <div className="flex gap-2">
+            <input
+              type="text"
+              placeholder="Enter Coupon Code"
+              value={couponCode}
+              onChange={(e) => setCouponCode(e.target.value)}
+              disabled={appliedCoupon || processing}
+              className="flex-1 px-4 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-purple-500 uppercase text-sm"
+            />
+            {!appliedCoupon ? (
+              <button
+                onClick={handleApplyCoupon}
+                disabled={!couponCode || isValidatingCoupon || processing}
+                className="bg-purple-100 text-purple-700 px-4 py-2 rounded-xl font-bold text-sm hover:bg-purple-200 transition-colors disabled:opacity-50"
+              >
+                {isValidatingCoupon ? "..." : "Apply"}
+              </button>
+            ) : (
+              <button
+                onClick={() => {
+                  setAppliedCoupon(null);
+                  setDiscountAmount(0);
+                  setCouponCode("");
+                }}
+                className="text-red-500 text-xs font-bold"
+              >
+                Remove
+              </button>
+            )}
+          </div>
+          {appliedCoupon && (
+            <p className="text-green-600 text-[10px] font-bold mt-2 text-left uppercase">
+              CODE: {appliedCoupon.code} APPLIED! (Saved ₹{discountAmount.toFixed(2)})
+            </p>
+          )}
         </div>
 
 

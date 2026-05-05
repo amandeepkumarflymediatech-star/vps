@@ -12,6 +12,7 @@ const mongoose = require("mongoose");
 const flash = require("connect-flash");
 const session = require("express-session");
 const passport = require("passport");
+const jwt = require("jsonwebtoken");
 const path = require("path");
 const config = require("./config/config");
 const app = express();
@@ -46,15 +47,6 @@ app.use(express.json()); // parse JSON bodies
 // Expose `node_modules` under `/vendor` for client-side libs if needed
 app.use("/vendor", express.static(path.join(__dirname, "node_modules")));
 app.use("/uploads", express.static("uploads"));
-// Session setup: stores session data server-side (default memory store here)
-// In production, replace the default store with a persistent store.
-app.use(
-  session({
-    secret: config.sessionSecret,
-    resave: false,
-    saveUninitialized: false,
-  })
-);
 
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
@@ -66,15 +58,22 @@ app.use("/admin/classes", require("./routes/class.routes"));
 app.use("/admin/packages", require("./routes/package.routes"));
 app.use("/admin/payments", require("./routes/payment.routes"));
 app.use("/admin/enrollments", require("./routes/enrollment.routes"));
+app.use("/admin/coupons", require("./routes/couponRoutes"));
 app.use("/admin/", require("./routes/admin.routes"));
-// Dashboard route (simple authentication check)
+// Dashboard route (handles JWT authentication check)
 app.get("/", (req, res) => {
-  if (!req.user) {
-    // If not authenticated, redirect to admin login
+  const token = req.cookies?.token;
+  if (!token) {
     return res.redirect("/admin/login");
   }
-  // Render the dashboard view
-  res.render("/dashboard");
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded; // Populate req.user for the template
+    res.render("dashboard", { user: req.user });
+  } catch (err) {
+    res.clearCookie("token");
+    return res.redirect("/admin/login");
+  }
 });
 
 // Make `user` available in all templates via `res.locals.user`

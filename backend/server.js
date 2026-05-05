@@ -16,6 +16,7 @@ import packageRoutes from "./routes/package.routes.js";
 import paymentRoutes from "./routes/payment.routes.js";
 import supportRoutes from "./routes/support.routes.js";
 import reviewRoutes from "./routes/review.routes.js";
+import couponRoutes from "./routes/coupon.routes.js";
 
 // ES Modules mein __dirname setup (Zaroori hai uploads folder access karne ke liye)
 const __filename = fileURLToPath(import.meta.url);
@@ -73,6 +74,7 @@ app.use("/api/courses", courseRoutes);
 app.use("/api/classes", classRoutes);
 app.use("/api/packages", packageRoutes);
 app.use("/api/payment", paymentRoutes);
+app.use("/api/coupons", couponRoutes);
 app.use("/api/support", supportRoutes);
 app.use("/api/reviews", reviewRoutes);
 
