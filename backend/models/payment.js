@@ -25,6 +25,7 @@ const paymentSchema = new mongoose.Schema(
     transactionId: String, // Payment gateway transaction ID
     state: String,
     paymentResponse: Object,
+    couponCode: String,
   },
   { timestamps: true },
 );
