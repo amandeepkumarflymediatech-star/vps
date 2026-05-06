@@ -66,6 +66,9 @@
 
 <script>
   function confirmToggle(coupon) {
-    return confirm(`Are you sure to ${coupon == 'true' ? 'disable' : 'enable'} this coupon?`);
+   let result = confirm(`Are you sure to ${coupon == 'true' ? 'disable' : 'enable'} this coupon?`);
+   if(!result){
+    event.preventDefault();
+   }
   }
 </script>
