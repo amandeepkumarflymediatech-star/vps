@@ -124,9 +124,9 @@ function CoursesPricingContent() {
                   {pkg.lessonDuration && (
                     <p>{pkg.lessonDuration} min per lesson</p>
                   )}
-                  {pkg.accessDurationDays && (
+                  {/* {pkg.accessDurationDays && (
                     <p>Access for {pkg.accessDurationDays} days</p>
-                  )}
+                  )} */}
                 </div>
 
                 {/* PRICE */}

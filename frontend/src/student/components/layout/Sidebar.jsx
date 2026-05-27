@@ -52,7 +52,7 @@ const StudentSidebar = ({
       icon: <Package size={20} />,
     },
     {
-      name: "Book a Trial",
+      name: "Book a Session",
       path: "/student/myClass",
       icon: <CalendarCheck size={20} />,
     },
