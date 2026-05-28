@@ -1130,6 +1130,62 @@ export const getAllEnrollmentStudents = async (req, res) => {
   }
 };
 
+export const getStudentSlotStats = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    // 1️⃣ Get ALL successful payments for this student
+    const payments = await Payment.find({
+      userId,
+      status: "SUCCESS",
+    }).populate("packageId");
+
+    // Sum total lessons from all packages
+    const totalSlots = payments.reduce((sum, p) => {
+      if (!p.packageId) return sum;
+      return sum + (p.packageId.lessons || 0);
+    }, 0);
+
+    // 2️⃣ Count booked lessons (Upcoming, Completed, Missed, Ongoing)
+    const bookedSlots = await Enrollment.countDocuments({
+      userId,
+      paymentStatus: "SUCCESS",
+      status: { $in: ["UPCOMING", "COMPLETED", "MISSED", "ONGOING"] },
+    });
+
+    // 3️⃣ Count completed lessons
+    const completedSlots = await Enrollment.countDocuments({
+      userId,
+      paymentStatus: "SUCCESS",
+      status: "COMPLETED",
+    });
+
+    // 4️⃣ Count pending (upcoming/ongoing/pending) lessons
+    const pendingSlots = await Enrollment.countDocuments({
+      userId,
+      paymentStatus: "SUCCESS",
+      status: { $in: ["UPCOMING", "ONGOING", "PENDING"] },
+    });
+
+    // 5️⃣ Remaining/Unbooked slots
+    const remainingSlots = Math.max(0, totalSlots - bookedSlots);
+
+    return res.json({
+      success: true,
+      data: {
+        totalSlots,
+        bookedSlots,
+        completedSlots,
+        pendingSlots,
+        remainingSlots,
+      },
+    });
+  } catch (err) {
+    console.error("getStudentSlotStats error:", err);
+    return res.status(500).json({ error: "Server error" });
+  }
+};
+
 // ----------------- SAVE SELECTED SLOT -----------------
 
 export const saveSelectedSlot = async (req, res) => {

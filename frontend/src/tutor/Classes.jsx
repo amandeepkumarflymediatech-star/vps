@@ -25,8 +25,8 @@ const Enrollments = () => {
   const [meetingLink, setMeetingLink] = useState("");
   const [status, setStatus] = useState("UPCOMING");
   const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("ALL");
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
 
   const user =
     typeof window !== "undefined"
@@ -42,11 +42,10 @@ const Enrollments = () => {
         setLoading(true);
         const res = await getEnrollments({
           tutorId: user.id,
-          page: page,
-          limit: 6,
+          page: 1,
+          limit: 10000, // Load all records for client-side search & pagination
         });
         setEnrollments(res?.data?.data || []);
-        setTotalPages(res?.data?.pagination?.pages || 1);
       } catch {
         toast.error("Failed to load enrollments");
       } finally {
@@ -54,20 +53,70 @@ const Enrollments = () => {
       }
     };
     fetchEnrollments();
-  }, [user?.id, page]);
+  }, [user?.id]);
 
   /* =========================
      FILTER
   ========================= */
 
   const filteredEnrollments = useMemo(() => {
-    const q = searchQuery.toLowerCase();
-    return enrollments.filter(
-      (e) =>
-        e.student?.name?.toLowerCase().includes(q) ||
-        e.package?.title?.toLowerCase().includes(q),
-    );
-  }, [enrollments, searchQuery]);
+    let result = enrollments;
+
+    // 1. Filter by status if not "ALL"
+    if (statusFilter !== "ALL") {
+      result = result.filter((e) => e.status?.toUpperCase() === statusFilter);
+    }
+
+    // 2. Filter by search query (date)
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return result;
+
+    return result.filter((e) => {
+      if (!e.slot?.date) return false;
+      const dateObj = new Date(e.slot.date);
+      if (isNaN(dateObj.getTime())) return false;
+      
+      const localDate = dateObj.toLocaleDateString().toLowerCase();
+      const isoDate = dateObj.toISOString().slice(0, 10).toLowerCase();
+      const longDate = dateObj.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric"
+      }).toLowerCase();
+      const shortDate = dateObj.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric"
+      }).toLowerCase();
+
+      return (
+        localDate.includes(q) ||
+        isoDate.includes(q) ||
+        longDate.includes(q) ||
+        shortDate.includes(q) ||
+        e.package?.title?.toLowerCase().includes(q)
+      );
+    });
+  }, [enrollments, searchQuery, statusFilter]);
+
+  // Reset page to 1 when searchQuery or statusFilter changes
+  useEffect(() => {
+    setPage(1);
+  }, [searchQuery, statusFilter]);
+
+  // Items per page
+  const itemsPerPage = 6;
+
+  // Calculate total pages dynamically
+  const totalPages = useMemo(() => {
+    return Math.max(1, Math.ceil(filteredEnrollments.length / itemsPerPage));
+  }, [filteredEnrollments]);
+
+  // Paginated slice
+  const paginatedEnrollments = useMemo(() => {
+    const startIndex = (page - 1) * itemsPerPage;
+    return filteredEnrollments.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredEnrollments, page]);
 
   const handleSave = async (id) => {
     // if (!meetingLink.trim()) {
@@ -382,17 +431,33 @@ const Enrollments = () => {
             </p>
           </div>
 
-          <div className="relative group w-full sm:w-72 md:w-80">
-            <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-              size={18}
-            />
-            <input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search students..."
-              className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all shadow-sm text-sm"
-            />
+          <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto">
+            {/* Search Input */}
+            <div className="relative group w-full sm:w-64 md:w-80">
+              <Search
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                size={18}
+              />
+              <input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search by date (dd/mm/yyyy)..."
+                className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all shadow-sm text-sm"
+              />
+            </div>
+
+            {/* Status Filter */}
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="w-full sm:w-44 px-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none font-bold text-sm text-gray-700 shadow-sm cursor-pointer"
+            >
+              <option value="ALL">All Statuses</option>
+              <option value="UPCOMING">Upcoming</option>
+              <option value="COMPLETED">Completed</option>
+              <option value="CANCELLED">Cancelled</option>
+              <option value="MISSED">Missed</option>
+            </select>
           </div>
         </div>
 
@@ -414,7 +479,7 @@ const Enrollments = () => {
               </thead>
 
               <tbody className="divide-y divide-gray-100">
-                {filteredEnrollments.map((e) => (
+                {paginatedEnrollments.map((e) => (
                   <tr
                     key={e._id}
                     className="hover:bg-gray-50/50 transition-colors"
@@ -521,7 +586,7 @@ const Enrollments = () => {
           {/* MOBILE + TABLET GRID CARDS */}
           <div className="block lg:hidden p-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {filteredEnrollments.map((e) => (
+              {paginatedEnrollments.map((e) => (
                 <div
                   key={e._id}
                   className="p-4 bg-white rounded-2xl border shadow-sm space-y-3"

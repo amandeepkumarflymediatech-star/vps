@@ -12,6 +12,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { getAllEnrollmentsStudents } from "@/api/enrollments.api";
+import { getStudentSlotStats } from "@/api/student.api";
 import { useRouter } from "next/navigation";
 
 const Dashboard = () => {
@@ -19,6 +20,13 @@ const Dashboard = () => {
   const [user, setUser] = useState(null);
   const [enrollments, setEnrollments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [slotStats, setSlotStats] = useState({
+    totalSlots: 0,
+    bookedSlots: 0,
+    completedSlots: 0,
+    pendingSlots: 0,
+    remainingSlots: 0,
+  });
 
   // Load user from localStorage
   useEffect(() => {
@@ -27,22 +35,30 @@ const Dashboard = () => {
     setUser(raw ? JSON.parse(raw) : null);
   }, []);
 
-  // Fetch enrollments
+  // Fetch enrollments and slot statistics
   useEffect(() => {
-    const fetchEnrollments = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
-        const res = await getAllEnrollmentsStudents();
-        const data = res.data?.data || [];
+        const [enrollmentsRes, statsRes] = await Promise.all([
+          getAllEnrollmentsStudents(),
+          getStudentSlotStats(),
+        ]);
+
+        const data = enrollmentsRes.data?.data || [];
         setEnrollments(Array.isArray(data) ? data : []);
+
+        if (statsRes.data?.success && statsRes.data?.data) {
+          setSlotStats(statsRes.data.data);
+        }
       } catch (error) {
-        console.error("Failed to fetch enrollments:", error);
+        console.error("Failed to fetch dashboard data:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchEnrollments();
+    fetchData();
   }, []);
   // Calculate stats from real data
   const stats = {
@@ -68,26 +84,26 @@ const Dashboard = () => {
 
   const statsConfig = [
     {
-      label: "Enrolled Courses",
-      value: enrollments.length.toString(),
+      label: "Total Prepaid Slots",
+      value: slotStats.totalSlots.toString(),
       icon: <BookOpen size={20} />,
       bg: "bg-blue-50 text-blue-600",
     },
     {
-      label: "Total Hours",
-      value: `${stats.hours}h`,
+      label: "Used (Booked) Slots",
+      value: slotStats.bookedSlots.toString(),
       icon: <Clock size={20} />,
       bg: "bg-orange-50 text-orange-600",
     },
     {
-      label: "Completed",
-      value: stats.completed.toString(),
+      label: "Pending (To Book) Slots",
+      value: slotStats.remainingSlots.toString(),
       icon: <Trophy size={20} />,
       bg: "bg-green-50 text-green-600",
     },
     {
-      label: "Upcoming",
-      value: stats.upcoming.toString(),
+      label: "Upcoming Classes",
+      value: slotStats.pendingSlots.toString(),
       icon: <Star size={20} />,
       bg: "bg-purple-50 text-purple-600",
     },
@@ -101,7 +117,23 @@ const Dashboard = () => {
             Welcome back, {user?.name || "Student"}! 👋
           </h1>
           <p className="text-sm sm:text-base text-slate-500 mt-1 font-medium">
-            {enrollments.length > 0 ? (
+            {slotStats.totalSlots > 0 ? (
+              <>
+                You have used{" "}
+                <span className="text-blue-600 font-black">
+                  {slotStats.bookedSlots}
+                </span>{" "}
+                out of{" "}
+                <span className="text-blue-600 font-black">
+                  {slotStats.totalSlots}
+                </span>{" "}
+                prepaid slots. You have{" "}
+                <span className="text-indigo-600 font-black">
+                  {slotStats.remainingSlots}
+                </span>{" "}
+                slots remaining to book. Keep learning!
+              </>
+            ) : enrollments.length > 0 ? (
               <>
                 You've completed{" "}
                 <span className="text-blue-600 font-black">
@@ -110,7 +142,7 @@ const Dashboard = () => {
                 of your enrolled courses. Keep going!
               </>
             ) : (
-              "Get started by enrolling in your first course!"
+              "Get started by purchasing a package and booking your first session!"
             )}
           </p>
         </div>
@@ -162,11 +194,11 @@ const Dashboard = () => {
               </div>
             ) : enrollments.length > 0 ? (
               <div className="space-y-4  w-full ">
-                {/* Progress bar */}
+                {/* Overall course completion progress bar */}
                 <div>
                   <div className="flex justify-between text-sm mb-2">
                     <span className="font-medium text-slate-600">
-                      Overall Completion
+                      Overall Session Completion
                     </span>
                     <span className="font-black text-blue-600">
                       {weeklyProgress}%
@@ -180,10 +212,30 @@ const Dashboard = () => {
                   </div>
                 </div>
 
+                {/* Slot consumption progress bar */}
+                {slotStats.totalSlots > 0 && (
+                  <div className="mt-4">
+                    <div className="flex justify-between text-sm mb-2">
+                      <span className="font-medium text-slate-600">
+                        Prepaid Slot Consumption (Booked / Total)
+                      </span>
+                      <span className="font-black text-indigo-600">
+                        {slotStats.bookedSlots} / {slotStats.totalSlots} ({Math.round((slotStats.bookedSlots / slotStats.totalSlots) * 100)}%)
+                      </span>
+                    </div>
+                    <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-indigo-500 to-blue-500 transition-all duration-500"
+                        style={{ width: `${Math.round((slotStats.bookedSlots / slotStats.totalSlots) * 100)}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Course list */}
                 <div className="mt-6 space-y-3">
                   <h4 className="text-sm font-bold text-slate-700">
-                    Recent Enrollments
+                    Recent Bookings
                   </h4>
                   {enrollments.slice(0, 3).map((enrollment, i) => (
                     <div
@@ -193,9 +245,8 @@ const Dashboard = () => {
                       <div className="flex-1">
                         <p className="text-sm font-bold text-slate-800">
                           {enrollment?.slot?.startTime} -{" "}
-                          {enrollment?.slot.endTime || ""}
+                          {enrollment?.slot?.endTime || ""}
                         </p>
-                       
                       </div>
                       <div
                         className={`px-3 py-1 rounded-full text-xs font-bold ${

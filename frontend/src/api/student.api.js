@@ -21,6 +21,8 @@ export const getEnrollments = (params) => {
   return API.get("/student/my-classes", { params });
 };
 
+export const getStudentSlotStats = () => API.get("/student/slot-stats");
+
 export default {
   getStudentClasses,
   getStudentEnrollments,
@@ -29,4 +31,5 @@ export default {
   saveSelectedSlot,
   checkPaymentStatus,
   getStudentPackageById,
+  getStudentSlotStats,
 };
