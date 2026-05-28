@@ -13,9 +13,12 @@ import {
   BookOpen,
   Award,
   Clock,
-  TrendingUp
+  TrendingUp,
+  Star,
+  Trophy
 } from 'lucide-react';
 import API from '@/api/axios.instance';
+import { getStudentSlotStats } from '@/api/student.api';
 
 const Profile = () => {
   const [user, setUser] = useState(null);
@@ -33,7 +36,15 @@ const Profile = () => {
     profession: ''
   });
 
-  // Load user from localStorage on mount
+  const [slotStats, setSlotStats] = useState({
+    totalSlots: 0,
+    bookedSlots: 0,
+    completedSlots: 0,
+    pendingSlots: 0,
+    remainingSlots: 0,
+  });
+
+  // Load user from localStorage and fetch slot stats on mount
   useEffect(() => {
     const userData = localStorage.getItem('user');
     if (userData) {
@@ -45,6 +56,19 @@ const Profile = () => {
         phone: parsed.phone || '',
         profession: parsed.profession || '',
       });
+
+      // Fetch slot stats
+      const fetchSlotStats = async () => {
+        try {
+          const res = await getStudentSlotStats();
+          if (res.data?.success && res.data?.data) {
+            setSlotStats(res.data.data);
+          }
+        } catch (error) {
+          console.error("Failed to fetch slot stats in profile:", error);
+        }
+      };
+      fetchSlotStats();
     }
     setLoading(false);
   }, []);
@@ -142,12 +166,12 @@ const Profile = () => {
     );
   }
 
-  // Mock stats (can be made dynamic later)
+  // Real-time student slot stats
   const stats = [
-    { label: "Courses", value: "0", icon: <BookOpen className="text-blue-600" />, bg: "bg-blue-50" },
-    { label: "Certificates", value: "0", icon: <Award className="text-purple-600" />, bg: "bg-purple-50" },
-    { label: "Hours", value: "0h", icon: <Clock className="text-orange-600" />, bg: "bg-orange-50" },
-    { label: "Score", value: "0", icon: <TrendingUp className="text-green-600" />, bg: "bg-green-50" },
+    { label: "Total Slots", value: slotStats.totalSlots.toString(), icon: <BookOpen className="text-blue-600" />, bg: "bg-blue-50" },
+    { label: "Used Slots", value: slotStats.bookedSlots.toString(), icon: <Trophy className="text-orange-600" />, bg: "bg-orange-50" },
+    { label: "Pending Slots", value: slotStats.remainingSlots.toString(), icon: <Star className="text-green-600" />, bg: "bg-green-50" },
+    { label: "Upcoming Classes", value: slotStats.pendingSlots.toString(), icon: <Clock className="text-purple-600" />, bg: "bg-purple-50" },
   ];
 
   return (
