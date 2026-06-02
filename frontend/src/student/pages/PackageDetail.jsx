@@ -117,11 +117,11 @@ const PackageDetail = ({ id }) => {
 
               {/* TAGS */}
               <div className="flex flex-wrap gap-2 pt-2">
-                {pkg.level && (
+                {/* {pkg.level && (
                   <span className="px-4 py-1.5 text-xs font-bold rounded-full bg-blue-50 text-blue-600 border border-blue-100">
                     {pkg.level}
                   </span>
-                )}
+                )} */}
                 {/* {pkg.accessDurationDays && (
                   <span className="px-4 py-1.5 text-xs font-bold rounded-full bg-green-50 text-green-600 border border-green-100 flex items-center gap-1.5">
                     <Clock size={14} />
