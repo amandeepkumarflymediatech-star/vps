@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { getEnrollments, updateMeetingLink } from "@/api/enrollments.api";
 import toast from "react-hot-toast";
 import {
@@ -19,6 +20,7 @@ import {
 const STATUS_OPTIONS = ["UPCOMING", "COMPLETED", "CANCELLED", "MISSED"];
 
 const Enrollments = () => {
+  const router = useRouter();
   const [enrollments, setEnrollments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState(null);
@@ -490,9 +492,12 @@ const Enrollments = () => {
                           <User size={20} />
                         </div>
                         <div>
-                          <p className="font-bold text-gray-900">
+                          <button
+                            onClick={() => router.push(`/tutor/student/${e.student?._id}`)}
+                            className="font-bold text-gray-900 hover:text-indigo-600 hover:underline transition-colors text-left"
+                          >
                             {e.student?.name}
-                          </p>
+                          </button>
                           <p className="text-xs text-indigo-600 font-medium">
                             {e.package?.title}
                           </p>
@@ -597,9 +602,12 @@ const Enrollments = () => {
                         <User size={18} />
                       </div>
                       <div>
-                        <p className="font-bold text-gray-900 text-sm">
+                        <button
+                          onClick={() => router.push(`/tutor/student/${e.student?._id}`)}
+                          className="font-bold text-gray-900 text-sm hover:text-indigo-600 hover:underline transition-colors text-left"
+                        >
                           {e.student?.name}
-                        </p>
+                        </button>
                         <p className="text-[11px] text-gray-400 font-semibold">
                           {e.package?.title}
                         </p>

@@ -177,19 +177,16 @@ const TutorDashboard = () => {
                 {enrollments.slice(0, 4).map((course, i) => (
                   <div
                     key={i}
-                    className="flex items-center justify-between p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-all group cursor-pointer"
-                    onClick={() => router.push("/tutor/classes")}
+                    className="flex items-center justify-between p-4 bg-slate-50 rounded-xl hover:bg-blue-50 hover:border-blue-200 border border-transparent transition-all group cursor-pointer"
+                    onClick={() =>
+                      router.push(`/tutor/student/${course?.student?._id}`)
+                    }
                   >
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <h4 className="font-bold text-slate-900">
+                        <h4 className="font-bold text-slate-900 group-hover:text-blue-700 transition-colors">
                           {course?.student?.name}
                         </h4>
-                        {/* {course.package && (
-                          <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-bold rounded-full">
-                            Published
-                          </span>
-                        )} */}
                       </div>
                       <p className="text-sm text-slate-500 line-clamp-1">
                        {course.slot.startTime} - {course.slot.endTime}

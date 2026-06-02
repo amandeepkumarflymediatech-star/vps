@@ -17,4 +17,12 @@ export const updateMeetingLink = (id, data) =>
   API.post(`/student/enrollments/${id}/meeting-link`, data);
 export const cancelEnrollment = (id, data) =>
   API.post(`/student/enrollments/${id}`, data);
+
+/**
+ * Get class stats for a specific student (tutor-only)
+ * Returns: totalClasses, completedClasses, missedClasses, upcomingClasses, enrollments list
+ */
+export const getStudentClassStats = (studentId) =>
+  API.get(`/student/student-stats/${studentId}`);
+
 export default { getEnrollments };

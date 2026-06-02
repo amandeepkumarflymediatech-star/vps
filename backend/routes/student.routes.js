@@ -10,6 +10,7 @@ import {
   saveSelectedSlot,
   getMyEnrollmentsStudent,
   getStudentSlotStats,
+  getStudentClassStatsForTutor,
 } from "../controllers/student.controller.js";
 
 const router = express.Router();
@@ -19,6 +20,7 @@ router.get("/my-classes", auth, role("TUTOR"), getMyEnrollments);
 router.get("/student-classes", auth, role("STUDENT"), getMyEnrollmentsStudent);
 router.get("/allenrollments", auth, role("STUDENT","TUTOR"), getAllEnrollmentStudents);
 router.get("/slot-stats", auth, role("STUDENT"), getStudentSlotStats);
+router.get("/student-stats/:studentId", auth, role("TUTOR"), getStudentClassStatsForTutor);
 router.post(
   "/enrollments/:id/meeting-link",
   auth,

@@ -34,6 +34,7 @@ import Classes from "./tutor/Classes";
 import Packages from "./tutor/Packages";
 import ProfilePage from "./tutor/ProfilePage";
 import TutorLayout from "./tutor/pages/TutorLayout";
+import StudentClassDetail from "./tutor/pages/StudentClassDetail";
 
 /* ================= STUDENT ================= */
 import StudentLayout from "./student/StudentLayout";
@@ -101,6 +102,7 @@ const App = () => {
           <Route path="classes/:id" element={<ClassDeatail />} />
           <Route path="profile/:id" element={<ProfilePage />} />
           <Route path="courses" element={<Courses />} />
+          <Route path="student/:studentId" element={<StudentClassDetail />} />
         </Route>
 
         {/* 🎓 STUDENT DASHBOARD */}

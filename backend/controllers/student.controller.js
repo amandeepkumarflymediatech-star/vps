@@ -2,6 +2,7 @@ import Class from "../models/class.js";
 import Enrollment from "../models/enrollment.js";
 import TutorAvailability from "../models/TutorAvailability.js";
 import Payment from "../models/payment.js";
+import CoursePackage from "../models/package.js";
 import mongoose from "mongoose";
 /**
  * STUDENT: LIST AVAILABLE CLASSES
@@ -1679,5 +1680,165 @@ export const cancelEnrollment = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
+  }
+};
+
+/**
+ * GET STUDENT CLASS STATS FOR TUTOR
+ *
+ * Tutor-only endpoint. Returns class statistics for a specific student
+ * scoped to the logged-in tutor:
+ *  - totalClasses  : total lessons purchased by the student from this tutor
+ *  - completedClasses : enrollments with status COMPLETED
+ *  - missedClasses    : enrollments with status MISSED
+ *  - upcomingClasses  : enrollments with UPCOMING status
+ *  - enrollments   : full list of sessions for the detail table
+ *
+ * Route: GET /student/student-stats/:studentId
+ */
+export const getStudentClassStatsForTutor = async (req, res) => {
+  try {
+    const tutorId = new mongoose.Types.ObjectId(req.user.id);
+    const studentId = new mongoose.Types.ObjectId(req.params.studentId);
+    const now = new Date();
+
+    // 1️⃣ Total lessons purchased by this student overall (packages are global)
+    const payments = await Payment.find({
+      userId: studentId,
+      status: "SUCCESS",
+    }).populate("packageId");
+
+    const totalClasses = payments.reduce((sum, p) => {
+      return sum + (p.packageId?.lessons || p.lessons || 0);
+    }, 0);
+
+    // 2️⃣ Full enrollment list with computed status
+    const enrollments = await Enrollment.aggregate([
+      {
+        $match: { userId: studentId, tutorId },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "userId",
+          foreignField: "_id",
+          as: "student",
+        },
+      },
+      { $unwind: "$student" },
+      {
+        $addFields: {
+          sessionStart: {
+            $dateFromString: {
+              dateString: {
+                $concat: [
+                  { $dateToString: { format: "%Y-%m-%d", date: "$slot.date" } },
+                  "T",
+                  "$slot.startTime",
+                  ":00.000Z",
+                ],
+              },
+            },
+          },
+          sessionEnd: {
+            $dateFromString: {
+              dateString: {
+                $concat: [
+                  { $dateToString: { format: "%Y-%m-%d", date: "$slot.date" } },
+                  "T",
+                  "$slot.endTime",
+                  ":00.000Z",
+                ],
+              },
+            },
+          },
+        },
+      },
+      {
+        $addFields: {
+          computedStatus: {
+            $switch: {
+              branches: [
+                { case: { $eq: ["$status", "CANCELLED"] }, then: "CANCELLED" },
+                { case: { $eq: ["$status", "COMPLETED"] }, then: "COMPLETED" },
+                { case: { $eq: ["$status", "MISSED"] }, then: "MISSED" },
+                {
+                  case: {
+                    $and: [
+                      { $in: ["$status", ["UPCOMING", "CONFIRMED"]] },
+                      { $lt: ["$sessionEnd", now] },
+                    ],
+                  },
+                  then: "MISSED",
+                },
+                {
+                  case: {
+                    $and: [
+                      { $lte: ["$sessionStart", now] },
+                      { $gte: ["$sessionEnd", now] },
+                    ],
+                  },
+                  then: "ONGOING",
+                },
+                { case: { $gt: ["$sessionStart", now] }, then: "UPCOMING" },
+              ],
+              default: "$status",
+            },
+          },
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          slot: 1,
+          status: 1,
+          computedStatus: 1,
+          meetingLink: 1,
+          paymentStatus: 1,
+          createdAt: 1,
+          student: {
+            _id: "$student._id",
+            name: "$student.name",
+            email: "$student.email",
+          },
+        },
+      },
+      { $sort: { createdAt: -1 } },
+    ]);
+
+    // 3️⃣ Calculate stats dynamically from computedStatus
+    let completedClasses = 0;
+    let missedClasses = 0;
+    let upcomingClasses = 0;
+
+    enrollments.forEach((en) => {
+      if (en.computedStatus === "COMPLETED") {
+        completedClasses++;
+      } else if (en.computedStatus === "MISSED") {
+        missedClasses++;
+      } else if (en.computedStatus === "UPCOMING" || en.computedStatus === "ONGOING") {
+        upcomingClasses++;
+      }
+    });
+
+    // 4️⃣ Grab student info from first enrollment
+    const studentInfo = enrollments[0]?.student || null;
+
+    return res.json({
+      success: true,
+      data: {
+        student: studentInfo,
+        stats: {
+          totalClasses,
+          completedClasses,
+          missedClasses,
+          upcomingClasses,
+        },
+        enrollments,
+      },
+    });
+  } catch (error) {
+    console.error("getStudentClassStatsForTutor error:", error);
+    return res.status(500).json({ message: error.message });
   }
 };
