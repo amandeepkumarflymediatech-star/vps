@@ -1,1 +1,2 @@
-export { sendOtpEmail } from "../config/mailer.js";
+export { sendOtpEmail, sendEmail, getTransporter } from "../config/mailer.js";
+

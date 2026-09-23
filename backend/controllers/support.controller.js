@@ -1,14 +1,5 @@
 import Support from "../models/support.js";
-import nodemailer from "nodemailer";
-
-// Create email transporter
-const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-    },
-});
+import { sendEmail } from "../config/mailer.js";
 
 // Submit support request
 export const submitSupportRequest = async (req, res) => {
@@ -83,8 +74,8 @@ export const submitSupportRequest = async (req, res) => {
         // We use Promise.allSettled to ensure that even if one email fails, the process continues
         // and we don't crash, but we should log errors.
         const results = await Promise.allSettled([
-            transporter.sendMail(adminMailOptions),
-            transporter.sendMail(userMailOptions),
+            sendEmail(adminMailOptions),
+            sendEmail(userMailOptions),
         ]);
 
         results.forEach((result, index) => {
