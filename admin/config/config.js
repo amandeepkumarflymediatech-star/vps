@@ -3,10 +3,17 @@ module.exports = {
   mongoURI: process.env.MONGO_URI || "mongodb://127.0.0.1:27017/vps_admin_db",
   sessionSecret: process.env.SESSION_SECRET || "supersecretenglishraj",
   JWT_SECRET: process.env.JWT_SECRET,
+  EMAIL_HOST: process.env.EMAIL_HOST,
   EMAIL_USER: process.env.EMAIL_USER,
   EMAIL_PASS: process.env.EMAIL_PASS,
   EMAIL_PORT: process.env.EMAIL_PORT ? Number(process.env.EMAIL_PORT) : 587,
-  EMAIL_SECURE: process.env.EMAIL_SECURE === "true",
+  EMAIL_SECURE:
+    process.env.EMAIL_SECURE === "true" ||
+    process.env.EMAIL_SECURE === true ||
+    process.env.EMAIL_PORT === "465",
+  EMAIL_FROM: process.env.EMAIL_FROM,
+  EMAIL_SERVICE: process.env.EMAIL_SERVICE,
+  EMAIL_TLS_REJECT_UNAUTHORIZED: process.env.EMAIL_TLS_REJECT_UNAUTHORIZED !== "false",
   BASE_URL: process.env.BASE_URL || "http://localhost:5001",
   FRONTEND_URL: process.env.CLIENT_URL || "http://localhost:3000",
   CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME,
