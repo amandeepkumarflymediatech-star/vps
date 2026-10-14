@@ -48,14 +48,52 @@ export const getClasses = async (req, res) => {
     const endOfDay = new Date(startOfDay);
     endOfDay.setUTCDate(startOfDay.getUTCDate() + 1);
 
-    const tutorSlots = await TutorAvailability.find({
-      date: { $gte: startOfDay, $lt: endOfDay },
-    })
-      .populate("tutorId")
-      .lean();
+    const [tutorSlots, activeEnrollments] = await Promise.all([
+      TutorAvailability.find({
+        date: { $gte: startOfDay, $lt: endOfDay },
+      })
+        .populate("tutorId")
+        .lean(),
+      Enrollment.find({
+        status: { $ne: "CANCELLED" },
+        "slot.date": { $gte: startOfDay, $lt: endOfDay },
+      })
+        .select("tutorId slotId slot")
+        .lean(),
+    ]);
+
+    const bookedSlotIds = new Set();
+    const bookedTutorDateTimes = new Set();
+    activeEnrollments.forEach((e) => {
+      if (e.slotId) bookedSlotIds.add(e.slotId.toString());
+      if (e.tutorId && e.slot?.date && e.slot?.startTime) {
+        const dStr = new Date(e.slot.date).toISOString().split("T")[0];
+        bookedTutorDateTimes.add(`${e.tutorId.toString()}_${dStr}_${e.slot.startTime}`);
+      }
+    });
+
+    const formattedTutorSlots = tutorSlots.map((day) => {
+      const tutorIdStr = (day.tutorId?._id || day.tutorId)?.toString();
+      const dayDateStr = new Date(day.date).toISOString().split("T")[0];
+      return {
+        ...day,
+        availability: (day.availability || []).map((slot) => {
+          const isSlotBooked =
+            slot.isBooked === true ||
+            bookedSlotIds.has(slot._id?.toString()) ||
+            bookedTutorDateTimes.has(`${tutorIdStr}_${dayDateStr}_${slot.startTime}`);
+          return {
+            ...slot,
+            slotId: slot._id,
+            isBooked: Boolean(isSlotBooked),
+          };
+        }),
+      };
+    });
+
     return res.json({
       success: true,
-      data: tutorSlots,
+      data: formattedTutorSlots,
       dateUsed: startOfDay, // optional debug
     });
   } catch (error) {
@@ -1193,9 +1231,13 @@ export const saveSelectedSlot = async (req, res) => {
   try {
     const userId = req.user.id;
     const { tutorId, slot, date } = req.body;
-    console.log(req.body, '--------')
-    const slotId = slot._id;
-    const { startTime, endTime } = slot;
+    console.log(req.body, '--------');
+    const slotId = slot?._id || slot?.slotId;
+    const { startTime, endTime } = slot || {};
+
+    if (!tutorId || !slot || !startTime) {
+      return res.status(400).json({ message: "Incomplete slot details" });
+    }
 
     // 1️⃣ Get ALL successful payments for this user (oldest → newest)
     const payments = await Payment.find({
@@ -1259,36 +1301,92 @@ export const saveSelectedSlot = async (req, res) => {
         .json({ message: "Package not found for active payment" });
     }
 
-    // 4️⃣ Prevent duplicate slot booking
-    const existingEnrollment = await Enrollment.findOne({
-      userId,
-      tutorId,
-      slotId,
-      status: { $ne: "CANCELLED" },
-    });
+    // Normalize date to UTC midnight for matching
+    let normalizedBookingDate = null;
+    if (date) {
+      if (typeof date === "string" && date.includes("-")) {
+        const datePart = date.split("T")[0];
+        const [y, m, d] = datePart.split("-").map(Number);
+        if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
+          normalizedBookingDate = new Date(Date.UTC(y, m - 1, d));
+        }
+      } else {
+        const dObj = new Date(date);
+        if (!isNaN(dObj.getTime())) {
+          normalizedBookingDate = new Date(
+            Date.UTC(dObj.getUTCFullYear(), dObj.getUTCMonth(), dObj.getUTCDate()),
+          );
+        }
+      }
+    }
 
-    if (existingEnrollment) {
-      return res.status(400).json({ message: "Slot already booked" });
+    // 4️⃣ Prevent duplicate slot booking across ANY student
+    const duplicateOrConditions = [];
+    if (slotId) {
+      duplicateOrConditions.push({ slotId });
+    }
+    if (normalizedBookingDate && startTime) {
+      duplicateOrConditions.push({
+        "slot.date": normalizedBookingDate,
+        "slot.startTime": startTime,
+      });
+    }
+
+    if (duplicateOrConditions.length > 0) {
+      const existingEnrollment = await Enrollment.findOne({
+        tutorId,
+        status: { $ne: "CANCELLED" },
+        $or: duplicateOrConditions,
+      });
+
+      if (existingEnrollment) {
+        return res.status(400).json({ message: "Slot already booked" });
+      }
     }
 
     // 5️⃣ Update tutor availability (slot-level check ATOMICALLY)
-    const availabilityUpdate = await TutorAvailability.updateOne(
-      {
-        tutorId,
-        date,
-        availability: {
-          $elemMatch: {
-            _id: slotId,
-            isBooked: false, // Ensure it's NOT already booked
+    let availabilityUpdate = null;
+    if (slotId) {
+      availabilityUpdate = await TutorAvailability.updateOne(
+        {
+          tutorId,
+          availability: {
+            $elemMatch: {
+              _id: slotId,
+              isBooked: false,
+            },
           },
         },
-      },
-      {
-        $set: {
-          "availability.$.isBooked": true,
+        {
+          $set: {
+            "availability.$.isBooked": true,
+          },
         },
-      },
-    );
+      );
+    }
+
+    if (!availabilityUpdate || availabilityUpdate.modifiedCount === 0) {
+      if (normalizedBookingDate && startTime) {
+        availabilityUpdate = await TutorAvailability.updateOne(
+          {
+            tutorId,
+            date: normalizedBookingDate,
+            availability: {
+              $elemMatch: {
+                startTime,
+                isBooked: false,
+              },
+            },
+          },
+          {
+            $set: {
+              "availability.$.isBooked": true,
+            },
+          },
+        );
+      }
+    }
+
     if (!availabilityUpdate || availabilityUpdate.modifiedCount === 0) {
       return res.status(400).json({
         message: "Slot is no longer available (already booked)",
@@ -1303,7 +1401,7 @@ export const saveSelectedSlot = async (req, res) => {
       slot: {
         startTime,
         endTime,
-        date,
+        date: normalizedBookingDate || date,
       },
       status: "UPCOMING",
       paymentStatus: "SUCCESS",
@@ -1659,19 +1757,37 @@ export const cancelEnrollment = async (req, res) => {
     await enrollment.save();
 
     // Update tutor availability: mark the slot as available
-    await TutorAvailability.updateOne(
-      {
-        tutorId: enrollment.tutorId,
-        date: enrollment.slot.date,
-        "availability.startTime": enrollment.slot.startTime,
-      },
-      {
-        $set: {
-          "availability.$.isBooked": false,
-          "availability.$.isAvailable": true,
+    let cancelUpdate = null;
+    if (enrollment.slotId) {
+      cancelUpdate = await TutorAvailability.updateOne(
+        {
+          tutorId: enrollment.tutorId,
+          "availability._id": enrollment.slotId,
         },
-      },
-    );
+        {
+          $set: {
+            "availability.$.isBooked": false,
+            "availability.$.isAvailable": true,
+          },
+        },
+      );
+    }
+
+    if (!cancelUpdate || cancelUpdate.modifiedCount === 0) {
+      await TutorAvailability.updateOne(
+        {
+          tutorId: enrollment.tutorId,
+          date: enrollment.slot.date,
+          "availability.startTime": enrollment.slot.startTime,
+        },
+        {
+          $set: {
+            "availability.$.isBooked": false,
+            "availability.$.isAvailable": true,
+          },
+        },
+      );
+    }
     res.json({
       success: true,
       message: "Session cancelled successfully",

@@ -162,7 +162,8 @@ const BookSession = () => {
             (s) => s.isAvailable && !s.isBooked && isFutureSlot(activeDate, s.startTime)
           )
           .map((s) => ({
-            slotId: s._id,
+            _id: s._id || s.slotId,
+            slotId: s._id || s.slotId,
             startTime: s.startTime,
             endTime: s.endTime,
             label: `${s.startTime} - ${s.endTime}`,

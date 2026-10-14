@@ -99,8 +99,8 @@ export const getPackages = async (req, res) => {
   //  let data= await CoursePackage.populate(packages, {
   //     path: "courses",
   //     select: "title price image",
-  //   });
-  console.log(packages,"packages")
+  //   }); 
+  
     return res.json({
       success: true,
       data: packages,

@@ -29,29 +29,51 @@ export const listTutors = async (req, res) => {
       .limit(limitNum)
       .lean(); // <-- Use lean for easier merging
 
-    // 2️⃣ Fetch availability and enrollment counts for all tutors in one query
+    // 2️⃣ Fetch availability, active enrollments, and enrollment counts for all tutors in one query
     const tutorIds = tutors.map((t) => t._id);
-    const [availabilities, enrollmentCounts] = await Promise.all([
+    const [availabilities, enrollmentCounts, activeEnrollments] = await Promise.all([
       TutorAvailability.find({ tutorId: { $in: tutorIds } }).sort({ date: 1 }).lean(),
       Enrollment.aggregate([
         { $match: { tutorId: { $in: tutorIds } } },
-        { $group: { _id: "$tutorId", count: { $sum: 1 } } }
-      ])
+        { $group: { _id: "$tutorId", count: { $sum: 1 } } },
+      ]),
+      Enrollment.find({
+        tutorId: { $in: tutorIds },
+        status: { $ne: "CANCELLED" },
+      }).select("tutorId slotId slot").lean(),
     ]);
+
+    const bookedSlotIds = new Set();
+    const bookedTutorDateTimes = new Set();
+    activeEnrollments.forEach((e) => {
+      if (e.slotId) bookedSlotIds.add(e.slotId.toString());
+      if (e.tutorId && e.slot?.date && e.slot?.startTime) {
+        const dStr = new Date(e.slot.date).toISOString().split("T")[0];
+        bookedTutorDateTimes.add(`${e.tutorId.toString()}_${dStr}_${e.slot.startTime}`);
+      }
+    });
 
     // 3️⃣ Map availability and enrollment counts
     const availabilityMap = {};
     availabilities.forEach((a) => {
       if (!availabilityMap[a.tutorId]) availabilityMap[a.tutorId] = [];
+      const dayDateStr = new Date(a.date).toISOString().split("T")[0];
       availabilityMap[a.tutorId].push({
         date: a.date,
-        availability: a.availability.map((slot) => ({
-          slotId: slot._id,
-          startTime: slot.startTime,
-          endTime: slot.endTime,
-          isAvailable: slot.isAvailable,
-          isBooked: slot.isBooked,
-        })),
+        availability: a.availability.map((slot) => {
+          const isSlotBooked =
+            slot.isBooked === true ||
+            bookedSlotIds.has(slot._id?.toString()) ||
+            bookedTutorDateTimes.has(`${a.tutorId.toString()}_${dayDateStr}_${slot.startTime}`);
+
+          return {
+            slotId: slot._id,
+            startTime: slot.startTime,
+            endTime: slot.endTime,
+            isAvailable: slot.isAvailable,
+            isBooked: Boolean(isSlotBooked),
+          };
+        }),
       });
     });
 

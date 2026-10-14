@@ -52,6 +52,13 @@ const formatLabel = (hour, minute) => {
   return `${h}:${String(minute).padStart(2, "0")} ${ampm}`;
 };
 
+const formatLocalDateKey = (d) => {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
 const getNext7Days = () => {
   const days = [];
   const today = new Date();
@@ -60,7 +67,7 @@ const getNext7Days = () => {
     const d = new Date(today);
     d.setDate(today.getDate() + i);
     days.push({
-      dateString: d.toLocaleDateString("en-CA"),
+      dateString: formatLocalDateKey(d),
       day: names[d.getDay()],
       dateNum: d.getDate(),
       month: d.toLocaleString("default", { month: "short" }),
@@ -72,7 +79,7 @@ const getNext7Days = () => {
 const AvailabilityManager = () => {
   const timeSlots = generateTimeSlots();
   const days = getNext7Days();
-  const todayStr = new Date().toLocaleDateString("en-CA");
+  const todayStr = formatLocalDateKey(new Date());
 
   const getCurrentTimeHHMM = () => {
     const now = new Date();
@@ -96,14 +103,16 @@ const AvailabilityManager = () => {
       if (Array.isArray(res?.data?.data)) {
         res.data.data.forEach((dayData) => {
           // Normalize date string (YYYY-MM-DD) to match frontend keys
-          const d = new Date(dayData.date);
-          const dStr = d.toISOString().split("T")[0];
+          const dStr = typeof dayData.date === "string"
+            ? dayData.date.split("T")[0]
+            : new Date(dayData.date).toISOString().split("T")[0];
 
           const daySlots = {};
           if (Array.isArray(dayData?.availability)) {
             dayData.availability.forEach((slot) => {
               if (!slot?.startTime) return;
               daySlots[slot.startTime.padStart(5, "0")] = {
+                slotId: slot._id || slot.slotId,
                 isAvailable: Boolean(slot.isAvailable),
                 isBooked: slot.isBooked === true || slot.isBooked === "true",
               };
@@ -123,12 +132,6 @@ const AvailabilityManager = () => {
   useEffect(() => {
     fetchAvailabilityForDate(selectedDate);
   }, [selectedDate]);
-  // useEffect(() => {
-  //   fetchAvailabilityForDate(selectedDate);
-  // }, []);
-  // useEffect(() => {
-  //   if (!availability[selectedDate]) fetchAvailabilityForDate(selectedDate);
-  // }, [selectedDate]);
 
   const toggleSlot = (startTime) => {
     const slot = availability[selectedDate]?.[startTime];
@@ -137,7 +140,7 @@ const AvailabilityManager = () => {
       ...prev,
       [selectedDate]: {
         ...prev[selectedDate],
-        [startTime]: { isAvailable: !slot?.isAvailable, isBooked: false },
+        [startTime]: { ...slot, isAvailable: !slot?.isAvailable, isBooked: false },
       },
     }));
     setSaved(false);
@@ -152,10 +155,11 @@ const AvailabilityManager = () => {
           isBooked: false,
         };
         return {
+          slotId: state.slotId,
           startTime: slot.startTime,
           endTime: slot.endTime,
           isAvailable: state.isAvailable,
-          isBooked: state.isBooked,
+          isBooked: Boolean(state.isBooked),
         };
       });
       await saveTutorAvailability({
@@ -163,6 +167,7 @@ const AvailabilityManager = () => {
         availability: payload,
       });
       setSaved(true);
+      fetchAvailabilityForDate(selectedDate);
       setTimeout(() => setSaved(false), 3000);
     } catch (err) {
       alert("Failed to save");

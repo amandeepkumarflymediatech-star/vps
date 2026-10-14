@@ -258,8 +258,13 @@ export const uploadPaymentProof = async (req, res) => {
 
 const phonePeClientId = process.env.PHONEPE_CLIENT_ID || "SANDBOX_CLIENT_ID";
 const phonePeClientSecret = process.env.PHONEPE_CLIENT_SECRET || process.env.PHONEPE_SALT_KEY || "SANDBOX_SALT_KEY"; 
-const phonePeClientVersion = process.env.PHONEPE_SALT_INDEX || 1;
-const phonePeEnv = process.env.NODE_ENV === "production" ? Env.PRODUCTION : Env.SANDBOX;
+const phonePeClientVersion = Number(process.env.PHONEPE_SALT_INDEX) || 1;
+const phonePeEnv =
+  (process.env.PHONEPE_ENV || "").toUpperCase() === "PRODUCTION" ||
+  process.env.NODE_ENV === "production" ||
+  (phonePeClientId && phonePeClientId.startsWith("SU"))
+    ? Env.PRODUCTION
+    : Env.SANDBOX;
 
 let phonePeClient;
 try {
@@ -351,6 +356,13 @@ export const phonepeWebhook = async (req, res) => {
  */
 export const initiatePhonePePayment = async (req, res) => {
   try {
+    if (!phonePeClient) {
+      return res.status(500).json({
+        success: false,
+        message: "PhonePe SDK is not initialized. Please check PHONEPE_CLIENT_ID and PHONEPE_CLIENT_SECRET in .env",
+      });
+    }
+
     const { amount, tutorId, packageId, lessons, couponCode } = req.body;
     const userId = req.user?.id || req.user?._id || "guest_user";
 
@@ -421,6 +433,13 @@ export const checkPaymentStatus = async (req, res) => {
   try {
     const { transactionId } = req.params;
 
+    if (!phonePeClient) {
+      return res.status(500).json({
+        success: false,
+        message: "PhonePe SDK is not initialized.",
+      });
+    }
+
     // 📡 SDK Status Check
     const response = await phonePeClient.getOrderStatus(transactionId);
     if (!response) {
@@ -476,10 +495,12 @@ export const checkPaymentStatus = async (req, res) => {
 };
 
 export const fetchPhonePeAuthTokenRoute = async (req, res) => {
-  const result = await getPhonePeAuthToken();
-  if (result.success) {
-    return res.status(200).json(result);
-  } else {
-    return res.status(500).json(result);
+  try {
+    return res.status(200).json({
+      success: true,
+      message: "PhonePe SDK manages authentication tokens automatically.",
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: err.message });
   }
 };
