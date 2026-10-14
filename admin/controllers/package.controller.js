@@ -27,6 +27,29 @@ exports.renderPackages = async (req, res) => {
 
     const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
     const limit = Math.max(parseInt(req.query.limit, 10) || 10, 1);
+    const search = req.query.search ? req.query.search.trim() : "";
+    const levelFilter = req.query.level ? req.query.level.trim() : "";
+    const statusFilter = req.query.status ? req.query.status.trim() : "";
+
+    if (levelFilter) {
+      query.level = levelFilter;
+    }
+
+    if (statusFilter === "published") {
+      query.published = true;
+    } else if (statusFilter === "draft") {
+      query.published = false;
+    }
+
+    if (search) {
+      const escaped = search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const searchRegex = new RegExp(escaped, "i");
+      query.$or = [
+        { title: { $regex: searchRegex } },
+        { description: { $regex: searchRegex } },
+        { category: { $regex: searchRegex } },
+      ];
+    }
 
     const sortTitle =
       req.query.sortTitle === "asc" || req.query.sortTitle === "desc"
@@ -59,11 +82,17 @@ exports.renderPackages = async (req, res) => {
       limit,
       total,
       sortTitle,
+      search,
+      levelFilter,
+      statusFilter,
     });
   } catch (error) {
     console.error(error);
     req.flash("error", error.message);
-    res.status(error.status).json(error.message);
+    res.status(error.status || 500).render("layouts/error", {
+      message: "Failed to load packages",
+      path: req.originalUrl,
+    });
   }
 };
 

@@ -8,7 +8,7 @@ const isValidObjectId = (id) => ObjectId.isValid(id);
 
 export const getPackages = async (req, res) => {
   try {
-    const { level, category, organizationId, userId } = req.query;
+    const { level, category, organizationId, userId, search } = req.query;
 
     if (userId) {
       /* ---------- VALIDATE USER ---------- */
@@ -26,6 +26,15 @@ export const getPackages = async (req, res) => {
     if (category) matchStage.category = category;
     if (organizationId && isValidObjectId(organizationId)) {
       matchStage.organizationId = new ObjectId(organizationId);
+    }
+    if (search && search.trim()) {
+      const escaped = search.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const searchRegex = new RegExp(escaped, "i");
+      matchStage.$or = [
+        { title: { $regex: searchRegex } },
+        { description: { $regex: searchRegex } },
+        { category: { $regex: searchRegex } },
+      ];
     }
 
     /* ---------- AGGREGATION ---------- */

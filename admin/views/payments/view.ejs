@@ -1,6 +1,16 @@
 <%- include('../layouts/header') %>
   <%- include('../layouts/sidebar') %>
 
+<%
+  function formatLocalIso(dateStr) {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return '';
+    const tzOffset = d.getTimezoneOffset() * 60000;
+    return new Date(d.getTime() - tzOffset).toISOString().slice(0, 16);
+  }
+%>
+
     <main class="bg-gray-100 min-h-screen px-3 sm:px-4 md:px-6 py-6
          w-full md:ml-64 transition-all duration-300">
       <div class="max-w-3xl mx-auto">
@@ -22,168 +32,266 @@
         </div>
 
         <!-- ================= DESKTOP HEADER ================= -->
-        <div class="hidden md:block mb-4">
-          <h1 class="text-2xl font-semibold text-gray-800">
-            Payment Details
-          </h1>
+        <div class="hidden md:flex items-center justify-between mb-6">
+          <div>
+            <h1 class="text-2xl font-bold text-gray-800">
+              Payment Details
+            </h1>
+            <p class="text-xs text-gray-500 mt-1">Order #<%= payment.clientPaymentId || payment._id %></p>
+          </div>
+          <a href="/admin/payments" class="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1">
+            ← Back to Payments
+          </a>
         </div>
 
         <!-- ================= CONTENT CARD ================= -->
-        <div class="bg-white rounded-2xl shadow p-6">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-6">
 
-          <div class="space-y-4 text-sm">
+          <!-- Overview Grid -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm bg-gray-50 p-4 rounded-xl border border-gray-100">
             <div>
-              <span class="font-semibold">User:</span>
-              <span class="ml-2">
+              <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider block">User Name</span>
+              <span class="font-medium text-gray-900 mt-0.5 block">
                 <%= payment.userId ? payment.userId.name : 'N/A' %>
               </span>
             </div>
 
             <div>
-              <span class="font-semibold">Email:</span>
-              <span class="ml-2">
+              <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider block">User Email</span>
+              <span class="font-medium text-gray-900 mt-0.5 block">
                 <%= payment.userId ? payment.userId.email : 'N/A' %>
               </span>
             </div>
 
             <div>
-              <span class="font-semibold">Amount:</span>
-              <span class="ml-2">₹<%= payment.amount %></span>
+              <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider block">Current Amount</span>
+              <span class="font-bold text-lg text-gray-900 mt-0.5 block" id="detail-amount-display">
+                ₹<%= payment.amount %>
+              </span>
             </div>
 
             <div>
-              <span class="font-semibold">Method:</span>
-              <span class="ml-2 px-2 py-0.5 bg-gray-100 rounded text-xs"><%= payment.method || 'UPI' %></span>
+              <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider block">Payment Date</span>
+              <span class="font-medium text-gray-900 mt-0.5 block" id="detail-date-display">
+                <%= new Date(payment.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) %>
+              </span>
             </div>
 
             <div>
-              <span class="font-semibold">Order ID:</span>
-              <span class="ml-2 text-xs text-gray-500"><%= payment.clientPaymentId %></span>
+              <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider block">Payment Method</span>
+              <span class="font-mono text-xs bg-gray-200 px-2 py-0.5 rounded text-gray-700 mt-1 inline-block">
+                <%= payment.method || 'UPI' %>
+              </span>
+            </div>
+
+            <div>
+              <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider block">Status</span>
+              <span id="detail-status-badge" class="px-2.5 py-1 rounded-full text-xs font-bold uppercase mt-1 inline-block
+                <%= payment.status === 'SUCCESS' || payment.status === 'VERIFIED'
+                  ? 'bg-green-100 text-green-700'
+                  : payment.status === 'REJECTED'
+                  ? 'bg-red-100 text-red-700'
+                  : 'bg-yellow-100 text-yellow-700' %>">
+                <%= payment.status %>
+              </span>
+            </div>
+
+            <div>
+              <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider block">Order / Client ID</span>
+              <span class="font-mono text-xs text-gray-600 mt-0.5 block break-all">
+                <%= payment.clientPaymentId %>
+              </span>
             </div>
 
             <% if (payment.transactionId) { %>
             <div>
-              <span class="font-semibold">Payment ID:</span>
-              <span class="ml-2 text-xs text-gray-500"><%= payment.transactionId %></span>
+              <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider block">Gateway Txn ID</span>
+              <span class="font-mono text-xs text-gray-600 mt-0.5 block break-all">
+                <%= payment.transactionId %>
+              </span>
             </div>
             <% } %>
 
             <div>
-              <span class="font-semibold">Status:</span>
-              <span class="ml-2 font-semibold
-            <%= payment.status === 'SUCCESS'
-              ? 'text-green-600'
-              : payment.status === 'REJECTED'
-              ? 'text-red-600'
-              : 'text-yellow-600' %>">
-                <%= payment.status %>
-              </span>
-            </div>
-            <input type="hidden" value="<%=payment._id %>" id="payment_id">
-            <div>
-              <span class="font-semibold">User Payment Verified:</span>
-              <span class="ml-2">
-                <%= payment.userId && payment.userId.isPaymentDone ? 'Yes' : 'No' %>
-              </span>
-            </div>
-
-            <div>
-              <span class="font-semibold">Created At:</span>
-              <span class="ml-2">
-                <%= new Date(payment.createdAt).toLocaleString() %>
+              <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider block">User Account Activated</span>
+              <span class="font-medium mt-0.5 block <%= payment.userId && payment.userId.isPaymentDone ? 'text-green-600' : 'text-gray-500' %>">
+                <%= payment.userId && payment.userId.isPaymentDone ? 'Yes (Active)' : 'No' %>
               </span>
             </div>
           </div>
 
           <!-- ================= PAYMENT PROOF ================= -->
           <% if (payment.proofImage) { %>
-            <div class="mt-6">
-              <h2 class="font-semibold mb-2">Payment Proof</h2>
-              <img src="<%= payment.proofImage %>" alt="Payment proof"
-                class="w-full max-h-96 object-contain border rounded-lg" />
+            <div class="border-t pt-4">
+              <h2 class="text-sm font-semibold text-gray-700 mb-2">Payment Proof Screenshot</h2>
+              <div class="bg-gray-50 border rounded-xl p-2 inline-block max-w-full">
+                <img src="<%= payment.proofImage %>" alt="Payment proof"
+                  class="max-h-80 object-contain rounded-lg" />
+              </div>
             </div>
-            <% } else { %>
-              <p class="mt-4 text-gray-500 text-sm">
-                No payment proof image uploaded.
-              </p>
-              <% } %>
+          <% } %>
 
-                <!-- ================= STATUS FORM ================= -->
-                <% if (payment.status !=='SUCCESS' ) { %>
-                  <form id="payment-status-form" action="/admin/payments/<%= payment._id %>/verify" method="POST"
-                    class="mt-6 space-y-4">
-                    <label class="block text-sm font-medium" for="status">
-                      Update Payment Status
-                    </label>
+          <!-- ================= MODIFY PAYMENT FORM ================= -->
+          <div class="border-t pt-5">
+            <div class="mb-4">
+              <h2 class="text-base font-bold text-gray-800 flex items-center gap-2">
+                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                </svg>
+                Modify Payment Details
+              </h2>
+              <p class="text-xs text-gray-500 mt-0.5">Update the payment amount, date, and verification status</p>
+            </div>
 
-                    <select id="status" name="status" class="w-full border rounded-lg px-3 py-2">
-                      <option value="PENDING" <%=payment.status==='PENDING' ? 'selected' : '' %> >
-                        Pending
-                      </option>
-                      <option value="SUCCESS" <%=payment.status==='SUCCESS' ? 'selected' : '' %>>
-                        Success
-                      </option>
-                      <option value="REJECTED" <%=payment.status==='REJECTED' ? 'selected' : '' %>>
-                        Rejected
-                      </option>
-                    </select>
+            <form id="payment-modify-form" action="/admin/payments/<%= payment._id %>/update" method="POST" class="space-y-4">
+              <input type="hidden" value="<%= payment._id %>" id="payment_id">
 
-                    <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">
-                      Save Status
-                    </button>
-                  </form>
-                  <% } %>
+              <!-- Amount Row -->
+              <div>
+                <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1" for="modify-amount">
+                  Payment Amount (₹)
+                </label>
+                <div class="relative">
+                  <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 font-bold">₹</span>
+                  <input
+                    type="number"
+                    id="modify-amount"
+                    name="amount"
+                    step="any"
+                    value="<%= payment.amount %>"
+                    required
+                    class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  />
+                </div>
+              </div>
 
-                    <!-- ================= BACK LINK ================= -->
-                    <div class="mt-6">
-                      <a href="/admin/payments" class="text-sm text-gray-600 hover:underline">
-                        ← Back to Payments
-                      </a>
-                    </div>
+              <!-- Date Row -->
+              <div>
+                <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1" for="modify-date">
+                  Payment Date & Time
+                </label>
+                <input
+                  type="datetime-local"
+                  id="modify-date"
+                  name="date"
+                  value="<%= formatLocalIso(payment.createdAt) %>"
+                  required
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                />
+                <p class="text-[11px] text-gray-400 mt-1">Adjust the creation date and timestamp for this payment record</p>
+              </div>
+
+              <!-- Status Dropdown -->
+              <div>
+                <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1" for="modify-status">
+                  Payment Status
+                </label>
+                <select id="modify-status" name="status" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                  <option value="PENDING" <%= payment.status === 'PENDING' ? 'selected' : '' %>>
+                    Pending
+                  </option>
+                  <option value="SUCCESS" <%= payment.status === 'SUCCESS' || payment.status === 'VERIFIED' ? 'selected' : '' %>>
+                    Success (Activates user)
+                  </option>
+                  <option value="REJECTED" <%= payment.status === 'REJECTED' ? 'selected' : '' %>>
+                    Rejected
+                  </option>
+                </select>
+              </div>
+
+              <button
+                type="submit"
+                id="submitModifyBtn"
+                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg shadow transition duration-150 flex items-center justify-center gap-2 text-sm"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                Save Payment Modifications
+              </button>
+            </form>
+          </div>
+
+          <!-- Back Link -->
+          <div class="pt-2">
+            <a href="/admin/payments" class="text-sm text-gray-600 hover:text-gray-900 hover:underline">
+              ← Back to Payments List
+            </a>
+          </div>
 
         </div>
       </div>
     </main>
 
-
-    <!-- ================= FORM AJAX ================= -->
+    <!-- ================= FORM AJAX SCRIPT ================= -->
     <script>
       (function () {
-        const form = document.getElementById("payment-status-form");
+        const form = document.getElementById("payment-modify-form");
         if (!form) return;
-        let id = $("#payment_id").val()
+        const id = document.getElementById("payment_id").value;
+
         form.addEventListener("submit", async (e) => {
           e.preventDefault();
-          const formData = new FormData(form);
-          const status = formData.get("status");
+          const amount = document.getElementById("modify-amount").value;
+          const date = document.getElementById("modify-date").value;
+          const status = document.getElementById("modify-status").value;
+          const submitBtn = document.getElementById("submitModifyBtn");
+
           Swal.fire({
-            title: "Change status?",
-            text: "Do you want to update this payment status?",
+            title: "Update Payment?",
+            text: `Update payment to ₹${amount} with status "${status}"?`,
             icon: "question",
             showCancelButton: true,
-            confirmButtonText: "Yes",
+            confirmButtonText: "Yes, Update",
             cancelButtonText: "Cancel",
           }).then((result) => { 
             if (!result.isConfirmed) return;
 
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = "Saving Changes...";
+
             $.ajax({
-              url: '/admin/payments/' + id + '/verify',
+              url: `/admin/payments/${id}/update`,
               type: "POST",
-              data: {status:status},
+              data: {
+                amount: amount,
+                date: date,
+                status: status,
+              },
               success: function (res) { 
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = "Save Payment Modifications";
+
+                // Update on-page details
+                document.getElementById("detail-amount-display").textContent = "₹" + amount;
+                if (date) {
+                  const d = new Date(date);
+                  document.getElementById("detail-date-display").textContent = d.toLocaleDateString("en-IN", {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  });
+                }
+                const badge = document.getElementById("detail-status-badge");
+                badge.textContent = status;
+                badge.className = "px-2.5 py-1 rounded-full text-xs font-bold uppercase mt-1 inline-block " +
+                  (status === "SUCCESS" || status === "VERIFIED" ? "bg-green-100 text-green-700" :
+                   status === "REJECTED" ? "bg-red-100 text-red-700" : "bg-yellow-100 text-yellow-700");
+
                 Swal.fire({
                   toast: true,
                   position: "top-end",
                   icon: "success",
-                  title: "Status updated",
+                  title: "Payment updated successfully",
                   showConfirmButton: false,
                   timer: 2000,
                 });
-                window.location=res.path
               },
-              error: function (err) {
-                console.log(err, 'err')
-                Swal.fire("Error", "Failed to update status", "error");
+              error: function (xhr) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = "Save Payment Modifications";
+                const msg = xhr.responseJSON?.message || "Failed to update payment";
+                Swal.fire("Error", msg, "error");
               },
             });
           });

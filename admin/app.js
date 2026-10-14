@@ -68,8 +68,12 @@ app.get("/", (req, res) => {
   }
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded; // Populate req.user for the template
-    res.render("dashboard", { user: req.user });
+    if ((decoded.role || "").toUpperCase() !== "ADMIN") {
+      res.clearCookie("token");
+      return res.redirect("/admin/login");
+    }
+    req.user = decoded;
+    return res.redirect("/admin/dashboard");
   } catch (err) {
     res.clearCookie("token");
     return res.redirect("/admin/login");

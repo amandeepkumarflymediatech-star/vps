@@ -1,4 +1,5 @@
 import Payment from "../models/payment.js";
+import User from "../models/User.js";
 import Coupon from "../models/Coupon.js";
 import { v4 as uuidv4 } from "uuid";
 import { StandardCheckoutClient, Env, StandardCheckoutPayRequest } from '@phonepe-pg/pg-sdk-node';
@@ -173,10 +174,91 @@ export const logUpiPayment = async (req, res) => {
 
 export const getAllPayments = async (req, res) => {
   try {
-    const payments = await Payment.find({})
-      .populate("userId", "name email")
+    const { search, status, startDate, endDate, minAmount, maxAmount, sortBy, sortOrder } = req.query;
+    const filter = {};
+
+    if (status) {
+      filter.status = status;
+    }
+
+    // Filter by Date Range
+    if (startDate || endDate) {
+      filter.createdAt = {};
+      if (startDate) {
+        const start = new Date(startDate);
+        if (!isNaN(start.getTime())) {
+          start.setHours(0, 0, 0, 0);
+          filter.createdAt.$gte = start;
+        }
+      }
+      if (endDate) {
+        const end = new Date(endDate);
+        if (!isNaN(end.getTime())) {
+          end.setHours(23, 59, 59, 999);
+          filter.createdAt.$lte = end;
+        }
+      }
+      if (Object.keys(filter.createdAt).length === 0) {
+        delete filter.createdAt;
+      }
+    }
+
+    // Filter by Amount Range
+    if (minAmount || maxAmount) {
+      filter.amount = {};
+      if (minAmount && !isNaN(Number(minAmount))) {
+        filter.amount.$gte = Number(minAmount);
+      }
+      if (maxAmount && !isNaN(Number(maxAmount))) {
+        filter.amount.$lte = Number(maxAmount);
+      }
+      if (Object.keys(filter.amount).length === 0) {
+        delete filter.amount;
+      }
+    }
+
+    if (search && search.trim()) {
+      const escaped = search.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const searchRegex = new RegExp(escaped, "i");
+
+      const matchingUsers = await User.find({
+        $or: [
+          { name: { $regex: searchRegex } },
+          { email: { $regex: searchRegex } },
+          { phone: { $regex: searchRegex } },
+        ],
+      })
+        .select("_id")
+        .lean();
+
+      const orConditions = [
+        { clientPaymentId: { $regex: searchRegex } },
+        { upiRefNo: { $regex: searchRegex } },
+        { method: { $regex: searchRegex } },
+      ];
+
+      if (!isNaN(Number(search.trim())) && Number(search.trim()) >= 0) {
+        orConditions.push({ amount: Number(search.trim()) });
+      }
+
+      if (matchingUsers.length > 0) {
+        orConditions.push({ userId: { $in: matchingUsers.map((u) => u._id) } });
+      }
+
+      filter.$or = orConditions;
+    }
+
+    let sortObj = { createdAt: -1 };
+    if (sortBy === "amount") {
+      sortObj = { amount: sortOrder === "asc" ? 1 : -1, createdAt: -1 };
+    } else if (sortBy === "date") {
+      sortObj = { createdAt: sortOrder === "asc" ? 1 : -1 };
+    }
+
+    const payments = await Payment.find(filter)
+      .populate("userId", "name email phone")
       .populate("tutorId", "name email")
-      .sort({ createdAt: -1 });
+      .sort(sortObj);
 
     return res.status(200).json({ payments });
   } catch (err) {

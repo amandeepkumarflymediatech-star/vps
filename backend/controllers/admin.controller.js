@@ -46,3 +46,55 @@ export const createUser = async (req, res) => {
     return res.status(500).json({ message: "Server error" });
   }
 };
+
+export const getUsers = async (req, res) => {
+  try {
+    const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+    const limit = Math.max(parseInt(req.query.limit, 10) || 10, 1);
+    const search = req.query.search ? req.query.search.trim() : "";
+    const roleFilter = req.query.role ? req.query.role.trim() : "";
+
+    const query = {};
+    if (req.user?.id) {
+      query._id = { $ne: req.user.id };
+    }
+    if (roleFilter) {
+      query.role = roleFilter;
+    }
+    if (search) {
+      const escaped = search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const searchRegex = new RegExp(escaped, "i");
+      query.$or = [
+        { name: { $regex: searchRegex } },
+        { email: { $regex: searchRegex } },
+        { phone: { $regex: searchRegex } },
+      ];
+    }
+
+    const [users, total] = await Promise.all([
+      User.find(query)
+        .select("-password")
+        .sort({ createdAt: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .lean(),
+      User.countDocuments(query),
+    ]);
+
+    const totalPages = Math.max(Math.ceil(total / limit) || 1, 1);
+
+    return res.status(200).json({
+      success: true,
+      data: users,
+      pagination: {
+        page,
+        totalPages,
+        limit,
+        total,
+      },
+    });
+  } catch (error) {
+    console.error("getUsers error:", error);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};

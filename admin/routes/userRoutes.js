@@ -19,7 +19,8 @@ router.get("/", auth, role("ADMIN"), async (req, res) => {
     const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
     const limit = Math.max(parseInt(req.query.limit, 10) || 10, 1);
 
-    // Optional role filter and sorting
+    // Optional search, role filter and sorting
+    const search = req.query.search ? req.query.search.trim() : "";
     const roleFilter = req.query.role ? req.query.role.trim() : "";
     const sortRole =
       req.query.sortRole === "asc" || req.query.sortRole === "desc"
@@ -33,6 +34,16 @@ router.get("/", auth, role("ADMIN"), async (req, res) => {
     const query = { _id: { $ne: req.user.id } };
     if (roleFilter) {
       query.role = roleFilter;
+    }
+
+    if (search) {
+      const escaped = search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const searchRegex = new RegExp(escaped, "i");
+      query.$or = [
+        { name: { $regex: searchRegex } },
+        { email: { $regex: searchRegex } },
+        { phone: { $regex: searchRegex } },
+      ];
     }
 
     const sort = {};
@@ -66,6 +77,7 @@ router.get("/", auth, role("ADMIN"), async (req, res) => {
       roleFilter,
       sortRole,
       sortName,
+      search,
     });
   } catch (err) {
     console.error(err);
