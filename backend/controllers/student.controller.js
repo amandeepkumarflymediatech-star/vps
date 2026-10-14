@@ -1129,7 +1129,43 @@ export const checkPaymentStatus = async (req, res) => {
     const userId = req.user.id;
     const tutorId = req.params.tutorId;
 
-    // Assume you have createdAt on Payment schema
+    // 1️⃣ Get ALL successful payments for this student
+    const successfulPayments = await Payment.find({
+      userId,
+      status: "SUCCESS",
+    })
+      .populate("packageId")
+      .sort({ createdAt: 1 });
+
+    // Sum total lessons from all successful packages/payments
+    const totalLessons = successfulPayments.reduce((sum, p) => {
+      const lessons = p.packageId?.lessons || p.lessons || 0;
+      return sum + lessons;
+    }, 0);
+
+    // 2️⃣ Count booked lessons (Upcoming, Completed, Missed, Ongoing)
+    const bookedCount = await Enrollment.countDocuments({
+      userId,
+      paymentStatus: "SUCCESS",
+      status: { $in: ["UPCOMING", "COMPLETED", "MISSED", "ONGOING"] },
+    });
+
+    const remainingSlots = Math.max(0, totalLessons - bookedCount);
+
+    // If the student still has lessons remaining, allow them to book
+    if (remainingSlots > 0) {
+      const latestSuccess = successfulPayments[successfulPayments.length - 1];
+      return res.json({
+        paid: true,
+        status: "SUCCESS",
+        paymentId: latestSuccess?._id,
+        totalLessons,
+        bookedCount,
+        remainingSlots,
+      });
+    }
+
+    // 3️⃣ If no remaining slots, check the latest payment to report UNDER_REVIEW or PENDING
     const latestPayment = await Payment.findOne({ userId })
       .populate("userId")
       .sort({
@@ -1137,15 +1173,20 @@ export const checkPaymentStatus = async (req, res) => {
       });
 
     if (!latestPayment) {
-      return res.json({ paid: false, status: "pending" });
+      return res.json({
+        paid: false,
+        status: "pending",
+        remainingSlots: 0,
+      });
     }
 
-    const isPaid = latestPayment.status === "SUCCESS";
-
-    res.json({
-      paid: isPaid,
+    return res.json({
+      paid: false,
       status: latestPayment.status,
       paymentId: latestPayment._id,
+      totalLessons,
+      bookedCount,
+      remainingSlots: 0,
     });
   } catch (err) {
     console.error("Check payment error:", err);
