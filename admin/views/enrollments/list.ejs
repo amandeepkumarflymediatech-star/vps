@@ -1,5 +1,29 @@
 <%- include('../layouts/header') %> <%- include('../layouts/sidebar') %>
 
+<%
+  const currentSearch = typeof search !== 'undefined' ? search : '';
+  const currentStatusVal = typeof currentStatus !== 'undefined' ? currentStatus : '';
+  const currentStartDate = typeof startDate !== 'undefined' ? startDate : '';
+  const currentEndDate = typeof endDate !== 'undefined' ? endDate : '';
+
+  function buildUrl(override) {
+    const params = {
+      page: override.page !== undefined ? override.page : currentPage,
+      status: override.status !== undefined ? override.status : currentStatusVal,
+      search: override.search !== undefined ? override.search : currentSearch,
+      startDate: override.startDate !== undefined ? override.startDate : currentStartDate,
+      endDate: override.endDate !== undefined ? override.endDate : currentEndDate,
+    };
+    const parts = [];
+    for (const [k, v] of Object.entries(params)) {
+      if (v !== '' && v !== null && v !== undefined) {
+        parts.push(encodeURIComponent(k) + '=' + encodeURIComponent(v));
+      }
+    }
+    return '/admin/enrollments' + (parts.length ? '?' + parts.join('&') : '');
+  }
+%>
+
 <main
   class="bg-gray-100 min-h-screen px-3 sm:px-4 md:px-6 py-6 w-full md:ml-64 transition-all duration-300"
 >
@@ -24,76 +48,230 @@
 
     <!-- ================= DESKTOP HEADER ================= -->
     <div class="hidden md:flex items-center justify-between mb-6">
-      <h1 class="text-2xl font-semibold text-gray-800">Enrollments</h1>
+      <div>
+        <h1 class="text-2xl font-bold text-gray-800">Enrollments</h1>
+        <p class="text-xs text-gray-500 mt-1">Search, filter, and manage student-tutor class enrollments</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="text-xs font-semibold px-3 py-1.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+          Total: <%= typeof totalEnrollments !== 'undefined' ? totalEnrollments : enrollments.length %> enrollments
+        </span>
+      </div>
     </div>
 
-    <!-- ================= FILTER BAR ================= -->
-    <div class="flex justify-end mb-4">
-      <form action="/admin/enrollments" method="GET" class="w-full md:w-auto flex items-center">
-        <select name="status" class="bg-white border text-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-full" onchange="this.form.submit()">
-          <option value="">All Statuses</option>
-          <option value="PENDING" <%= typeof currentStatus !== 'undefined' && currentStatus === 'PENDING' ? 'selected' : '' %>>Pending</option>
-          <option value="UPCOMING" <%= typeof currentStatus !== 'undefined' && currentStatus === 'UPCOMING' ? 'selected' : '' %>>Upcoming</option>
-          <option value="COMPLETED" <%= typeof currentStatus !== 'undefined' && currentStatus === 'COMPLETED' ? 'selected' : '' %>>Completed</option>
-          <option value="CANCELLED" <%= typeof currentStatus !== 'undefined' && currentStatus === 'CANCELLED' ? 'selected' : '' %>>Cancelled</option>
-        </select>
+    <!-- ================= SEARCH & FILTER BAR ================= -->
+    <div class="bg-white p-4 rounded-xl shadow mb-5 border border-gray-100">
+      <form action="/admin/enrollments" method="GET" class="space-y-3">
+        <!-- Top Row: Search, Status, Submit & Reset -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-center">
+          
+          <!-- Search input (Span 6) -->
+          <div class="relative lg:col-span-6">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+              </svg>
+            </span>
+            <input
+              type="text"
+              name="search"
+              value="<%= currentSearch %>"
+              placeholder="Search student, tutor, email, phone, notes..."
+              class="w-full pl-9 pr-8 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+            <% if (currentSearch) { %>
+              <a
+                href="<%= buildUrl({ search: '', page: 1 }) %>"
+                class="absolute inset-y-0 right-0 flex items-center pr-2.5 text-gray-400 hover:text-gray-600 text-xs"
+                title="Clear search"
+              >
+                ✕
+              </a>
+            <% } %>
+          </div>
+
+          <!-- Status Dropdown (Span 3) -->
+          <div class="lg:col-span-3">
+            <select name="status" class="w-full bg-white border border-gray-300 text-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="">All Statuses</option>
+              <option value="PENDING" <%= currentStatusVal === 'PENDING' ? 'selected' : '' %>>Pending</option>
+              <option value="UPCOMING" <%= currentStatusVal === 'UPCOMING' ? 'selected' : '' %>>Upcoming</option>
+              <option value="COMPLETED" <%= currentStatusVal === 'COMPLETED' ? 'selected' : '' %>>Completed</option>
+              <option value="CANCELLED" <%= currentStatusVal === 'CANCELLED' ? 'selected' : '' %>>Cancelled</option>
+              <option value="MISSED" <%= currentStatusVal === 'MISSED' ? 'selected' : '' %>>Missed</option>
+            </select>
+          </div>
+
+          <!-- Submit & Reset Buttons (Span 3) -->
+          <div class="lg:col-span-3 flex items-center gap-2">
+            <button
+              type="submit"
+              class="flex-1 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm transition shadow-sm flex items-center justify-center gap-1.5"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+              Search
+            </button>
+            <% if (currentSearch || currentStatusVal || currentStartDate || currentEndDate) { %>
+              <a
+                href="/admin/enrollments"
+                class="px-3 py-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-100 transition text-sm font-medium"
+                title="Reset all filters"
+              >
+                Reset
+              </a>
+            <% } %>
+          </div>
+        </div>
+
+        <!-- Bottom Row: Slot Date Range Filter -->
+        <div class="flex flex-wrap items-center gap-3 pt-2.5 border-t border-gray-100 text-xs text-gray-600">
+          <span class="font-semibold text-gray-700 flex items-center gap-1">
+            <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
+            Slot Date Range:
+          </span>
+
+          <div class="flex items-center gap-1.5">
+            <label for="startDate" class="text-gray-500">From:</label>
+            <input
+              type="date"
+              id="startDate"
+              name="startDate"
+              value="<%= currentStartDate %>"
+              class="px-2.5 py-1 border border-gray-300 rounded-lg text-xs bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+            />
+          </div>
+
+          <div class="flex items-center gap-1.5">
+            <label for="endDate" class="text-gray-500">To:</label>
+            <input
+              type="date"
+              id="endDate"
+              name="endDate"
+              value="<%= currentEndDate %>"
+              class="px-2.5 py-1 border border-gray-300 rounded-lg text-xs bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+            />
+          </div>
+
+          <!-- Quick Date Presets -->
+          <div class="flex items-center gap-1 ml-auto">
+            <%
+              const todayStr = new Date().toISOString().slice(0, 10);
+              const sevenDaysLater = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+              const thirtyDaysLater = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+            %>
+            <a href="<%= buildUrl({ page: 1, startDate: todayStr, endDate: todayStr }) %>" class="px-2.5 py-1 rounded bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium transition text-[11px]">Today</a>
+            <a href="<%= buildUrl({ page: 1, startDate: todayStr, endDate: sevenDaysLater }) %>" class="px-2.5 py-1 rounded bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium transition text-[11px]">Next 7 Days</a>
+            <a href="<%= buildUrl({ page: 1, startDate: todayStr, endDate: thirtyDaysLater }) %>" class="px-2.5 py-1 rounded bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium transition text-[11px]">Next 30 Days</a>
+          </div>
+        </div>
       </form>
     </div>
 
+    <!-- Active Filter Badges -->
+    <% if (currentSearch || currentStatusVal || currentStartDate || currentEndDate) { %>
+      <div class="flex flex-wrap items-center gap-2 mb-4 text-xs">
+        <span class="text-gray-500 font-medium">Active Filters:</span>
+        <% if (currentSearch) { %>
+          <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-50 border border-blue-200 text-blue-700 rounded-full font-medium">
+            Search: "<%= currentSearch %>"
+            <a href="<%= buildUrl({ search: '', page: 1 }) %>" class="hover:text-blue-900 font-bold ml-0.5" title="Clear search">&times;</a>
+          </span>
+        <% } %>
+        <% if (currentStatusVal) { %>
+          <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-indigo-50 border border-indigo-200 text-indigo-700 rounded-full font-medium">
+            Status: <%= currentStatusVal %>
+            <a href="<%= buildUrl({ status: '', page: 1 }) %>" class="hover:text-indigo-900 font-bold ml-0.5" title="Clear status">&times;</a>
+          </span>
+        <% } %>
+        <% if (currentStartDate || currentEndDate) { %>
+          <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-full font-medium">
+            Slot Date: <%= currentStartDate || 'Start' %> → <%= currentEndDate || 'End' %>
+            <a href="<%= buildUrl({ startDate: '', endDate: '', page: 1 }) %>" class="hover:text-emerald-900 font-bold ml-0.5" title="Clear date filter">&times;</a>
+          </span>
+        <% } %>
+        <a href="/admin/enrollments" class="text-blue-600 hover:underline font-semibold ml-1">Clear all</a>
+      </div>
+    <% } %>
+
     <!-- ================= ENROLLMENTS TABLE (DESKTOP) ================= -->
-    <div class="hidden md:block bg-white rounded-xl shadow border overflow-x-auto">
+    <div class="hidden md:block bg-white rounded-xl shadow border border-gray-100 overflow-x-auto">
       <table class="min-w-full text-sm text-left">
         <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
           <tr>
             <th class="px-4 py-3">Student</th>
             <th class="px-4 py-3">Tutor</th>
-            <th class="px-4 py-3">Date</th>
+            <th class="px-4 py-3">Slot Date</th>
             <th class="px-4 py-3">Time</th>
             <th class="px-4 py-3">Status</th>
             <th class="px-4 py-3 text-right">Action</th>
           </tr>
         </thead>
 
-        <tbody class="divide-y">
+        <tbody class="divide-y divide-gray-100">
           <% if (!enrollments || !enrollments.length) { %>
           <tr>
-            <td colspan="6" class="px-4 py-8 text-center text-gray-400">
-              No enrollments found
+            <td colspan="6" class="px-4 py-10 text-center text-gray-500">
+              <p class="text-base font-medium">No enrollments found</p>
+              <p class="text-xs text-gray-400 mt-1">Try adjusting your search query, status, or date range.</p>
+              <% if (currentSearch || currentStatusVal || currentStartDate || currentEndDate) { %>
+                <a href="/admin/enrollments" class="mt-3 inline-block px-3.5 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-xs font-semibold hover:bg-blue-100 transition">Reset All Filters</a>
+              <% } %>
             </td>
           </tr>
           <% } %> <% enrollments.forEach(e => { %>
-          <tr class="hover:bg-gray-50">
+          <tr class="hover:bg-gray-50 transition">
+            <!-- Student Cell -->
             <td class="px-4 py-3 font-medium text-gray-800">
-              <%= e.userId ? e.userId.name : '-' %>
-              <div class="text-[10px] text-gray-400"><%= e.userId ? e.userId.email : '' %></div>
+              <div class="font-semibold text-gray-900"><%= e.userId ? e.userId.name : '-' %></div>
+              <div class="text-xs text-gray-500"><%= e.userId ? e.userId.email : '' %></div>
+              <% if (e.userId && e.userId.phone) { %>
+                <div class="text-[11px] text-gray-400 font-mono"><%= e.userId.phone %></div>
+              <% } %>
             </td>
 
-            <td class="px-4 py-3">
-              <%= e.tutorId ? e.tutorId.name : '-' %>
+            <!-- Tutor Cell -->
+            <td class="px-4 py-3 text-gray-700">
+              <div class="font-medium text-gray-900"><%= e.tutorId ? e.tutorId.name : '-' %></div>
+              <div class="text-xs text-gray-500"><%= e.tutorId ? e.tutorId.email : '' %></div>
             </td>
 
-            <td class="px-4 py-3">
-              <%= new Date(e.slot.date).toLocaleDateString() %>
+            <!-- Slot Date Cell -->
+            <td class="px-4 py-3 text-xs text-gray-700 whitespace-nowrap">
+              <div class="font-medium">
+                <%= e.slot && e.slot.date ? new Date(e.slot.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '-' %>
+              </div>
             </td>
 
-            <td class="px-4 py-3 text-xs text-gray-500">
-              <%= e.slot.startTime %> - <%= e.slot.endTime || '' %>
+            <!-- Time Cell -->
+            <td class="px-4 py-3 text-xs text-gray-600 whitespace-nowrap">
+              <span class="px-2 py-0.5 bg-gray-100 rounded text-gray-700 font-mono">
+                <%= e.slot ? e.slot.startTime : '' %> <%= e.slot && e.slot.endTime ? '- ' + e.slot.endTime : '' %>
+              </span>
             </td>
 
+            <!-- Status Cell -->
             <td class="px-4 py-3">
               <span
-                class="px-2 py-1 rounded-full text-[10px] font-bold uppercase <%= e.status === 'COMPLETED' ? 'bg-green-100 text-green-700' : e.status === 'CANCELLED' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700' %>"
+                class="px-2.5 py-1 rounded-full text-xs font-semibold
+                <%= e.status === 'COMPLETED' ? 'bg-green-100 text-green-700' :
+                   e.status === 'CANCELLED' ? 'bg-red-100 text-red-700' :
+                   e.status === 'UPCOMING' ? 'bg-blue-100 text-blue-700' :
+                   e.status === 'MISSED' ? 'bg-gray-100 text-gray-700' :
+                   'bg-yellow-100 text-yellow-700' %>"
               >
                 <%= e.status %>
               </span>
             </td>
 
-            <td class="px-4 py-3 text-right">
+            <!-- Action Cell -->
+            <td class="px-4 py-3 text-right whitespace-nowrap">
               <a
                 href="/admin/enrollments/<%= e._id %>"
-                class="text-blue-600 hover:underline text-sm font-medium"
+                class="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 transition"
               >
-                View
+                View Details
               </a>
             </td>
           </tr>
@@ -105,8 +283,9 @@
     <!-- ================= ENROLLMENTS CARDS (MOBILE) ================= -->
     <div class="md:hidden space-y-4">
       <% if (!enrollments || !enrollments.length) { %>
-        <div class="bg-white rounded-xl border p-8 text-center text-gray-400">
-          No enrollments found
+        <div class="bg-white rounded-xl border p-8 text-center text-gray-500">
+          <p class="text-base font-medium">No enrollments found</p>
+          <a href="/admin/enrollments" class="mt-2 inline-block px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-xs font-semibold hover:bg-blue-100">Reset Filters</a>
         </div>
       <% } else { %>
         <% enrollments.forEach(e => { %>
@@ -114,33 +293,39 @@
             <div class="flex justify-between items-start">
               <div>
                 <p class="font-bold text-gray-800"><%= e.userId ? e.userId.name : '-' %></p>
-                <div class="text-[10px] text-gray-500"><%= e.userId ? e.userId.email : '' %></div>
+                <div class="text-[11px] text-gray-500"><%= e.userId ? e.userId.email : '' %></div>
               </div>
               <span
-                class="px-2 py-1 rounded-full text-[10px] font-bold uppercase <%= e.status === 'COMPLETED' ? 'bg-green-100 text-green-700' : e.status === 'CANCELLED' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700' %>"
+                class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase
+                <%= e.status === 'COMPLETED' ? 'bg-green-100 text-green-700' :
+                   e.status === 'CANCELLED' ? 'bg-red-100 text-red-700' :
+                   e.status === 'UPCOMING' ? 'bg-blue-100 text-blue-700' :
+                   'bg-yellow-100 text-yellow-700' %>"
               >
                 <%= e.status %>
               </span>
             </div>
             
-            <div class="grid grid-cols-2 gap-2 text-xs">
+            <div class="grid grid-cols-2 gap-2 text-xs bg-gray-50 p-2.5 rounded-lg border border-gray-100">
               <div>
                 <p class="text-gray-400 font-bold uppercase text-[9px]">Tutor</p>
-                <p><%= e.tutorId ? e.tutorId.name : '-' %></p>
+                <p class="font-medium text-gray-800"><%= e.tutorId ? e.tutorId.name : '-' %></p>
               </div>
               <div>
-                <p class="text-gray-400 font-bold uppercase text-[9px]">Date</p>
-                <p><%= new Date(e.slot.date).toLocaleDateString() %></p>
+                <p class="text-gray-400 font-bold uppercase text-[9px]">Slot Date</p>
+                <p class="font-medium text-gray-800">
+                  <%= e.slot && e.slot.date ? new Date(e.slot.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '-' %>
+                </p>
               </div>
               <div class="col-span-2">
-                <p class="text-gray-400 font-bold uppercase text-[9px]">Time</p>
-                <p><%= e.slot.startTime %> - <%= e.slot.endTime || '' %></p>
+                <p class="text-gray-400 font-bold uppercase text-[9px]">Slot Time</p>
+                <p class="font-mono text-gray-700"><%= e.slot ? e.slot.startTime : '' %> <%= e.slot && e.slot.endTime ? '- ' + e.slot.endTime : '' %></p>
               </div>
             </div>
 
             <a
               href="/admin/enrollments/<%= e._id %>"
-              class="block w-full text-center bg-gray-50 hover:bg-gray-100 text-blue-600 py-2 rounded-lg text-sm font-medium border"
+              class="block w-full text-center bg-gray-50 hover:bg-gray-100 text-blue-600 py-2 rounded-lg text-xs font-semibold border transition"
             >
               View Details
             </a>
@@ -151,14 +336,14 @@
 
     <!-- ================= PAGINATION ================= -->
     <div class="flex flex-col sm:flex-row items-center justify-between mt-6 gap-4">
-      <p class="text-sm text-gray-600">
-        Showing <span class="font-semibold"><%= enrollments.length > 0 ? ((currentPage - 1) * limit) + 1 : 0 %></span> to <span class="font-semibold"><%= ((currentPage - 1) * limit) + enrollments.length %></span> of <span class="font-semibold"><%= typeof totalEnrollments !== 'undefined' ? totalEnrollments : 0 %></span> results
+      <p class="text-sm text-gray-600 whitespace-nowrap">
+        Showing <span class="font-semibold"><%= typeof enrollments !== 'undefined' && enrollments.length > 0 ? ((currentPage - 1) * limit) + 1 : 0 %></span> to <span class="font-semibold"><%= ((currentPage - 1) * limit) + (typeof enrollments !== 'undefined' ? enrollments.length : 0) %></span> of <span class="font-semibold"><%= typeof totalEnrollments !== 'undefined' ? totalEnrollments : 0 %></span> results
       </p>
 
       <% if (totalPages > 1) { %>
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-1.5 overflow-x-auto pb-2 sm:pb-0">
         <a
-          href="?page=<%= currentPage - 1 %><%= typeof currentStatus !== 'undefined' && currentStatus ? '&status=' + currentStatus : '' %>"
+          href="<%= buildUrl({ page: currentPage - 1 }) %>"
           class="px-3 py-2 rounded-lg border text-sm font-medium <%= currentPage === 1 ? 'pointer-events-none opacity-50 bg-gray-100' : 'hover:bg-gray-100' %>"
         >
           Prev
@@ -170,7 +355,7 @@
         
         if (startPage > 1) { 
         %>
-          <a href="?page=1<%= typeof currentStatus !== 'undefined' && currentStatus ? '&status=' + currentStatus : '' %>" class="px-3 py-2 rounded-lg text-sm font-medium border hover:bg-gray-100">1</a>
+          <a href="<%= buildUrl({ page: 1 }) %>" class="px-3 py-2 rounded-lg text-sm font-medium border hover:bg-gray-100">1</a>
           <% if (startPage > 2) { %>
             <span class="px-2 py-2 text-gray-400">...</span>
           <% } %>
@@ -178,7 +363,7 @@
 
         <% for (let i = startPage; i <= endPage; i++) { %>
         <a
-          href="?page=<%= i %><%= typeof currentStatus !== 'undefined' && currentStatus ? '&status=' + currentStatus : '' %>"
+          href="<%= buildUrl({ page: i }) %>"
           class="px-3 py-2 rounded-lg text-sm font-medium border <%= i === currentPage ? 'bg-blue-600 text-white border-blue-600' : 'hover:bg-gray-100' %>"
         >
           <%= i %>
@@ -189,11 +374,11 @@
           <% if (endPage < totalPages - 1) { %>
             <span class="px-2 py-2 text-gray-400">...</span>
           <% } %>
-          <a href="?page=<%= totalPages %><%= typeof currentStatus !== 'undefined' && currentStatus ? '&status=' + currentStatus : '' %>" class="px-3 py-2 rounded-lg text-sm font-medium border hover:bg-gray-100"><%= totalPages %></a>
+          <a href="<%= buildUrl({ page: totalPages }) %>" class="px-3 py-2 rounded-lg text-sm font-medium border hover:bg-gray-100"><%= totalPages %></a>
         <% } %>
 
         <a
-          href="?page=<%= currentPage + 1 %><%= typeof currentStatus !== 'undefined' && currentStatus ? '&status=' + currentStatus : '' %>"
+          href="<%= buildUrl({ page: currentPage + 1 }) %>"
           class="px-3 py-2 rounded-lg border text-sm font-medium <%= currentPage === totalPages ? 'pointer-events-none opacity-50 bg-gray-100' : 'hover:bg-gray-100' %>"
         >
           Next

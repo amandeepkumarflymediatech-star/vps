@@ -2,96 +2,332 @@
 <%- include('layouts/sidebar') %>
 
 <main
-  class="bg-gray-50 min-h-screen px-3 sm:px-4 md:px-6 py-6
-         w-full md:ml-64 transition-all duration-300"
+  class="bg-gray-50 min-h-screen px-3 sm:px-4 md:px-6 py-6 w-full md:ml-64 transition-all duration-300"
 >
-  <div class="w-full max-w-7xl mx-auto">
+  <div class="w-full max-w-7xl mx-auto space-y-6">
 
     <!-- ================= MOBILE HEADER ================= -->
-    <div class="flex items-center justify-between mb-6 md:hidden">
+    <div class="flex items-center justify-between mb-4 md:hidden">
       <button
         id="menuBtn"
-        class="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600
-               text-white px-3 py-2 rounded-lg shadow text-xl"
+        class="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 text-white px-3 py-2 rounded-lg shadow text-xl"
       >
         ☰
       </button>
 
-      <h1 class="text-lg font-semibold text-gray-800">
-        Dashboard
+      <h1 class="text-lg font-bold text-gray-800">
+        Admin Dashboard
       </h1>
 
       <span
-        class="bg-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-semibold"
+        class="bg-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-semibold"
       >
         Admin
       </span>
     </div>
 
     <!-- ================= DESKTOP HEADER ================= -->
-    <div class="hidden md:flex items-center justify-between mb-8">
-      <h1 class="text-2xl font-bold text-gray-800">
-        Dashboard
-      </h1>
+    <div class="hidden md:flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900">
+          Welcome back, <%= typeof user !== 'undefined' && user.name ? user.name : 'Admin' %> 👋
+        </h1>
+        <p class="text-xs text-gray-500 mt-1">
+          Here is a live summary of your payments, enrollments, users, and packages.
+        </p>
+      </div>
 
       <div class="flex items-center gap-3">
-        <span class="text-sm font-semibold text-gray-600">
-          Welcome, Admin
-        </span>
+        <div class="text-right">
+          <p class="text-xs text-gray-400">Today's Date</p>
+          <p class="text-xs font-bold text-gray-700">
+            <%= new Date().toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' }) %>
+          </p>
+        </div>
+        <a
+          href="/admin/payments"
+          class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow transition flex items-center gap-1.5"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+          View Payments
+        </a>
       </div>
     </div>
 
-    <!-- ================= STATS CARDS ================= -->
-    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+    <!-- ================= PENDING ACTION ALERT ================= -->
+    <% if (typeof stats !== 'undefined' && stats.pendingPaymentsCount > 0) { %>
+      <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
+        <div class="flex items-center gap-3">
+          <span class="p-2 bg-amber-100 text-amber-700 rounded-lg">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+          </span>
+          <div>
+            <h4 class="text-sm font-bold text-amber-900">Pending Payments Require Attention</h4>
+            <p class="text-xs text-amber-700 mt-0.5">
+              You have <span class="font-bold"><%= stats.pendingPaymentsCount %></span> payment(s) pending review and verification.
+            </p>
+          </div>
+        </div>
+        <a
+          href="/admin/payments?status=PENDING"
+          class="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-semibold whitespace-nowrap shadow-sm transition"
+        >
+          Review Pending Payments →
+        </a>
+      </div>
+    <% } %>
 
-      <div class="bg-white rounded-2xl shadow p-5 border">
-        <h3 class="text-sm font-semibold text-gray-500">
-          Total Users
-        </h3>
-        <p class="text-3xl font-bold text-gray-800 mt-2">
-          2,450
-        </p>
+    <!-- ================= DYNAMIC STATS CARDS ================= -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+
+      <!-- Card 1: Total Payment / Revenue -->
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 relative overflow-hidden transition hover:shadow-md">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-500">
+              Total Payments
+            </h3>
+            <p class="text-2xl lg:text-3xl font-extrabold text-emerald-600 mt-2">
+              ₹<%= typeof stats !== 'undefined' ? (stats.totalSuccessfulAmount || 0).toLocaleString('en-IN') : '0' %>
+            </p>
+          </div>
+          <div class="p-3 bg-emerald-50 rounded-xl text-emerald-600">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+        </div>
+
+        <div class="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between text-xs">
+          <span class="text-gray-500">
+            <span class="font-bold text-gray-800"><%= typeof stats !== 'undefined' ? stats.successfulPaymentsCount : 0 %></span> verified (<%= typeof stats !== 'undefined' ? stats.totalPaymentsCount : 0 %> total)
+          </span>
+          <a href="/admin/payments" class="text-emerald-600 hover:text-emerald-800 font-semibold hover:underline">
+            View details →
+          </a>
+        </div>
       </div>
 
-      <div class="bg-white rounded-2xl shadow p-5 border">
-        <h3 class="text-sm font-semibold text-gray-500">
-          Active Today
-        </h3>
-        <p class="text-3xl font-bold text-green-600 mt-2">
-          320
-        </p>
+      <!-- Card 2: Total Users -->
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 relative overflow-hidden transition hover:shadow-md">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-500">
+              Total Users
+            </h3>
+            <p class="text-2xl lg:text-3xl font-extrabold text-blue-600 mt-2">
+              <%= typeof stats !== 'undefined' ? (stats.totalUsers || 0).toLocaleString('en-IN') : '0' %>
+            </p>
+          </div>
+          <div class="p-3 bg-blue-50 rounded-xl text-blue-600">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+            </svg>
+          </div>
+        </div>
+
+        <div class="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between text-xs">
+          <span class="text-gray-500">
+            <span class="font-bold text-gray-800"><%= typeof stats !== 'undefined' ? stats.totalStudents : 0 %></span> Students • <span class="font-bold text-gray-800"><%= typeof stats !== 'undefined' ? stats.totalTutors : 0 %></span> Tutors
+          </span>
+          <a href="/admin/users" class="text-blue-600 hover:text-blue-800 font-semibold hover:underline">
+            Manage →
+          </a>
+        </div>
       </div>
 
-      <div class="bg-white rounded-2xl shadow p-5 border">
-        <h3 class="text-sm font-semibold text-gray-500">
-          Total Courses
-        </h3>
-        <p class="text-3xl font-bold text-blue-600 mt-2">
-          35
-        </p>
+      <!-- Card 3: Total Enrollments -->
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 relative overflow-hidden transition hover:shadow-md">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-500">
+              Class Enrollments
+            </h3>
+            <p class="text-2xl lg:text-3xl font-extrabold text-purple-600 mt-2">
+              <%= typeof stats !== 'undefined' ? (stats.totalEnrollments || 0).toLocaleString('en-IN') : '0' %>
+            </p>
+          </div>
+          <div class="p-3 bg-purple-50 rounded-xl text-purple-600">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
+          </div>
+        </div>
+
+        <div class="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between text-xs">
+          <span class="text-gray-500">
+            <span class="font-bold text-gray-800"><%= typeof stats !== 'undefined' ? stats.upcomingEnrollments : 0 %></span> Upcoming • <span class="font-bold text-gray-800"><%= typeof stats !== 'undefined' ? stats.completedEnrollments : 0 %></span> Done
+          </span>
+          <a href="/admin/enrollments" class="text-purple-600 hover:text-purple-800 font-semibold hover:underline">
+            View →
+          </a>
+        </div>
       </div>
 
-      <div class="bg-white rounded-2xl shadow p-5 border">
-        <h3 class="text-sm font-semibold text-gray-500">
-          Pass Rate
-        </h3>
-        <p class="text-3xl font-bold text-purple-600 mt-2">
-          78%
-        </p>
+      <!-- Card 4: Total Packages -->
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 relative overflow-hidden transition hover:shadow-md">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-500">
+              Course Packages
+            </h3>
+            <p class="text-2xl lg:text-3xl font-extrabold text-indigo-600 mt-2">
+              <%= typeof stats !== 'undefined' ? (stats.totalPackages || 0).toLocaleString('en-IN') : '0' %>
+            </p>
+          </div>
+          <div class="p-3 bg-indigo-50 rounded-xl text-indigo-600">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+            </svg>
+          </div>
+        </div>
+
+        <div class="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between text-xs">
+          <span class="text-gray-500">
+            Active Packages
+          </span>
+          <a href="/admin/packages" class="text-indigo-600 hover:text-indigo-800 font-semibold hover:underline">
+            Manage →
+          </a>
+        </div>
       </div>
 
     </section>
 
-    <!-- ================= CONTENT BOX ================= -->
-    <section class="bg-white rounded-2xl shadow border p-6">
-      <h2 class="text-xl font-semibold text-gray-800 mb-2">
-        Welcome to the Admin Panel 👋
-      </h2>
+    <!-- ================= ACTIVITY TABLES SECTION ================= -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-      <p class="text-gray-600">
-        Use the sidebar to manage users, courses, classes, tests, and results.
-      </p>
-    </section>
+      <!-- Recent Payments -->
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="p-5 border-b border-gray-100 flex items-center justify-between">
+          <div>
+            <h2 class="text-base font-bold text-gray-800">Recent Payments</h2>
+            <p class="text-xs text-gray-400">Latest transactions received</p>
+          </div>
+          <a href="/admin/payments" class="text-xs font-semibold text-blue-600 hover:underline">
+            View All →
+          </a>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="min-w-full text-xs text-left">
+            <thead class="bg-gray-50 text-gray-600 uppercase text-[10px] font-semibold">
+              <tr>
+                <th class="px-4 py-2.5">User</th>
+                <th class="px-4 py-2.5">Amount</th>
+                <th class="px-4 py-2.5">Status</th>
+                <th class="px-4 py-2.5">Date</th>
+                <th class="px-4 py-2.5 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+              <% if (typeof recentPayments !== 'undefined' && recentPayments.length > 0) { %>
+                <% recentPayments.forEach(p => { %>
+                  <tr class="hover:bg-gray-50 transition">
+                    <td class="px-4 py-2.5">
+                      <div class="font-semibold text-gray-800"><%= p.userId ? p.userId.name : '-' %></div>
+                      <div class="text-[10px] text-gray-400"><%= p.userId ? p.userId.email : '' %></div>
+                    </td>
+                    <td class="px-4 py-2.5 font-bold text-gray-900 whitespace-nowrap">
+                      ₹<%= p.amount %>
+                    </td>
+                    <td class="px-4 py-2.5">
+                      <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase
+                        <%= p.status === 'SUCCESS' || p.status === 'VERIFIED' ? 'bg-green-100 text-green-700' :
+                           p.status === 'REJECTED' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700' %>">
+                        <%= p.status %>
+                      </span>
+                    </td>
+                    <td class="px-4 py-2.5 text-gray-500 whitespace-nowrap">
+                      <%= p.createdAt ? new Date(p.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }) : '-' %>
+                    </td>
+                    <td class="px-4 py-2.5 text-right whitespace-nowrap">
+                      <a href="/admin/payments/<%= p._id %>" class="text-blue-600 hover:underline font-semibold">
+                        View
+                      </a>
+                    </td>
+                  </tr>
+                <% }) %>
+              <% } else { %>
+                <tr>
+                  <td colspan="5" class="px-4 py-6 text-center text-gray-400 text-xs">
+                    No recent payments recorded.
+                  </td>
+                </tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Recent Enrollments -->
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="p-5 border-b border-gray-100 flex items-center justify-between">
+          <div>
+            <h2 class="text-base font-bold text-gray-800">Recent Class Enrollments</h2>
+            <p class="text-xs text-gray-400">Latest class bookings</p>
+          </div>
+          <a href="/admin/enrollments" class="text-xs font-semibold text-blue-600 hover:underline">
+            View All →
+          </a>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="min-w-full text-xs text-left">
+            <thead class="bg-gray-50 text-gray-600 uppercase text-[10px] font-semibold">
+              <tr>
+                <th class="px-4 py-2.5">Student</th>
+                <th class="px-4 py-2.5">Tutor</th>
+                <th class="px-4 py-2.5">Slot Date</th>
+                <th class="px-4 py-2.5">Status</th>
+                <th class="px-4 py-2.5 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+              <% if (typeof recentEnrollments !== 'undefined' && recentEnrollments.length > 0) { %>
+                <% recentEnrollments.forEach(e => { %>
+                  <tr class="hover:bg-gray-50 transition">
+                    <td class="px-4 py-2.5">
+                      <div class="font-semibold text-gray-800"><%= e.userId ? e.userId.name : '-' %></div>
+                      <div class="text-[10px] text-gray-400"><%= e.userId ? e.userId.email : '' %></div>
+                    </td>
+                    <td class="px-4 py-2.5 text-gray-700">
+                      <%= e.tutorId ? e.tutorId.name : '-' %>
+                    </td>
+                    <td class="px-4 py-2.5 text-gray-500 whitespace-nowrap">
+                      <div><%= e.slot && e.slot.date ? new Date(e.slot.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }) : '-' %></div>
+                      <div class="text-[10px] text-gray-400 font-mono"><%= e.slot ? e.slot.startTime : '' %></div>
+                    </td>
+                    <td class="px-4 py-2.5">
+                      <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase
+                        <%= e.status === 'COMPLETED' ? 'bg-green-100 text-green-700' :
+                           e.status === 'CANCELLED' ? 'bg-red-100 text-red-700' :
+                           e.status === 'UPCOMING' ? 'bg-blue-100 text-blue-700' : 'bg-yellow-100 text-yellow-700' %>">
+                        <%= e.status %>
+                      </span>
+                    </td>
+                    <td class="px-4 py-2.5 text-right whitespace-nowrap">
+                      <a href="/admin/enrollments/<%= e._id %>" class="text-blue-600 hover:underline font-semibold">
+                        View
+                      </a>
+                    </td>
+                  </tr>
+                <% }) %>
+              <% } else { %>
+                <tr>
+                  <td colspan="5" class="px-4 py-6 text-center text-gray-400 text-xs">
+                    No recent enrollments recorded.
+                  </td>
+                </tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+ 
 
   </div>
 </main>
