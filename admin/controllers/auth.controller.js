@@ -5,6 +5,7 @@ const {
   cleanString,
   getAdminEnvCredentials,
   syncAdminUser,
+  parseDurationToMs,
 } = require("../utils/adminAuthHelper");
 
 const adminLogin = async (req, res) => {
@@ -33,19 +34,25 @@ const adminLogin = async (req, res) => {
       const targetEmail = adminCreds.email || "admin@theenglishraj.com";
       const admin = await syncAdminUser(targetEmail, adminCreds.password);
 
+      const expiresIn = adminCreds.jwtExpiresIn || process.env.JWT_EXPIRES_IN || "7d";
+      const jwtSecret = adminCreds.jwtSecret || process.env.JWT_SECRET || "thisisaverysecuresecretkeyforjwt";
+      const maxAgeMs = parseDurationToMs(expiresIn);
+
       const token = jwt.sign(
         { id: admin._id, role: "ADMIN", organizationId: admin.organizationId },
-        process.env.JWT_SECRET || "thisisaverysecuresecretkeyforjwt",
-        { expiresIn: process.env.JWT_EXPIRES_IN || "7d" },
+        jwtSecret,
+        { expiresIn }
       );
 
       res.cookie("token", token, {
         httpOnly: true,
         secure: false, // true in production
+        maxAge: maxAgeMs,
       });
       res.cookie("admin_token", token, {
         httpOnly: true,
         secure: false,
+        maxAge: maxAgeMs,
       });
 
       req.flash("success", "Welcome Admin!");

@@ -1,15 +1,23 @@
 // middleware/auth.middleware.js
 const jwt = require("jsonwebtoken");
+const { getAdminEnvCredentials } = require("../utils/adminAuthHelper");
 
 const auth = (req, res, next) => {
   try {
     const token = req.cookies?.token;
     if (!token) return res.redirect("/admin/login");
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const adminCreds = getAdminEnvCredentials();
+    const jwtSecret = adminCreds.jwtSecret || process.env.JWT_SECRET || "thisisaverysecuresecretkeyforjwt";
+    const decoded = jwt.verify(token, jwtSecret);
+
     req.user = decoded;
+    res.locals.user = decoded;
+    res.locals.tokenExp = decoded.exp;
     next();
   } catch (err) {
     res.clearCookie("token");
+    res.clearCookie("admin_token");
     return res.render("layouts/alert-redirect", {
       type: "error",
       title: "Session Expired",

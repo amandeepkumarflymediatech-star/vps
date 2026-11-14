@@ -11,13 +11,16 @@ const {
   cleanString,
   getAdminEnvCredentials,
   syncAdminUser,
+  parseDurationToMs,
 } = require("../utils/adminAuthHelper");
 
 router.get("/login", (req, res) => {
   const token = req.cookies?.token;
   if (token) {
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const adminCreds = getAdminEnvCredentials();
+      const jwtSecret = adminCreds.jwtSecret || process.env.JWT_SECRET || "thisisaverysecuresecretkeyforjwt";
+      const decoded = jwt.verify(token, jwtSecret);
       if ((decoded.role || "").toUpperCase() === "ADMIN") {
         return res.redirect("/admin/dashboard");
       } else {
@@ -165,6 +168,10 @@ router.post("/login", async (req, res) => {
     const targetEmail = adminCreds.email || "admin@theenglishraj.com";
     const admin = await syncAdminUser(targetEmail, adminCreds.password);
 
+    const expiresIn = adminCreds.jwtExpiresIn || process.env.JWT_EXPIRES_IN || "7d";
+    const jwtSecret = adminCreds.jwtSecret || process.env.JWT_SECRET || "thisisaverysecuresecretkeyforjwt";
+    const maxAgeMs = parseDurationToMs(expiresIn);
+
     // JWT Token
     const token = jwt.sign(
       {
@@ -172,14 +179,15 @@ router.post("/login", async (req, res) => {
         role: "ADMIN",
         organizationId: admin.organizationId,
       },
-      process.env.JWT_SECRET || "thisisaverysecuresecretkeyforjwt",
-        { expiresIn: process.env.JWT_EXPIRES_IN || "7d" },
+      jwtSecret,
+      { expiresIn }
     );
 
     // Store token in cookie (recommended for EJS)
     res.cookie("token", token, {
       httpOnly: true,
       secure: false, // true in production
+      maxAge: maxAgeMs,
     });
 
     return res.redirect("/admin/dashboard");

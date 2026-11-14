@@ -18,6 +18,7 @@ const config = require("./config/config");
 const app = express();
 const cookieParser = require("cookie-parser");
 const connectDB = require("./config/db");
+const { getAdminEnvCredentials } = require("./utils/adminAuthHelper");
 
 // Session setup: stores session data server-side (default memory store here)
 // In production, replace the default store with a persistent store.
@@ -67,7 +68,9 @@ app.get("/", (req, res) => {
     return res.redirect("/admin/login");
   }
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const adminCreds = getAdminEnvCredentials();
+    const jwtSecret = adminCreds.jwtSecret || process.env.JWT_SECRET || "thisisaverysecuresecretkeyforjwt";
+    const decoded = jwt.verify(token, jwtSecret);
     if ((decoded.role || "").toUpperCase() !== "ADMIN") {
       res.clearCookie("token");
       return res.redirect("/admin/login");

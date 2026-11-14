@@ -15,10 +15,32 @@ function cleanString(str) {
   return cleaned;
 }
 
+function parseDurationToMs(durationStr) {
+  if (!durationStr) return 7 * 24 * 60 * 60 * 1000;
+  if (typeof durationStr === "number") return durationStr * 1000;
+  const str = String(durationStr).trim().toLowerCase();
+  const match = str.match(/^(\d+)([smhdwy]?)$/);
+  if (!match) return 7 * 24 * 60 * 60 * 1000;
+  const val = parseInt(match[1], 10);
+  const unit = match[2];
+  switch (unit) {
+    case "s": return val * 1000;
+    case "m": return val * 60 * 1000;
+    case "h": return val * 60 * 60 * 1000;
+    case "d": return val * 24 * 60 * 60 * 1000;
+    case "w": return val * 7 * 24 * 60 * 60 * 1000;
+    case "y": return val * 365 * 24 * 60 * 60 * 1000;
+    default: return val * 1000;
+  }
+}
+
 function getAdminEnvCredentials() {
   let email = cleanString(process.env.ADMIN_EMAIL);
   let username = cleanString(process.env.ADMIN_USERNAME);
   let password = cleanString(process.env.ADMIN_PASSWORD);
+  let jwtSecret = cleanString(process.env.JWT_SECRET);
+  let sessionSecret = cleanString(process.env.SESSION_SECRET);
+  let jwtExpiresIn = cleanString(process.env.JWT_EXPIRES_IN);
 
   try {
     const envPaths = [
@@ -43,9 +65,11 @@ function getAdminEnvCredentials() {
             if (key === "ADMIN_EMAIL") email = cleanString(val);
             if (key === "ADMIN_USERNAME") username = cleanString(val);
             if (key === "ADMIN_PASSWORD") password = cleanString(val);
+            if (key === "JWT_SECRET") jwtSecret = cleanString(val);
+            if (key === "SESSION_SECRET") sessionSecret = cleanString(val);
+            if (key === "JWT_EXPIRES_IN") jwtExpiresIn = cleanString(val);
           }
         }
-        if (password) break;
       }
     }
   } catch (err) {
@@ -56,6 +80,9 @@ function getAdminEnvCredentials() {
     email: email || "admin@theenglishraj.com",
     username: username || "admin",
     password: password || "admin@123",
+    jwtSecret: jwtSecret || "thisisaverysecuresecretkeyforjwt",
+    sessionSecret: sessionSecret || "supersecretenglishraj",
+    jwtExpiresIn: jwtExpiresIn || "7d",
   };
 }
 
@@ -106,4 +133,5 @@ module.exports = {
   cleanString,
   getAdminEnvCredentials,
   syncAdminUser,
+  parseDurationToMs,
 };

@@ -8,6 +8,7 @@ import {
   cleanString,
   getAdminEnvCredentials,
   syncAdminUser,
+  parseDurationToMs,
 } from "../utils/adminAuthHelper.js";
 
 /* ================= REGISTER ================= */
@@ -315,21 +316,25 @@ export const login = async (req, res) => {
       const targetEmail = adminCreds.email || "admin@theenglishraj.com";
       const adminUser = await syncAdminUser(targetEmail, adminCreds.password);
 
+      const expiresIn = adminCreds.jwtExpiresIn || process.env.JWT_EXPIRES_IN || "7d";
+      const jwtSecret = adminCreds.jwtSecret || process.env.JWT_SECRET || "thisisaverysecuresecretkeyforjwt";
+      const maxAgeMs = parseDurationToMs(expiresIn);
+
       const token = jwt.sign(
         {
           id: adminUser._id,
           role: "ADMIN",
           organizationId: adminUser.organizationId,
         },
-        process.env.JWT_SECRET || "supersecretenglishraj",
-        { expiresIn: process.env.JWT_EXPIRES_IN || "7d" },
+        jwtSecret,
+        { expiresIn },
       );
 
       res.cookie("token", token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-        maxAge: 7 * 24 * 60 * 60 * 1000,
+        maxAge: maxAgeMs,
       });
 
       return res.status(200).json({
