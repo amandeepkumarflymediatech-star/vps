@@ -172,7 +172,7 @@ router.post("/login", async (req, res) => {
         role: "ADMIN",
         organizationId: admin.organizationId,
       },
-      process.env.JWT_SECRET || "supersecretenglishraj",
+      process.env.JWT_SECRET || "thisisaverysecuresecretkeyforjwt",
         { expiresIn: process.env.JWT_EXPIRES_IN || "7d" },
     );
 
