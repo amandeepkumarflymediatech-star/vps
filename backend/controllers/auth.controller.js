@@ -4,6 +4,11 @@ import User from "../models/User.js";
 import Otp from "../models/Otp.js";
 import { generateOtp } from "../utils/generateOtp.js";
 import { sendOtpEmail } from "../utils/sendEmail.js";
+import {
+  cleanString,
+  getAdminEnvCredentials,
+  syncAdminUser,
+} from "../utils/adminAuthHelper.js";
 
 /* ================= REGISTER ================= */
 export const register = async (req, res) => {
@@ -277,16 +282,80 @@ export const login = async (req, res) => {
     const { email: emailRaw, password: passwordRaw, role } = req.body;
 
     // 1️⃣ Validate input
-    if (!emailRaw || !passwordRaw || !role) {
+    if (!emailRaw || !passwordRaw) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and password are required",
+      });
+    }
+
+    const email = cleanString(emailRaw).toLowerCase();
+    const password = String(passwordRaw);
+    const requestedRole = role ? cleanString(role).toUpperCase() : "";
+
+    const adminCreds = getAdminEnvCredentials();
+    const adminEmailClean = adminCreds.email.toLowerCase();
+    const adminUserClean = adminCreds.username.toLowerCase();
+
+    const isAdminAttempt =
+      requestedRole === "ADMIN" ||
+      email === adminEmailClean ||
+      email === adminUserClean ||
+      email === "admin" ||
+      email === "admin@theenglishraj.com";
+
+    if (isAdminAttempt) {
+      if (password !== adminCreds.password) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid credentials",
+        });
+      }
+
+      const targetEmail = adminCreds.email || "admin@theenglishraj.com";
+      const adminUser = await syncAdminUser(targetEmail, adminCreds.password);
+
+      const token = jwt.sign(
+        {
+          id: adminUser._id,
+          role: "ADMIN",
+          organizationId: adminUser.organizationId,
+        },
+        process.env.JWT_SECRET || "supersecretenglishraj",
+        { expiresIn: process.env.JWT_EXPIRES_IN || "7d" },
+      );
+
+      res.cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
+
+      return res.status(200).json({
+        success: true,
+        message: "Login successful",
+        token,
+        user: {
+          id: adminUser._id,
+          name: adminUser.name || "System Admin",
+          email: adminUser.email,
+          phone: adminUser.phone,
+          role: "ADMIN",
+          avatar: adminUser.avatar,
+          isPaymentDone: adminUser.isPaymentDone,
+          organizationId: adminUser.organizationId,
+        },
+      });
+    }
+
+    // Role is required for student/tutor login
+    if (!role) {
       return res.status(400).json({
         success: false,
         message: "Email, password, and role are required",
       });
     }
-
-    const email = emailRaw.toLowerCase().trim();
-    const password = String(passwordRaw);
-    const requestedRole = role.toUpperCase();
 
     // 2️⃣ Find user
     const user = await User.findOne({ email }).select("+password");
@@ -298,11 +367,11 @@ export const login = async (req, res) => {
       });
     }
 
-    // 3️⃣ Block admin login here
+    // 3️⃣ Reject admin account in DB that did not match active .env credentials above
     if (user.role === "ADMIN") {
-      return res.status(403).json({
+      return res.status(400).json({
         success: false,
-        message: "Please use the admin login portal",
+        message: "Invalid credentials",
       });
     }
 

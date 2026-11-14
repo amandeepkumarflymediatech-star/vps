@@ -7,6 +7,11 @@ const CoursePackage = require("../models/coursePackage");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { auth, role } = require("../middlewares/auth.middleware");
+const {
+  cleanString,
+  getAdminEnvCredentials,
+  syncAdminUser,
+} = require("../utils/adminAuthHelper");
 
 router.get("/login", (req, res) => {
   const token = req.cookies?.token;
@@ -139,38 +144,49 @@ router.get("/dashboard", auth, role("ADMIN"), async (req, res) => {
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
-  const normalizedEmail = (email || "").trim().toLowerCase();
-  const admin = await User.findOne({
-    email: { $regex: new RegExp(`^${normalizedEmail}$`, "i") },
-    role: { $in: ["ADMIN", "admin"] },
-  });
-  if (!admin) {
-    return res.render("adminlogin", { error: "Admin not found" });
+  const inputEmail = cleanString(email).toLowerCase();
+  const inputPass = cleanString(password);
+
+  const adminCreds = getAdminEnvCredentials();
+  const adminEmailClean = adminCreds.email.toLowerCase();
+  const adminUserClean = adminCreds.username.toLowerCase();
+
+  const isAdminAttempt =
+    inputEmail === adminEmailClean ||
+    inputEmail === adminUserClean ||
+    inputEmail === "admin" ||
+    inputEmail === "admin@theenglishraj.com";
+
+  if (isAdminAttempt) {
+    if (inputPass !== adminCreds.password) {
+      return res.render("adminlogin", { error: "Invalid credentials" });
+    }
+
+    const targetEmail = adminCreds.email || "admin@theenglishraj.com";
+    const admin = await syncAdminUser(targetEmail, adminCreds.password);
+
+    // JWT Token
+    const token = jwt.sign(
+      {
+        id: admin._id,
+        role: "ADMIN",
+        organizationId: admin.organizationId,
+      },
+      process.env.JWT_SECRET || "supersecretenglishraj",
+      { expiresIn: "1d" }
+    );
+
+    // Store token in cookie (recommended for EJS)
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: false, // true in production
+    });
+
+    return res.redirect("/admin/dashboard");
   }
 
-  const isMatch = await bcrypt.compare(password, admin.password);
-  if (!isMatch) {
-    return res.render("adminlogin", { error: "Invalid credentials" });
-  }
-
-  // JWT Token
-  const token = jwt.sign(
-    {
-      id: admin._id,
-      role: (admin.role || "ADMIN").toUpperCase(),
-      organizationId: admin.organizationId,
-    },
-    process.env.JWT_SECRET,
-    { expiresIn: "1d" }
-  );
-
-  // Store token in cookie (recommended for EJS)
-  res.cookie("token", token, {
-    httpOnly: true,
-    secure: false, // true in production
-  });
-
-  return res.redirect("/admin/dashboard");
+  // Reject if not matching active .env admin authority
+  return res.render("adminlogin", { error: "Invalid credentials" });
 });
 
 module.exports = router;
