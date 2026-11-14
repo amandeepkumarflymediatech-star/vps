@@ -36,7 +36,7 @@ const adminLogin = async (req, res) => {
       const token = jwt.sign(
         { id: admin._id, role: "ADMIN", organizationId: admin.organizationId },
         process.env.JWT_SECRET || "supersecretenglishraj",
-        { expiresIn: "1d" }
+        { expiresIn: process.env.JWT_EXPIRES_IN || "7d" },
       );
 
       res.cookie("token", token, {

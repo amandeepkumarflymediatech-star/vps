@@ -173,7 +173,7 @@ router.post("/login", async (req, res) => {
         organizationId: admin.organizationId,
       },
       process.env.JWT_SECRET || "supersecretenglishraj",
-      { expiresIn: "1d" }
+        { expiresIn: process.env.JWT_EXPIRES_IN || "7d" },
     );
 
     // Store token in cookie (recommended for EJS)
